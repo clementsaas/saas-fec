@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS FEC - Sélection de société</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .selector-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .app-title {
+            font-size: 28px;
+            font-weight: 300;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .app-subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .societes-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .societe-item {
+            padding: 15px 20px;
+            border: 1px solid #f0f0f0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fafafa;
+        }
+
+        .societe-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .societe-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .societe-info {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .no-results {
+            padding: 40px 20px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            margin-left: 15px;
+        }
+
+        .logout-btn:hover {
+            opacity: 1;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .selector-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+
+            .user-info {
+                position: static;
+                text-align: center;
+                margin-bottom: 20px;
+                color: #333;
+            }
+
+            .logout-btn {
+                color: #667eea;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="user-info">
+        Bonjour {{ current_user.prenom }} !
+        <a href="/logout" class="logout-btn">Déconnexion</a>
+    </div>
+
+    <div class="selector-container">
+        <div class="logo-container">
+            <!-- Logo Lune SVG -->
+            <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="moonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <path d="M50 10 C70 10, 85 25, 85 45 C85 65, 70 80, 50 80 C35 80, 25 70, 25 50 C25 35, 35 20, 50 10 Z"
+                      fill="url(#moonGradient)" />
+            </svg>
+
+            <h1 class="app-title">SaaS FEC</h1>
+            <p class="app-subtitle">Automatisation des règles d'affectation comptable</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput"
+                   placeholder="Rechercher une société..."
+                   autocomplete="off">
+            <i class="search-icon">🔍</i>
+        </div>
+
+        <div class="societes-list" id="societesList">
+            {% for societe in societes %}
+            <div class="societe-item" data-id="{{ societe.id }}"
+                 data-nom="{{ societe.nom|lower }}"
+                 onclick="selectionnerSociete({{ societe.id }})">
+                <div class="societe-name">{{ societe.nom }}</div>
+                <div class="societe-info">
+                    {% if societe.siret %}
+                        SIRET: {{ societe.siret }}
+                    {% endif %}
+                    {% if societe.date_debut_exercice and societe.date_fin_exercice %}
+                        • Exercice: {{ societe.date_debut_exercice.strftime('%d/%m/%Y') }} - {{ societe.date_fin_exercice.strftime('%d/%m/%Y') }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="no-results d-none" id="noResults">
+            <p>Aucune société trouvée</p>
+            <small>Vérifiez l'orthographe ou <a href="/import-fec">créez une nouvelle société</a></small>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const societesList = document.getElementById('societesList');
+        const noResults = document.getElementById('noResults');
+        const societeItems = document.querySelectorAll('.societe-item');
+
+        // Recherche en temps réel
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            societeItems.forEach(item => {
+                const nom = item.dataset.nom;
+                const isVisible = nom.includes(searchTerm);
+
+                item.style.display = isVisible ? 'block' : 'none';
+                if (isVisible) visibleCount++;
+            });
+
+            // Afficher/masquer le message "aucun résultat"
+            if (visibleCount === 0 && searchTerm !== '') {
+                societesList.style.display = 'none';
+                noResults.classList.remove('d-none');
+            } else {
+                societesList.style.display = 'block';
+                noResults.classList.add('d-none');
+            }
+        });
+
+        // Focus automatique sur la recherche
+        searchInput.focus();
+
+        // Navigation clavier
+        let selectedIndex = -1;
+        const visibleItems = () => Array.from(societeItems).filter(item => item.style.display !== 'none');
+
+        searchInput.addEventListener('keydown', function(e) {
+            const visible = visibleItems();
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, visible.length - 1);
+                updateSelection(visible);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection(visible);
+            } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                e.preventDefault();
+                const selectedItem = visible[selectedIndex];
+                const societeId = selectedItem.dataset.id;
+                selectionnerSociete(parseInt(societeId));
+            }
+        });
+
+        function updateSelection(visible) {
+            // Retirer la sélection précédente
+            visible.forEach(item => item.style.background = '');
+
+            // Appliquer la nouvelle sélection
+            if (selectedIndex >= 0 && visible[selectedIndex]) {
+                visible[selectedIndex].style.background = '#667eea';
+                visible[selectedIndex].style.color = 'white';
+            }
+        }
+
+        function selectionnerSociete(societeId) {
+            // Animation de chargement
+            document.body.style.opacity = '0.7';
+            document.body.style.pointerEvents = 'none';
+
+            // Redirection vers la page de la société
+            window.location.href = `/societe/${societeId}`;
+        }
+
+        // Animation d'entrée
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.selector-container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                container.style.transition = 'all 0.5s ease';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

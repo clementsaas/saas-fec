@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Import FEC - SaaS FEC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>📁 Import de fichier FEC</h1>
+        <p class="lead">Uploadez votre fichier FEC pour extraire automatiquement les écritures bancaires (comptes 512*).</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">🔄 Sélectionner le fichier FEC</h5>
+            </div>
+            <div class="card-body">
+                <form id="uploadForm" method="POST" enctype="multipart/form-data">
+                    <!-- Informations de la société -->
+                    <div class="mb-3">
+                        <label for="societe_nom" class="form-label">Nom de la société</label>
+                        <input type="text" class="form-control" id="societe_nom" name="societe_nom" required
+                               placeholder="Ex: Entreprise ABC SARL">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date_debut" class="form-label">Début d'exercice</label>
+                            <input type="date" class="form-control" id="date_debut" name="date_debut">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="date_fin" class="form-label">Fin d'exercice</label>
+                            <input type="date" class="form-control" id="date_fin" name="date_fin">
+                        </div>
+                    </div>
+
+                    <!-- Zone de drag & drop -->
+                    <div class="mb-3">
+                        <label class="form-label">Fichier FEC</label>
+                        <div id="dropZone" class="border-2 border-dashed rounded p-5 text-center"
+                             style="border-color: #dee2e6; background-color: #f8f9fa;">
+                            <div id="dropContent">
+                                <i class="fs-1 text-muted">📁</i>
+                                <h5 class="mt-3">Glissez votre fichier FEC ici</h5>
+                                <p class="text-muted">ou <span class="text-primary" style="cursor: pointer;" id="browseBtn">cliquez pour parcourir</span></p>
+                                <small class="text-muted">Formats acceptés : .txt, .csv (max 100 MB)</small>
+                            </div>
+                            <div id="fileInfo" class="d-none">
+                                <i class="fs-1 text-success">✅</i>
+                                <h5 class="mt-3" id="fileName"></h5>
+                                <p class="text-muted" id="fileSize"></p>
+                            </div>
+                        </div>
+                        <input type="file" id="fileInput" name="fec_file" accept=".txt,.csv" class="d-none">
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" id="uploadBtn" class="btn btn-primary btn-lg" disabled>
+                            📤 Analyser et importer le FEC
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">ℹ️ Informations</h6>
+            </div>
+            <div class="card-body">
+                <h6>Format FEC attendu :</h6>
+                <ul class="small">
+                    <li>18 colonnes obligatoires</li>
+                    <li>Séparateurs : virgule, point-virgule ou tabulation</li>
+                    <li>Encodage : UTF-8 ou ISO-8859-1</li>
+                </ul>
+
+                <h6 class="mt-3">Traitement automatique :</h6>
+                <ul class="small">
+                    <li>✅ Détection de l'encodage</li>
+                    <li>✅ Extraction des comptes 512*</li>
+                    <li>✅ Regroupement des écritures</li>
+                    <li>✅ Calcul des contreparties</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Gestion du drag & drop
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const browseBtn = document.getElementById('browseBtn');
+const uploadBtn = document.getElementById('uploadBtn');
+const dropContent = document.getElementById('dropContent');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+
+// Clic pour parcourir
+browseBtn.addEventListener('click', () => fileInput.click());
+
+// Drag & drop events
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#007bff';
+    dropZone.style.backgroundColor = '#e3f2fd';
+});
+
+dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#dee2e6';
+    dropZone.style.backgroundColor = '#f8f9fa';
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#dee2e6';
+    dropZone.style.backgroundColor = '#f8f9fa';
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        handleFile(files[0]);
+    }
+});
+
+// Sélection de fichier
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+    }
+});
+
+function handleFile(file) {
+    // Vérifier le type de fichier
+    const allowedTypes = ['.txt', '.csv'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+
+    if (!allowedTypes.includes(fileExtension)) {
+        alert('Type de fichier non autorisé. Utilisez .txt ou .csv');
+        return;
+    }
+
+    // Vérifier la taille (100 MB max)
+    if (file.size > 100 * 1024 * 1024) {
+        alert('Fichier trop volumineux (max 100 MB)');
+        return;
+    }
+
+    // Afficher les informations du fichier
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
+
+    dropContent.classList.add('d-none');
+    fileInfo.classList.remove('d-none');
+    uploadBtn.disabled = false;
+
+    // Assigner le fichier à l'input
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+</script>
+{% endblock %}

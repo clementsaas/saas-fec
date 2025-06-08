@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Règles d'affectation - SaaS FEC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>📋 Règles d'affectation</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/dashboard">Tableau de bord</a></li>
+                {% if fec_file %}
+                <li class="breadcrumb-item"><a href="/fec/{{ fec_file.id }}">{{ fec_file.nom_original }}</a></li>
+                {% endif %}
+                <li class="breadcrumb-item active">Règles</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        {% if regles %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">⚙️ Règles configurées ({{ regles|length }})</h5>
+                {% if fec_file %}
+                <a href="/regles/nouvelle?fec_id={{ fec_file.id }}" class="btn btn-success">
+                    ✨ Créer une nouvelle règle
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nom de la règle</th>
+                                <th>Mots-clés</th>
+                                <th>Journal</th>
+                                <th>Compte destination</th>
+                                <th>Couverture</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for regle in regles %}
+                            <tr id="regle-{{ regle.id }}">
+                                <td>
+                                    <strong>{{ regle.nom }}</strong><br>
+                                    <small class="text-muted">Créé le {{ regle.created_at.strftime('%d/%m/%Y') }}</small>
+                                </td>
+                                <td>
+                                    {% for mot_cle in regle.mots_cles %}
+                                        <span class="badge bg-primary me-1">{{ mot_cle }}</span>
+                                    {% endfor %}
+                                    {% if regle.criteres_montant %}
+                                    <br><small class="text-muted">
+                                        Montant {{ regle.criteres_montant.operateur }} {{ regle.criteres_montant.valeur }} €
+                                    </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if regle.journal_code %}
+                                        <span class="badge bg-info">{{ regle.journal_code }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Tous</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <code>{{ regle.compte_destination }}</code><br>
+                                    <small class="text-muted">{{ regle.libelle_destination }}</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress me-2" style="width: 100px; height: 8px;">
+                                            <div class="progress-bar bg-success"
+                                                 style="width: {{ regle.pourcentage_couverture_total }}%"></div>
+                                        </div>
+                                        <small>
+                                            <strong>{{ regle.pourcentage_couverture_total }}%</strong><br>
+                                            <span class="text-muted">{{ regle.nb_transactions_couvertes }} trans.</span>
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if regle.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="testerRegle({{ regle.id }})">
+                                            🔬 Tester
+                                        </button>
+                                        <button class="btn btn-outline-danger" onclick="supprimerRegle({{ regle.id }}, '{{ regle.nom }}')">
+                                            🗑️ Supprimer
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <h5 class="text-muted">Aucune règle d'affectation configurée</h5>
+                <p class="text-muted">
+                    Créez votre première règle pour automatiser l'affectation de vos transactions bancaires.
+                </p>
+                {% if fec_file %}
+                <a href="/regles/nouvelle?fec_id={{ fec_file.id }}" class="btn btn-success mt-3">
+                    ✨ Créer ma première règle
+                </a>
+                {% else %}
+                <a href="/import-fec" class="btn btn-primary mt-3">
+                    📁 Importer un fichier FEC d'abord
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de test de règle -->
+<div class="modal fade" id="testRegleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🔬 Test de la règle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="testRegleContent">
+                <!-- Contenu du test sera injecté ici -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testerRegle(regleId) {
+    // TODO: Implémenter le test de règle
+    alert('Fonctionnalité de test - À implémenter !');
+}
+
+function supprimerRegle(regleId, nomRegle) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer la règle "${nomRegle}" ?`)) {
+        fetch(`/regles/${regleId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                // Supprimer la ligne du tableau
+                document.getElementById(`regle-${regleId}`).remove();
+
+                // Si plus de règles, afficher le message vide
+                const tbody = document.querySelector('tbody');
+                if (tbody.children.length === 0) {
+                    location.reload();
+                }
+            } else {
+                alert('❌ Erreur lors de la suppression : ' + result.error);
+            }
+        })
+        .catch(error => {
+            alert('❌ Erreur de communication : ' + error);
+        });
+    }
+}
+</script>
+{% endblock %}

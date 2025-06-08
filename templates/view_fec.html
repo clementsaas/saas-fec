@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Fichier FEC - {{ fec_file.nom_original }} - SaaS FEC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>📁 {{ fec_file.nom_original }}</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/dashboard">Tableau de bord</a></li>
+                <li class="breadcrumb-item"><a href="/import-fec">Import FEC</a></li>
+                <li class="breadcrumb-item active">{{ fec_file.nom_original }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📊 Statistiques du fichier</h5>
+                <span class="badge bg-success">{{ fec_file.nb_lignes_bancaires }} écritures bancaires</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Taille :</strong><br>
+                        <span class="text-muted">{{ "%.1f"|format(fec_file.taille_fichier / 1024) }} KB</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Lignes total :</strong><br>
+                        <span class="text-muted">{{ fec_file.nb_lignes_total }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Encodage :</strong><br>
+                        <span class="text-muted">{{ fec_file.encodage_detecte }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Import :</strong><br>
+                        <span class="text-muted">{{ fec_file.date_import.strftime('%d/%m/%Y %H:%M') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">⚙️ Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+<a href="/regles/nouvelle?fec_id={{ fec_file.id }}" class="btn btn-success">
+    ✨ Créer une règle d'affectation
+</a>
+<a href="/regles/liste?fec_id={{ fec_file.id }}" class="btn btn-outline-primary">
+    📋 Voir les règles existantes
+</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">🏦 Écritures bancaires (comptes 512*)</h5>
+                <div>
+                    <small class="text-muted">{{ ecritures|length }} résultats</small>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Filtres rapides -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="searchLibelle"
+                               placeholder="🔍 Filtrer par libellé...">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-control" id="filterJournal">
+                            <option value="">Tous les journaux</option>
+                            {% for journal in journaux %}
+                            <option value="{{ journal.journal_code }}">{{ journal.journal_code }} - {{ journal.journal_lib }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-control" id="filterSens">
+                            <option value="">Débit/Crédit</option>
+                            <option value="D">Débit</option>
+                            <option value="C">Crédit</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                            🔄 Effacer les filtres
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tableau des écritures -->
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="ecrituresTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Journal</th>
+                                <th>N° Écriture</th>
+                                <th>Libellé</th>
+                                <th>Compte final</th>
+                                <th>Sens</th>
+                                <th>Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ecrituresBody">
+                            {% for ecriture in ecritures %}
+                            <tr data-journal="{{ ecriture.journal_code }}"
+                                data-sens="{{ ecriture.sens }}"
+                                data-libelle="{{ ecriture.ecriture_lib|lower }}">
+                                <td>{{ ecriture.ecriture_date.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ ecriture.journal_code }}</span><br>
+                                    <small class="text-muted">{{ ecriture.journal_lib }}</small>
+                                </td>
+                                <td>{{ ecriture.ecriture_num }}</td>
+                                <td>
+                                    <strong>{{ ecriture.ecriture_lib }}</strong>
+                                    {% if ecriture.piece_ref %}
+                                    <br><small class="text-muted">Réf: {{ ecriture.piece_ref }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <code>{{ ecriture.compte_final }}</code><br>
+                                    <small class="text-muted">{{ ecriture.libelle_final }}</small>
+                                </td>
+                                <td>
+                                    {% if ecriture.sens == 'D' %}
+                                    <span class="badge bg-danger">Débit</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Crédit</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <strong>{{ "%.2f"|format(ecriture.montant) }} €</strong>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Filtrage en temps réel
+function filterTable() {
+    const searchLibelle = document.getElementById('searchLibelle').value.toLowerCase();
+    const filterJournal = document.getElementById('filterJournal').value;
+    const filterSens = document.getElementById('filterSens').value;
+
+    const rows = document.querySelectorAll('#ecrituresBody tr');
+
+    rows.forEach(row => {
+        const libelle = row.getAttribute('data-libelle');
+        const journal = row.getAttribute('data-journal');
+        const sens = row.getAttribute('data-sens');
+
+        let show = true;
+
+        // Filtre libellé
+        if (searchLibelle && !libelle.includes(searchLibelle)) {
+            show = false;
+        }
+
+        // Filtre journal
+        if (filterJournal && journal !== filterJournal) {
+            show = false;
+        }
+
+        // Filtre sens
+        if (filterSens && sens !== filterSens) {
+            show = false;
+        }
+
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+function clearFilters() {
+    document.getElementById('searchLibelle').value = '';
+    document.getElementById('filterJournal').value = '';
+    document.getElementById('filterSens').value = '';
+    filterTable();
+}
+
+// Événements de filtrage
+document.getElementById('searchLibelle').addEventListener('input', filterTable);
+document.getElementById('filterJournal').addEventListener('change', filterTable);
+document.getElementById('filterSens').addEventListener('change', filterTable);
+</script>
+{% endblock %}

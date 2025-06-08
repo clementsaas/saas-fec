@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ societe.nom }} - SaaS FEC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9ff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header-bar {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .company-selector {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dropdown-arrow {
+            font-size: 14px;
+            color: #666;
+            transition: transform 0.2s ease;
+        }
+
+        .company-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            min-width: 400px;
+            max-height: 400px;
+            overflow: hidden;
+            z-index: 1001;
+            display: none;
+        }
+
+        .dropdown-search {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dropdown-search input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .dropdown-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .dropdown-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9ff;
+        }
+
+        .dropdown-item.current {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .automation-info {
+            color: #2196f3;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-action {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .btn-nouveau { background: #4caf50; color: white; }
+        .btn-nouveau:hover { background: #45a049; }
+
+        .btn-secondary { background: #f5f5f5; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 350px 1fr 400px;
+            gap: 20px;
+            padding: 20px;
+            height: calc(100vh - 80px);
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .compte-item {
+            padding: 15px 18px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+        }
+
+        .compte-item:hover {
+            background: #f8f9ff;
+        }
+
+        .compte-item.selected {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .compte-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .compte-number {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .compte-percentage {
+            font-weight: bold;
+            color: #2196f3;
+            font-size: 14px;
+        }
+
+        .compte-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 8px 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .stat-afaire {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .stat-traite {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .filter-section {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .filter-group label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .filter-input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .transaction-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .transaction-item:hover {
+            background: #fafafa;
+        }
+
+        .transaction-libelle {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .keyword-highlight {
+            background: #2196f3;
+            color: white;
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        .transaction-meta {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 6px;
+        }
+
+        .transaction-montant {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .montant-positif { color: #4caf50; }
+        .montant-negatif { color: #f44336; }
+
+        .rules-panel {
+            padding: 16px;
+        }
+
+        .impact-display {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .impact-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2196f3;
+            margin-bottom: 4px;
+        }
+
+        .impact-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .create-rule-btn {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .create-rule-btn:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+
+        .collision-info {
+            font-size: 12px;
+            text-align: center;
+            color: #ff9800;
+            font-weight: 600;
+        }
+
+        /* Modal pour upload FEC */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .upload-zone {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #fafafa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-zone.dragover {
+            border-color: #2196f3;
+            background: #f0f8ff;
+        }
+
+        .upload-zone:hover {
+            border-color: #2196f3;
+            background: #f8f9ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .panel {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-bar">
+        <div class="company-selector" onclick="toggleCompanyDropdown()">
+            <div class="company-name">
+                {{ societe.nom }}
+                <span class="dropdown-arrow">▼</span>
+            </div>
+            <div class="company-dropdown" id="companyDropdown">
+                <div class="dropdown-search">
+                    <input type="text" placeholder="Rechercher une société..." id="companySearch"
+                           oninput="filterCompanies()" onclick="event.stopPropagation()">
+                </div>
+                <div class="dropdown-list" id="companyList">
+                    {% for soc in toutes_societes %}
+                    <div class="dropdown-item {% if soc.id == societe.id %}current{% endif %}"
+                         onclick="changerSociete({{ soc.id }})"
+                         data-nom="{{ soc.nom|lower }}">
+                        <strong>{{ soc.nom }}</strong>
+                        {% if soc.siret %}<br><small>{{ soc.siret }}</small>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="automation-info">
+            Automatisation globale : {{ automatisation_globale }}%
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-action btn-nouveau" onclick="nouveauFEC()">
+                + Nouveau FEC
+            </button>
+            <button class="btn-action btn-secondary" onclick="importerRegles()">
+                Importer
+            </button>
+            <button class="btn-action btn-secondary" onclick="exporterRegles()">
+                Exporter
+            </button>
+            <button class="btn-action btn-secondary" onclick="voirListeRegles()">
+                Liste des règles
+            </button>
+        </div>
+    </div>
+
+    <!-- Interface principale -->
+    <div class="main-container">
+        <!-- GAUCHE : Comptes -->
+        <div class="panel">
+            <div class="panel-header">
+                Compte • % Transaction • À faire • Traité
+            </div>
+            <div class="panel-body">
+                {% for compte in comptes_statistiques %}
+                <div class="compte-item" data-compte="{{ compte.compte }}" onclick="selectionnerCompte('{{ compte.compte }}')">
+                    <div class="compte-header">
+                        <span class="compte-number">{{ compte.compte }}</span>
+                        <span class="compte-percentage">{{ compte.pourcentage_total }}%</span>
+                    </div>
+
+                    <div class="compte-stats">
+                        <div class="stat-box stat-afaire">
+                            {{ compte.pourcentage_a_faire }}%<br>
+                            <small>À faire</small>
+                        </div>
+                        <div class="stat-box stat-traite">
+                            {{ compte.pourcentage_traite }}%<br>
+                            <small>Traité</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- CENTRE : Transactions -->
+        <div class="panel">
+            <div class="panel-header">
+                Libellés des transactions • Montant
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label>Banque</label>
+                        <select class="filter-input" id="filter-banque" onchange="filtrerTransactions()">
+                            <option value="">Toutes</option>
+                            {% for journal in journaux %}
+                            <option value="{{ journal.journal_code }}">{{ journal.journal_code }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Montant</label>
+                        <div style="display: flex; gap: 4px;">
+                            <select class="filter-input" id="montant-operateur" style="width: 50px;" onchange="filtrerTransactions()">
+                                <option value="">=</option>
+                                <option value="!=">≠</option>
+                                <option value="<"><</option>
+                                <option value=">">></option>
+                                <option value="<=">≤</option>
+                                <option value=">=">≥</option>
+                            </select>
+                            <input type="number" class="filter-input" id="montant-valeur" placeholder="0" onchange="filtrerTransactions()">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Recherche de mot-clés</label>
+                        <input type="text" class="filter-input" id="search-keywords"
+                               placeholder="Tapez ici..." oninput="filtrerTransactions()">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <small style="color: #666;">
+                        <span id="transactions-count">0</span> transactions •
+                        <span id="transactions-total">0 €</span>
+                    </small>
+                    <button style="background: none; border: 1px solid #ddd; border-radius: 4px; padding: 4px 8px; font-size: 11px;"
+                            onclick="viderFiltres()">🔄 Vider</button>
+                </div>
+            </div>
+
+            <div class="panel-body" id="transactions-container">
+                <div style="padding: 40px; text-align: center; color: #999;">
+                    Sélectionnez un compte pour voir les transactions
+                </div>
+            </div>
+        </div>
+
+        <!-- DROITE : Règles -->
+        <div class="panel">
+            <div class="panel-header">
+                Banque • Montant • Impact potentiel
+            </div>
+
+            <div class="rules-panel">
+                <div class="filter-grid" style="margin-bottom: 20px;">
+                    <div class="filter-group">
+                        <label>Banque</label>
+                        <div class="filter-input" style="padding: 8px; background: #f8f9fa; color: #666;" id="display-banque">
+                            Toutes
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Montant</label>
+                        <div class="filter-input" style="padding: 8px; background: #f8f9fa; color: #666;" id="display-montant">
+                            Tous
+                        </div>
+                    </div>
+
+                    <div style="grid-column: span 3;">
+                        <div class="impact-display">
+                            <div class="impact-value" id="impact-percentage">0%</div>
+                            <div class="impact-label">Impact potentiel</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="create-rule-btn" onclick="creerNouvelleRegle()">
+                    + Créer une nouvelle règle
+                </button>
+
+                <div class="collision-info">
+                    Collision : <span id="collision-percentage">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Upload FEC -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📁 Nouveau fichier FEC</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📁</div>
+                        <h5>Glissez votre fichier FEC ici</h5>
+                        <p class="text-muted">ou cliquez pour parcourir</p>
+                        <small class="text-muted">Formats acceptés : .txt, .csv (max 100 MB)</small>
+                    </div>
+                    <input type="file" id="fileInput" accept=".txt,.csv" style="display: none;" onchange="handleFileSelect(this.files)">
+
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress">
+                            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                        </div>
+                        <small id="progressText">Traitement en cours...</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Données JavaScript
+        const societeId = {{ societe.id }};
+        let toutesEcritures = {{ ecritures_json|safe }};
+        let ecrituresFiltered = [];
+        let compteSelectionne = null;
+
+        // Gestion du dropdown société
+        function toggleCompanyDropdown() {
+            const dropdown = document.getElementById('companyDropdown');
+            const arrow = document.querySelector('.dropdown-arrow');
+
+            if (dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+            } else {
+                dropdown.style.display = 'block';
+                arrow.style.transform = 'rotate(180deg)';
+                document.getElementById('companySearch').focus();
+            }
+        }
+
+        function filterCompanies() {
+            const search = document.getElementById('companySearch').value.toLowerCase();
+            const items = document.querySelectorAll('#companyList .dropdown-item');
+
+            items.forEach(item => {
+                const nom = item.dataset.nom;
+                item.style.display = nom.includes(search) ? 'block' : 'none';
+            });
+        }
+
+        function changerSociete(societeId) {
+            window.location.href = `/societe/${societeId}`;
+        }
+
+        // Fermer dropdown en cliquant ailleurs
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.company-selector')) {
+                document.getElementById('companyDropdown').style.display = 'none';
+                document.querySelector('.dropdown-arrow').style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // Gestion des comptes et transactions
+        function selectionnerCompte(compte) {
+            document.querySelectorAll('.compte-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            document.querySelector(`[data-compte="${compte}"]`).classList.add('selected');
+
+            compteSelectionne = compte;
+            filtrerTransactions();
+        }
+
+        function filtrerTransactions() {
+            if (!compteSelectionne) return;
+
+            const banque = document.getElementById('filter-banque').value;
+            const montantOp = document.getElementById('montant-operateur').value;
+            const montantVal = parseFloat(document.getElementById('montant-valeur').value) || null;
+            const keywords = document.getElementById('search-keywords').value.toLowerCase();
+
+            // Mettre à jour l'affichage des filtres dans le panel de droite
+            document.getElementById('display-banque').textContent = banque || 'Toutes';
+            document.getElementById('display-montant').textContent =
+                montantOp && montantVal !== null ? `${montantOp} ${montantVal}` : 'Tous';
+
+            // Filtrer les écritures
+            let ecritures = toutesEcritures.filter(e =>
+                e.compte_contrepartie === compteSelectionne && !e.couverte_par_regle
+            );
+
+            if (banque) ecritures = ecritures.filter(e => e.journal_code === banque);
+            if (keywords) ecritures = ecritures.filter(e => e.ecriture_lib.toLowerCase().includes(keywords));
+
+            if (montantOp && montantVal !== null) {
+                ecritures = ecritures.filter(e => {
+                    const montant = Math.abs(e.montant);
+                    switch (montantOp) {
+                        case '=': return montant === montantVal;
+                        case '!=': return montant !== montantVal;
+                        case '<': return montant < montantVal;
+                        case '>': return montant > montantVal;
+                        case '<=': return montant <= montantVal;
+                        case '>=': return montant >= montantVal;
+                        default: return true;
+                    }
+                });
+            }
+
+            ecrituresFiltered = ecritures;
+            afficherTransactions();
+            calculerImpact();
+        }
+
+        function afficherTransactions() {
+            const container = document.getElementById('transactions-container');
+
+            if (ecrituresFiltered.length === 0) {
+                container.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: #999;">
+                        ${compteSelectionne ? 'Aucune transaction non-couverte' : 'Sélectionnez un compte'}
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            ecrituresFiltered.forEach(ecriture => {
+                const montantClass = ecriture.montant >= 0 ? 'montant-positif' : 'montant-negatif';
+                const keywords = document.getElementById('search-keywords').value;
+                const libelleSurligne = surlignerMotsCles(ecriture.ecriture_lib, keywords);
+
+                html += `
+                    <div class="transaction-item">
+                        <div class="transaction-libelle">${libelleSurligne}</div>
+                        <div class="transaction-meta">${ecriture.ecriture_date} • ${ecriture.journal_code}</div>
+                        <div class="transaction-montant ${montantClass}">
+                            ${ecriture.montant.toFixed(2)}€
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Mettre à jour les statistiques
+            const total = ecrituresFiltered.reduce((sum, e) => sum + Math.abs(e.montant), 0);
+            document.getElementById('transactions-count').textContent = ecrituresFiltered.length;
+            document.getElementById('transactions-total').textContent = total.toFixed(2);
+        }
+
+        function surlignerMotsCles(texte, keywords) {
+            if (!keywords) return texte;
+
+            const motsCles = keywords.split(' ').filter(m => m.trim());
+            let resultat = texte;
+
+            motsCles.forEach(motCle => {
+                if (motCle.trim()) {
+                    const regex = new RegExp(`(${motCle.trim()})`, 'gi');
+                    resultat = resultat.replace(regex, '<span class="keyword-highlight">$1</span>');
+                }
+            });
+
+            return resultat;
+        }
+
+        function calculerImpact() {
+            const keywords = document.getElementById('search-keywords').value;
+            if (!keywords || !compteSelectionne) {
+                document.getElementById('impact-percentage').textContent = '0%';
+                return;
+            }
+
+            // Calculer l'impact potentiel
+            const totalCompte = toutesEcritures.filter(e => e.compte_contrepartie === compteSelectionne).length;
+            const matches = ecrituresFiltered.filter(e =>
+                keywords.toLowerCase().split(' ').some(mot =>
+                    e.ecriture_lib.toLowerCase().includes(mot.trim())
+                )
+            ).length;
+
+            const impact = totalCompte > 0 ? (matches / totalCompte * 100).toFixed(1) : 0;
+            document.getElementById('impact-percentage').textContent = impact + '%';
+        }
+
+        function viderFiltres() {
+            document.getElementById('filter-banque').value = '';
+            document.getElementById('montant-operateur').value = '';
+            document.getElementById('montant-valeur').value = '';
+            document.getElementById('search-keywords').value = '';
+            filtrerTransactions();
+        }
+
+        // Actions des boutons
+        function nouveauFEC() {
+            new bootstrap.Modal(document.getElementById('uploadModal')).show();
+        }
+
+        function importerRegles() {
+            alert('Fonctionnalité d\'import des règles - À implémenter');
+        }
+
+        function exporterRegles() {
+            alert('Fonctionnalité d\'export des règles - À implémenter');
+        }
+
+        function voirListeRegles() {
+            alert('Fonctionnalité liste des règles - À implémenter');
+        }
+
+        function creerNouvelleRegle() {
+            if (!compteSelectionne) {
+                alert('Sélectionnez d\'abord un compte');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                societe_id: societeId,
+                compte: compteSelectionne,
+                keywords: document.getElementById('search-keywords').value,
+                banque: document.getElementById('filter-banque').value,
+                montant_op: document.getElementById('montant-operateur').value,
+                montant_val: document.getElementById('montant-valeur').value
+            });
+
+            window.location.href = `/regles/nouvelle?${params.toString()}`;
+        }
+
+        // Gestion upload FEC
+        const uploadZone = document.getElementById('uploadZone');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            uploadZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            uploadZone.classList.remove('dragover');
+        }
+
+        uploadZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFileSelect(files);
+        }
+
+        function handleFileSelect(files) {
+            if (files.length === 0) return;
+
+            const file = files[0];
+            const allowedTypes = ['.txt', '.csv'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+
+            if (!allowedTypes.includes(fileExtension)) {
+                alert('Type de fichier non autorisé. Utilisez .txt ou .csv');
+                return;
+            }
+
+            if (file.size > 100 * 1024 * 1024) {
+                alert('Fichier trop volumineux (max 100 MB)');
+                return;
+            }
+
+            uploadFile(file);
+        }
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('fec_file', file);
+            formData.append('societe_nom', '{{ societe.nom }}');
+
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            uploadZone.style.display = 'none';
+            progressContainer.style.display = 'block';
+
+            fetch('/import-fec', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Traitement terminé !';
+
+                setTimeout(() => {
+                    // Fermer le modal et recharger la page
+                    bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+                    location.reload();
+                }, 1000);
+            })
+            .catch(error => {
+                alert('Erreur lors de l\'upload : ' + error);
+                uploadZone.style.display = 'block';
+                progressContainer.style.display = 'none';
+            });
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sélectionner le premier compte automatiquement
+            const firstCompte = document.querySelector('.compte-item');
+            if (firstCompte) {
+                const compte = firstCompte.getAttribute('data-compte');
+                selectionnerCompte(compte);
+            }
+        });
+    </script>
+</body>
+</html>

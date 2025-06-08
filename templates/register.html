@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription - SaaS FEC{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">📝 Inscription</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="prenom" class="form-label">Prénom</label>
+                            <input type="text" class="form-control" id="prenom" name="prenom" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="nom" class="form-label">Nom</label>
+                            <input type="text" class="form-control" id="nom" name="nom" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Mot de passe</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="password_confirm" class="form-label">Confirmer le mot de passe</label>
+                            <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5>Informations de votre organisation</h5>
+
+                    <div class="mb-3">
+                        <label for="org_nom" class="form-label">Nom de l'organisation</label>
+                        <input type="text" class="form-control" id="org_nom" name="org_nom" required>
+                        <div class="form-text">Ex: "Cabinet Martin", "Entreprise ABC", "Marie Dupont"</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="org_type" class="form-label">Type d'organisation</label>
+                        <select class="form-control" id="org_type" name="org_type" required>
+                            <option value="">Choisissez...</option>
+                            <option value="cabinet">Cabinet comptable</option>
+                            <option value="entreprise">Entreprise</option>
+                            <option value="solo">Utilisateur solo</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Créer mon compte</button>
+                    </div>
+                </form>
+
+                <hr>
+
+                <div class="text-center">
+                    <p>Déjà un compte ? <a href="/login">Se connecter</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

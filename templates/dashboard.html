@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord - SaaS FEC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>🎉 Bienvenue dans votre SaaS FEC !</h1>
+        <p class="lead">Vous êtes maintenant connecté et prêt à gérer vos règles d'affectation comptable.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">📁 Importer un FEC</h5>
+                <p class="card-text">Uploadez vos fichiers FEC pour extraire les écritures bancaires.</p>
+                <a href="/import-fec" class="btn btn-primary">Importer</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">⚙️ Créer des règles</h5>
+                <p class="card-text">Définissez vos règles d'affectation automatique.</p>
+                <a href="#" class="btn btn-success">Créer</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">📊 Analyses</h5>
+                <p class="card-text">Visualisez la couverture de vos règles.</p>
+                <a href="#" class="btn btn-info">Analyser</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
