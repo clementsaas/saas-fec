@@ -5,20 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="68dee4e5-c719-4968-ad38-a3da6f1f517d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/routes/api.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/services/rule_suggester.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/services/transaction_grouper.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/models/ecriture_bancaire.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/ecriture_bancaire.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/routes/fec_import.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/fec_import.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/routes/regles.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/regles.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/services/fec_processor.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/fec_processor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/services/regle_tester.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/regle_tester.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/create_regle.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/create_regle.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/liste_regles.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/liste_regles.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/societe_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/societe_dashboard.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

@@ -2833,6 +2833,116 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     transform: translateY(-1px);
 }
 
+ /* Styles pour les groupements intelligents */
+.transaction-groups-container {
+    margin-bottom: 20px;
+}
+
+.groups-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 0 4px;
+}
+
+.groups-header h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.groups-count {
+    font-size: 12px;
+    color: #86868b;
+    font-weight: 500;
+}
+
+.groups-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.empty-groups-state {
+    text-align: center;
+    padding: 20px;
+    color: #86868b;
+    font-size: 13px;
+    font-style: italic;
+}
+
+.group-item {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 245, 247, 0.9) 100%);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.group-item:hover {
+    background: linear-gradient(135deg, rgba(0, 122, 255, 0.08) 0%, rgba(88, 86, 214, 0.06) 100%);
+    border-color: rgba(0, 122, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.15);
+}
+
+.group-item.selected {
+    background: linear-gradient(135deg, rgba(0, 122, 255, 0.12) 0%, rgba(88, 86, 214, 0.08) 100%);
+    border-color: rgba(0, 122, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.2);
+}
+
+.group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+}
+
+.group-pattern {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d1d1f;
+    line-height: 1.3;
+    flex: 1;
+    margin-right: 8px;
+}
+
+.group-percentage {
+    font-size: 12px;
+    font-weight: 700;
+    color: #007aff;
+    background: rgba(0, 122, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.group-stats {
+    font-size: 11px;
+    color: #86868b;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.group-stats-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.group-stats-right {
+    color: #27AE60;
+    font-weight: 600;
+}
+
     </style>
 </head>
 <body>
@@ -3133,7 +3243,7 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     </div>
     <div class="groups-list" id="groups-list">
         <!-- Les groupes seront injectés ici par JavaScript -->
-        <div class="empty-groups-state">
+        <div class="empty-groups-state" id="empty-groups-state">
             <p>Analysez les transactions pour découvrir des patterns</p>
         </div>
     </div>
@@ -3843,12 +3953,19 @@ function highlightKeywordsInAllTransactions(keywords1, keywords2) {
     // Filtrer et afficher les transactions
     filtrerTransactions();
 
-    // Conserver le tri actuel après changement de compte
-    if (transactionSort.field) {
-        setTimeout(() => {
-            applquerTriExistant();
-        }, 50);
-    }
+// Conserver le tri actuel après changement de compte
+if (transactionSort.field) {
+    setTimeout(() => {
+        applquerTriExistant();
+    }, 50);
+}
+
+// Réinitialiser la sélection de groupe et charger les groupements
+groupeSelectionne = null;
+setTimeout(() => {
+    chargerGroupementsIntelligents();
+}, 200);
+
 }
 
         // Gestion des filtres et intégration avec panneau droite
@@ -3988,6 +4105,14 @@ highlightKeywordsInAllTransactions(keywords1, keywords2);
 
 // Calculer l'impact potentiel
 calculateImpactPotentiel(keywords1, keywords2);
+
+// Recharger les groupements quand les filtres changent (mais pas quand un groupe est sélectionné)
+if (compteSelectionne && groupeSelectionne === null) {
+    setTimeout(() => {
+        chargerGroupementsIntelligents();
+    }, 100);
+}
+
         }
 
         function afficherTransactions() {
@@ -5240,6 +5365,151 @@ function resetFilters() {
         resetBtn.style.transform = '';
     }, 150);
 }
+
+ // Variables pour les groupements intelligents
+let groupementsIntelligents = [];
+let groupeSelectionne = null;
+
+// Fonction pour charger les groupements intelligents
+function chargerGroupementsIntelligents() {
+    if (!compteSelectionne || !societeId) {
+        afficherEtatVideGroupements();
+        return;
+    }
+
+    console.log('🧠 Chargement groupements intelligents pour compte:', compteSelectionne);
+
+    const showCovered = document.getElementById('show-covered-transactions').checked;
+
+fetch('/api/groupements-intelligents', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            societe_id: societeId,
+            compte_selectionne: compteSelectionne,
+            show_covered: showCovered
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            groupementsIntelligents = data.groupements || [];
+            afficherGroupementsIntelligents();
+        } else {
+            console.error('Erreur groupements:', data.error);
+            afficherEtatVideGroupements();
+        }
+    })
+    .catch(error => {
+        console.error('Erreur lors du chargement des groupements:', error);
+        afficherEtatVideGroupements();
+    });
+}
+
+// Fonction pour afficher les groupements intelligents
+function afficherGroupementsIntelligents() {
+    const container = document.getElementById('groups-list');
+    const countElement = document.getElementById('groups-count');
+    const emptyState = document.getElementById('empty-groups-state');
+
+    // Filtrer seulement les groupes (pas les transactions individuelles)
+    const groupes = groupementsIntelligents.filter(item => item.type === 'group' && item.count >= 3);
+
+    countElement.textContent = `${groupes.length} groupe${groupes.length > 1 ? 's' : ''}`;
+
+    if (groupes.length === 0) {
+        container.innerHTML = '<div class="empty-groups-state"><p>Aucun groupement détecté pour ce compte</p></div>';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+
+    let html = '';
+    groupes.forEach((groupe, index) => {
+        const pourcentage = Math.round((groupe.count / getTotalTransactionsCompte()) * 100);
+        const montantTotal = groupe.transactions.reduce((sum, t) => sum + Math.abs(t.montant), 0);
+
+        html += `
+            <div class="group-item" onclick="selectionnerGroupe(${index})" data-group-index="${index}">
+                <div class="group-header">
+                    <div class="group-pattern">${groupe.pattern}</div>
+                    <div class="group-percentage">${pourcentage}%</div>
+                </div>
+                <div class="group-stats">
+                    <div class="group-stats-left">
+                        <span>${groupe.count} transactions</span>
+                        <span>•</span>
+                        <span>${montantTotal.toFixed(0)} €</span>
+                    </div>
+                    <div class="group-stats-right">
+                        ${groupe.count * 30}s économisées
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// Fonction pour sélectionner un groupe et filtrer les transactions
+function selectionnerGroupe(index) {
+    // Retirer la sélection précédente
+    document.querySelectorAll('.group-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+
+    // Ajouter la sélection au nouveau groupe
+    const groupeElement = document.querySelector(`[data-group-index="${index}"]`);
+    if (groupeElement) {
+        groupeElement.classList.add('selected');
+    }
+
+    groupeSelectionne = index;
+    const groupe = groupementsIntelligents.filter(item => item.type === 'group')[index];
+
+    if (groupe) {
+        console.log('📊 Groupe sélectionné:', groupe.pattern);
+
+        // Remplir automatiquement la recherche avec le pattern du groupe
+        const searchInput = document.getElementById('search-keywords');
+        searchInput.value = groupe.pattern;
+
+        // Vider les autres filtres pour se concentrer sur ce groupe
+        document.getElementById('filter-banque').value = '';
+        document.getElementById('montant-operateur').value = '=';
+        document.getElementById('montant-valeur').value = '';
+
+        // Filtrer les transactions
+        filtrerTransactions();
+
+        // Effet visuel
+        groupeElement.style.transform = 'scale(0.98)';
+        setTimeout(() => {
+            groupeElement.style.transform = '';
+        }, 150);
+    }
+}
+
+// Fonction pour obtenir le total de transactions du compte
+function getTotalTransactionsCompte() {
+    if (!compteSelectionne) return 0;
+    return toutesEcritures.filter(e => e.compte_contrepartie === compteSelectionne).length;
+}
+
+// Fonction pour afficher l'état vide des groupements
+function afficherEtatVideGroupements() {
+    const container = document.getElementById('groups-list');
+    const countElement = document.getElementById('groups-count');
+
+    countElement.textContent = '0 groupe';
+    container.innerHTML = '<div class="empty-groups-state"><p>Sélectionnez un compte pour analyser les patterns</p></div>';
+}
+
+// Modifier la fonction filtrerTransactions existante pour recharger les groupements
+// Trouvez la fonction filtrerTransactions et ajoutez ceci à la fin :
 
     </script>
 </body>
