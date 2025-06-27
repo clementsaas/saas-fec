@@ -36,5 +36,9 @@ class EcritureBancaire(db.Model):
     # Lien vers le fichier FEC
     fec_file_id = db.Column(db.Integer, db.ForeignKey('fec_files.id'), nullable=False)
 
+    # Champs pour la contrepartie (ajoutés pour la logique métier)
+    compte_contrepartie = db.Column(db.String(20), nullable=True)
+    libelle_contrepartie = db.Column(db.String(200), nullable=True)
+
     def __repr__(self):
         return f'<EcritureBancaire {self.ecriture_num} - {self.montant}€>'

@@ -142,43 +142,110 @@ class RegleTester:
             'ecritures_matchees': matching_ecritures
         }
 
-    def detecter_collisions(self, nouvelle_regle_data, regles_existantes, ecritures):
+    def calculer_collision_pourcentage(self, nouvelle_regle_data, regles_existantes, ecritures, compte_selectionne):
         """
-        Détecte les collisions entre une nouvelle règle et les règles existantes
+        Calcule le pourcentage de collision selon la formule correcte :
+        % collision = (Transactions dans autres comptes / Transactions dans compte sélectionné) × 100
 
         Args:
             nouvelle_regle_data (dict): Configuration de la nouvelle règle
-            regles_existantes (list): Liste des RegleAffectation existantes
+            regles_existantes (list): Liste des RegleAffectation existantes actives
             ecritures (list): Liste des écritures à tester
+            compte_selectionne (str): Le compte pour lequel on calcule le gain potentiel
 
         Returns:
-            dict: Informations sur les collisions détectées
+            dict: {
+                'pourcentage_collision': float,
+                'transactions_compte_selectionne': int,
+                'transactions_autres_comptes': int,
+                'detail_collisions': list
+            }
         """
-        # Écritures matchées par la nouvelle règle
+        # 1. Identifier les écritures matchées par la nouvelle règle
         nouvelles_matches = self.test_regle(nouvelle_regle_data, ecritures)
 
-        collisions = []
+        if not nouvelles_matches:
+            return {
+                'pourcentage_collision': 0.0,
+                'transactions_compte_selectionne': 0,
+                'transactions_autres_comptes': 0,
+                'detail_collisions': []
+            }
 
-        for regle_existante in regles_existantes:
-            # Écritures matchées par la règle existante
-            matches_existantes = self.test_regle_object(regle_existante, ecritures)
+        # 2. Séparer les matches par compte
+        matches_compte_selectionne = []
+        matches_autres_comptes = []
+        detail_collisions = []
 
-            # Intersection entre les deux
-            ecritures_communes = []
-            nouvelles_ids = {e.id for e in nouvelles_matches}
+        for ecriture in nouvelles_matches:
+            # Déterminer le compte de contrepartie
+            compte_contrepartie = self._get_compte_contrepartie(ecriture)
 
-            for ecriture in matches_existantes:
-                if ecriture.id in nouvelles_ids:
-                    ecritures_communes.append(ecriture)
-
-            if ecritures_communes:
-                collisions.append({
-                    'regle_existante': regle_existante,
-                    'nb_collisions': len(ecritures_communes),
-                    'ecritures_communes': ecritures_communes[:5]  # Limiter à 5 exemples
+            if compte_contrepartie == compte_selectionne:
+                matches_compte_selectionne.append(ecriture)
+            else:
+                matches_autres_comptes.append(ecriture)
+                detail_collisions.append({
+                    'compte': compte_contrepartie,
+                    'libelle': ecriture.ecriture_lib,
+                    'montant': float(ecriture.montant)
                 })
 
+        # 3. Calculer le pourcentage selon la formule correcte
+        nb_matches_compte = len(matches_compte_selectionne)
+        nb_matches_autres = len(matches_autres_comptes)
+
+        if nb_matches_compte == 0:
+            # Si aucune transaction ne matche dans le compte sélectionné,
+            # on ne peut pas calculer de collision relative
+            pourcentage_collision = 0.0
+        else:
+            pourcentage_collision = (nb_matches_autres / nb_matches_compte) * 100
+
         return {
-            'has_collisions': len(collisions) > 0,
-            'collisions': collisions
+            'pourcentage_collision': round(pourcentage_collision, 1),
+            'transactions_compte_selectionne': nb_matches_compte,
+            'transactions_autres_comptes': nb_matches_autres,
+            'detail_collisions': detail_collisions
+        }
+
+    def _get_compte_contrepartie(self, ecriture):
+        """
+        Détermine le compte de contrepartie d'une écriture bancaire
+        """
+        # Si l'écriture elle-même n'est pas 512*, utiliser son compte final
+        if not ecriture.compte_final.startswith('512'):
+            return ecriture.compte_final
+
+        # Sinon, cette logique devrait être améliorée pour trouver la vraie contrepartie
+        # Pour l'instant, on utilise un placeholder
+        return "AUTRE"
+
+    def test_regle_avec_collision(self, regle_data, ecritures, compte_selectionne, regles_existantes):
+        """
+        Test complet d'une règle avec calcul de collision
+
+        Returns:
+            dict: Résultats complets incluant collision
+        """
+        # Test basique de la règle
+        matches = self.test_regle(regle_data, ecritures)
+
+        # Calcul de collision
+        collision_info = self.calculer_collision_pourcentage(
+            regle_data, regles_existantes, ecritures, compte_selectionne
+        )
+
+        # Statistiques globales
+        total_ecritures_compte = len([e for e in ecritures
+                                      if self._get_compte_contrepartie(e) == compte_selectionne])
+
+        return {
+            'nb_matches_total': len(matches),
+            'nb_matches_compte': collision_info['transactions_compte_selectionne'],
+            'nb_matches_autres': collision_info['transactions_autres_comptes'],
+            'pourcentage_collision': collision_info['pourcentage_collision'],
+            'pourcentage_couverture': (collision_info['transactions_compte_selectionne'] / total_ecritures_compte * 100)
+            if total_ecritures_compte > 0 else 0,
+            'detail_collisions': collision_info['detail_collisions']
         }

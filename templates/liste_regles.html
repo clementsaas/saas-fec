@@ -1,183 +1,1117 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Règles d'affectation - SaaS FEC</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Reprise du style Apple de societe_dashboard */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            margin: 0;
+            padding: 0;
+            color: #1d1d1f;
+        }
 
-{% block title %}Règles d'affectation - SaaS FEC{% endblock %}
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-{% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1>📋 Règles d'affectation</h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/dashboard">Tableau de bord</a></li>
-                {% if fec_file %}
-                <li class="breadcrumb-item"><a href="/fec/{{ fec_file.id }}">{{ fec_file.nom_original }}</a></li>
-                {% endif %}
-                <li class="breadcrumb-item active">Règles</li>
-            </ol>
-        </nav>
-    </div>
-</div>
+        .header-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            padding: 30px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-<div class="row mt-3">
-    <div class="col-12">
-        {% if regles %}
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">⚙️ Règles configurées ({{ regles|length }})</h5>
-                {% if fec_file %}
-                <a href="/regles/nouvelle?fec_id={{ fec_file.id }}" class="btn btn-success">
-                    ✨ Créer une nouvelle règle
-                </a>
-                {% endif %}
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-title h1 {
+            margin: 0;
+            color: #1d1d1f;
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-apple {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #e5e5ea;
+            color: #1d1d1f;
+        }
+
+        .btn-apple:hover {
+            background: #d1d1d6;
+        }
+
+        .btn-apple.primary {
+            background: #1d1d1f;
+            color: white;
+        }
+
+        .btn-apple.primary:hover {
+            background: #000;
+        }
+
+        .btn-apple.success {
+            background: #00d4d4;
+            color: white;
+        }
+
+        .btn-apple.success:hover {
+            background: #00baba;
+        }
+
+        /* Panel principal des règles */
+        .regles-panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .regles-header {
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #f5f5f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .regles-stats {
+            color: #86868b;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .regles-toolbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Barre d'actions bulk */
+        .bulk-actions {
+            background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+            color: white;
+            padding: 15px 30px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        .bulk-actions.show {
+            display: flex;
+        }
+
+        .bulk-selected-count {
+            font-weight: 600;
+        }
+
+        .bulk-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .bulk-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .bulk-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Table des règles */
+        .regles-table-container {
+            overflow-x: auto;
+        }
+
+        .regles-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .regles-table th {
+            background: #f9f9fb;
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #86868b;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e5e5ea;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .regles-table th:first-child {
+            width: 50px;
+            text-align: center;
+        }
+
+        .regles-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .regles-table th.sortable:hover {
+            background: #f0f0f2;
+        }
+
+        .sort-icon {
+            margin-left: 5px;
+            opacity: 0.5;
+            transition: opacity 0.2s ease;
+        }
+
+        .regles-table th.sortable:hover .sort-icon {
+            opacity: 1;
+        }
+
+        .regles-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f5f5f7;
+            vertical-align: middle;
+        }
+
+        .regles-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .regles-table tbody tr:hover {
+            background: #f9f9fb;
+        }
+
+        .regles-table tbody tr.selected {
+            background: #e3f2fd;
+        }
+
+        /* Checkbox custom */
+        .checkbox-custom {
+            position: relative;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+        }
+
+        .checkbox-custom input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .checkbox-mark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            background-color: white;
+            border: 2px solid #d2d2d7;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-custom:hover .checkbox-mark {
+            border-color: #007aff;
+        }
+
+        .checkbox-custom input:checked ~ .checkbox-mark {
+            background-color: #007aff;
+            border-color: #007aff;
+        }
+
+        .checkbox-mark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 6px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .checkbox-custom input:checked ~ .checkbox-mark:after {
+            display: block;
+        }
+
+        /* Compte avec formatage */
+        .compte-number {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-weight: 600;
+            color: #1d1d1f;
+            font-size: 14px;
+        }
+
+        /* Pourcentages avec couleurs */
+        .pourcentage-impact {
+            font-weight: 600;
+            color: #007aff;
+        }
+
+        .pourcentage-collision {
+            font-weight: 600;
+        }
+
+        .pourcentage-collision.low { color: #28c840; }
+        .pourcentage-collision.medium { color: #ff9500; }
+        .pourcentage-collision.high { color: #ff3b30; }
+
+        /* Mots-clés comme badges */
+        .mots-cles-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .mot-cle-badge {
+            background: #007aff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Compte bancaire */
+        .compte-bancaire {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-weight: 500;
+            color: #666;
+            font-size: 13px;
+        }
+
+        /* Critères montant */
+        .critere-montant {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #007aff;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Flèche d'expansion */
+        .expand-arrow {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            color: #86868b;
+            font-size: 12px;
+        }
+
+        .expand-arrow.expanded {
+            transform: rotate(90deg);
+        }
+
+        /* Lignes de détail */
+        .detail-row {
+            display: none;
+            background: #f9f9fb;
+        }
+
+        .detail-row.show {
+            display: table-row;
+        }
+
+        .detail-content {
+            padding: 20px 30px;
+            border-bottom: 1px solid #e5e5ea;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e5ea;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #86868b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            color: #1d1d1f;
+            font-weight: 500;
+        }
+
+        /* Tooltip */
+        .tooltip-custom {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1d1d1f;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1d1d1f transparent transparent transparent;
+        }
+
+        .tooltip-custom:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* État vide */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #86868b;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #1d1d1f;
+        }
+
+        .empty-state p {
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-container {
+                padding: 15px;
+            }
+
+            .header-section {
+                flex-direction: column;
+                gap: 20px;
+                align-items: stretch;
+            }
+
+            .regles-table-container {
+                overflow-x: scroll;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="header-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#007aff" viewBox="0 0 16 16">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h1>Règles d'affectation</h1>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Nom de la règle</th>
-                                <th>Mots-clés</th>
-                                <th>Journal</th>
-                                <th>Compte destination</th>
-                                <th>Couverture</th>
-                                <th>Statut</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for regle in regles %}
-                            <tr id="regle-{{ regle.id }}">
-                                <td>
-                                    <strong>{{ regle.nom }}</strong><br>
-                                    <small class="text-muted">Créé le {{ regle.created_at.strftime('%d/%m/%Y') }}</small>
-                                </td>
-                                <td>
-                                    {% for mot_cle in regle.mots_cles %}
-                                        <span class="badge bg-primary me-1">{{ mot_cle }}</span>
-                                    {% endfor %}
-                                    {% if regle.criteres_montant %}
-                                    <br><small class="text-muted">
-                                        Montant {{ regle.criteres_montant.operateur }} {{ regle.criteres_montant.valeur }} €
-                                    </small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if regle.journal_code %}
-                                        <span class="badge bg-info">{{ regle.journal_code }}</span>
-                                    {% else %}
-                                        <span class="text-muted">Tous</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <code>{{ regle.compte_destination }}</code><br>
-                                    <small class="text-muted">{{ regle.libelle_destination }}</small>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="progress me-2" style="width: 100px; height: 8px;">
-                                            <div class="progress-bar bg-success"
-                                                 style="width: {{ regle.pourcentage_couverture_total }}%"></div>
-                                        </div>
-                                        <small>
-                                            <strong>{{ regle.pourcentage_couverture_total }}%</strong><br>
-                                            <span class="text-muted">{{ regle.nb_transactions_couvertes }} trans.</span>
-                                        </small>
-                                    </div>
-                                </td>
-                                <td>
-                                    {% if regle.is_active %}
-                                        <span class="badge bg-success">Active</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">Inactive</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-primary" onclick="testerRegle({{ regle.id }})">
-                                            🔬 Tester
-                                        </button>
-                                        <button class="btn btn-outline-danger" onclick="supprimerRegle({{ regle.id }}, '{{ regle.nom }}')">
-                                            🗑️ Supprimer
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            <div class="header-actions">
+                <button class="btn-apple" onclick="retourDashboard()">
+                    ← Retour
+                </button>
+                <button class="btn-apple primary" onclick="importerRegles()">
+                    📥 Importer
+                </button>
+                <button class="btn-apple primary" onclick="exporterRegles()">
+                    📤 Exporter
+                </button>
+                <button class="btn-apple success" onclick="nouvelleRegle()">
+                    + Nouvelle règle
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel principal -->
+        <div class="regles-panel">
+            <!-- Header du panel -->
+            <div class="regles-header">
+                <div>
+                    <h3 style="margin: 0; color: #1d1d1f; font-size: 20px; font-weight: 600;">
+                        Gestion des règles
+                    </h3>
+                    <div class="regles-stats" id="regles-stats">
+                        0 règle • 0% d'automatisation globale
+                    </div>
+                </div>
+                <div class="regles-toolbar">
+                    <input type="text" id="search-regles" placeholder="Rechercher..."
+                           style="padding: 8px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px;">
+                    <button class="btn-apple" onclick="rafraichirRegles()">
+                        🔄 Actualiser
+                    </button>
                 </div>
             </div>
-        </div>
-        {% else %}
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <h5 class="text-muted">Aucune règle d'affectation configurée</h5>
-                <p class="text-muted">
-                    Créez votre première règle pour automatiser l'affectation de vos transactions bancaires.
-                </p>
-                {% if fec_file %}
-                <a href="/regles/nouvelle?fec_id={{ fec_file.id }}" class="btn btn-success mt-3">
-                    ✨ Créer ma première règle
-                </a>
-                {% else %}
-                <a href="/import-fec" class="btn btn-primary mt-3">
-                    📁 Importer un fichier FEC d'abord
-                </a>
-                {% endif %}
+
+            <!-- Barre d'actions bulk -->
+            <div class="bulk-actions" id="bulk-actions">
+                <div class="bulk-selected-count" id="bulk-count">
+                    0 règle sélectionnée
+                </div>
+                <div class="bulk-buttons">
+                    <button class="bulk-btn" onclick="activerSelection()">Activer</button>
+                    <button class="bulk-btn" onclick="desactiverSelection()">Désactiver</button>
+                    <button class="bulk-btn" onclick="supprimerSelection()">Supprimer</button>
+                </div>
+            </div>
+
+            <!-- Table des règles -->
+            <div class="regles-table-container">
+                <table class="regles-table" id="regles-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <label class="checkbox-custom">
+                                    <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                                    <span class="checkbox-mark"></span>
+                                </label>
+                            </th>
+                            <th class="sortable" onclick="trierRegles('compte')">
+                                Contrepartie
+                                <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" onclick="trierRegles('impact')">
+                                % Impact
+                                <span class="sort-icon">↕</span>
+                            </th>
+                            <th class="sortable" onclick="trierRegles('collision')">
+                                % Collision
+                                <span class="sort-icon">↕</span>
+                            </th>
+                            <th>Mots-clés</th>
+                            <th>Banque</th>
+                            <th>Montant</th>
+                            <th class="sortable" onclick="trierRegles('active')">
+                                Active
+                                <span class="sort-icon">↕</span>
+                            </th>
+                            <th width="50"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="regles-tbody">
+                        <!-- Les règles seront injectées ici -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- État vide -->
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <div class="empty-state-icon">⚙️</div>
+                <h3>Aucune règle d'affectation</h3>
+                <p>Créez votre première règle pour automatiser l'affectation<br>de vos transactions bancaires.</p>
+                <button class="btn-apple success" onclick="nouvelleRegle()">
+                    + Créer ma première règle
+                </button>
             </div>
         </div>
-        {% endif %}
     </div>
-</div>
 
-<!-- Modal de test de règle -->
-<div class="modal fade" id="testRegleModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">🔬 Test de la règle</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="testRegleContent">
-                <!-- Contenu du test sera injecté ici -->
-            </div>
-        </div>
-    </div>
-</div>
+    <script>
+// Variables globales
+let reglesData = [];
+let selectedRules = new Set();
+let sortConfig = { field: 'compte', direction: 'asc' };
 
-<script>
-function testerRegle(regleId) {
-    // TODO: Implémenter le test de règle
-    alert('Fonctionnalité de test - À implémenter !');
-}
+// Initialisation
+document.addEventListener('DOMContentLoaded', function() {
+    chargerRegles();
+});
 
-function supprimerRegle(regleId, nomRegle) {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer la règle "${nomRegle}" ?`)) {
-        fetch(`/regles/${regleId}/delete`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                // Supprimer la ligne du tableau
-                document.getElementById(`regle-${regleId}`).remove();
-
-                // Si plus de règles, afficher le message vide
-                const tbody = document.querySelector('tbody');
-                if (tbody.children.length === 0) {
-                    location.reload();
-                }
-            } else {
-                alert('❌ Erreur lors de la suppression : ' + result.error);
-            }
-        })
-        .catch(error => {
-            alert('❌ Erreur de communication : ' + error);
-        });
+function chargerRegles() {
+    // Récupérer les vraies règles depuis le template
+    try {
+        reglesData = JSON.parse(`{{ regles_json|safe }}`);
+        console.log('Regles chargees avec succes:', reglesData.length, 'regles');
+        console.log('Exemple de regle:', reglesData[0]);
+    } catch (e) {
+        console.error('Erreur chargement regles:', e);
+        reglesData = [];
     }
+    afficherRegles();
+    mettreAJourStats();
 }
-</script>
-{% endblock %}
+
+        function afficherRegles() {
+            const tbody = document.getElementById('regles-tbody');
+            const emptyState = document.getElementById('empty-state');
+
+            if (reglesData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            // Trier les règles
+            const reglesTries = [...reglesData].sort((a, b) => {
+                let aVal, bVal;
+                
+                switch (sortConfig.field) {
+                    case 'compte':
+                        aVal = a.compte;
+                        bVal = b.compte;
+                        break;
+                    case 'impact':
+                        aVal = a.impact;
+                        bVal = b.impact;
+                        break;
+                    case 'collision':
+                        aVal = a.collision;
+                        bVal = b.collision;
+                        break;
+                    case 'active':
+                        aVal = a.active ? 1 : 0;
+                        bVal = b.active ? 1 : 0;
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (sortConfig.direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+
+            // Grouper par compte
+            const reglesGroupees = {};
+            reglesTries.forEach(regle => {
+                if (!reglesGroupees[regle.compte]) {
+                    reglesGroupees[regle.compte] = [];
+                }
+                reglesGroupees[regle.compte].push(regle);
+            });
+
+            let html = '';
+            Object.keys(reglesGroupees).forEach(compte => {
+                const reglesCompte = reglesGroupees[compte];
+                const reglePrincipale = reglesCompte[0];
+                const hasMultiple = reglesCompte.length > 1;
+
+                // Calculer les totaux pour le compte
+                const totalImpact = reglesCompte.reduce((sum, r) => sum + r.impact, 0);
+                const totalTransactions = reglesCompte.reduce((sum, r) => sum + r.nb_transactions, 0);
+                const maxCollision = Math.max(...reglesCompte.map(r => r.collision));
+                const totalCollisions = reglesCompte.reduce((sum, r) => sum + r.nb_collisions, 0);
+
+                // Ligne principale du compte
+                html += `
+                    <tr class="compte-row" data-compte="${compte}">
+                        <td>
+                            <label class="checkbox-custom">
+                                <input type="checkbox" class="rule-checkbox" data-compte="${compte}" onchange="toggleRuleSelection('${compte}')">
+                                <span class="checkbox-mark"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <div class="compte-number">${formatCompteNumber(compte)}</div>
+                            <div style="font-size: 12px; color: #86868b;">${reglePrincipale.libelle_compte}</div>
+                        </td>
+                        <td>
+                            <div class="tooltip-custom">
+                                <span class="pourcentage-impact">${totalImpact.toFixed(1)}%</span>
+                                <div class="tooltip-text">${totalTransactions} transactions couvertes</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="tooltip-custom">
+                                <span class="pourcentage-collision ${getCollisionClass(maxCollision)}">${maxCollision.toFixed(1)}%</span>
+                                <div class="tooltip-text">${totalCollisions} collisions détectées</div>
+                            </div>
+                        </td>
+                        <td>
+                            ${hasMultiple ? 
+                                `<span style="color: #86868b; font-style: italic;">${reglesCompte.length} règles</span>` :
+                                `<div class="mots-cles-container">
+                                    ${reglePrincipale.mots_cles.map(mot => `<span class="mot-cle-badge">${mot}</span>`).join('')}
+                                </div>`
+                            }
+                        </td>
+                        <td>
+                            ${hasMultiple ? 
+                                `<span style="color: #86868b; font-style: italic;">Mixte</span>` :
+                                `<span class="compte-bancaire">${reglePrincipale.banque || 'Toutes'}</span>`
+                            }
+                        </td>
+                        <td>
+                            ${hasMultiple ? 
+                                `<span style="color: #86868b; font-style: italic;">Mixte</span>` :
+                                `<span class="critere-montant">${formatCritereMontant(reglePrincipale.critere_montant)}</span>`
+                            }
+                        </td>
+                        <td>
+                            ${hasMultiple ?
+                                `<span style="color: #86868b; font-size: 12px;">${reglesCompte.filter(r => r.active).length}/${reglesCompte.length}</span>` :
+                                `<label class="toggle-switch">
+                                    <input type="checkbox" ${reglePrincipale.active ? 'checked' : ''} onchange="toggleRegleActive(${reglePrincipale.id})">
+                                    <span class="toggle-slider"></span>
+                                </label>`
+                            }
+                        </td>
+                        <td>
+                            ${hasMultiple ? 
+                                `<span class="expand-arrow" onclick="toggleCompteDetails('${compte}')">▶</span>` :
+                                ''
+                            }
+                        </td>
+                    </tr>
+                `;
+
+                // Lignes de détail pour les comptes avec plusieurs règles
+                if (hasMultiple) {
+                    reglesCompte.forEach((regle, index) => {
+                        html += `
+                            <tr class="detail-row" id="detail-${compte}-${index}">
+                                <td></td>
+                                <td style="padding-left: 40px;">
+                                    <div style="font-size: 12px; color: #86868b;">Règle ${index + 1}</div>
+                                </td>
+                                <td>
+                                    <div class="tooltip-custom">
+                                        <span class="pourcentage-impact">${regle.impact.toFixed(1)}%</span>
+                                        <div class="tooltip-text">${regle.nb_transactions} transactions</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="tooltip-custom">
+                                        <span class="pourcentage-collision ${getCollisionClass(regle.collision)}">${regle.collision.toFixed(1)}%</span>
+                                        <div class="tooltip-text">${regle.nb_collisions} collisions</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="mots-cles-container">
+                                        ${regle.mots_cles.map(mot => `<span class="mot-cle-badge">${mot}</span>`).join('')}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="compte-bancaire">${regle.banque || 'Toutes'}</span>
+                                </td>
+                                <td>
+                                    <span class="critere-montant">${formatCritereMontant(regle.critere_montant)}</span>
+                                </td>
+                                <td>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" ${regle.active ? 'checked' : ''} onchange="toggleRegleActive(${regle.id})">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </td>
+                                <td></td>
+                            </tr>
+                        `;
+                    });
+                }
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function formatCompteNumber(compte) {
+            if (compte.length >= 6) {
+                return compte.substring(0, 3) + ' ' + compte.substring(3);
+            }
+            return compte;
+        }
+
+        function getCollisionClass(collision) {
+            if (collision === 0) return 'low';
+            if (collision < 10) return 'low';
+            if (collision < 25) return 'medium';
+            return 'high';
+        }
+
+        function formatCritereMontant(critere) {
+            if (!critere) return 'Tous';
+            return `${critere.operateur} ${critere.valeur}€`;
+        }
+
+        function mettreAJourStats() {
+            const statsElement = document.getElementById('regles-stats');
+            const nbRegles = reglesData.length;
+            const nbActives = reglesData.filter(r => r.active).length;
+            const automationMoyenne = reglesData.length > 0 ? 
+                reglesData.reduce((sum, r) => sum + r.impact, 0) / reglesData.length : 0;
+
+            statsElement.textContent = `${nbRegles} règle${nbRegles > 1 ? 's' : ''} • ${nbActives} active${nbActives > 1 ? 's' : ''} • ${automationMoyenne.toFixed(1)}% d'automatisation moyenne`;
+        }
+
+        function trierRegles(field) {
+            if (sortConfig.field === field) {
+                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortConfig.field = field;
+                sortConfig.direction = 'asc';
+            }
+
+            // Mettre à jour les icônes de tri
+            document.querySelectorAll('.sort-icon').forEach(icon => {
+                icon.textContent = '↕';
+            });
+
+            const activeIcon = event.target.querySelector('.sort-icon');
+            if (activeIcon) {
+                activeIcon.textContent = sortConfig.direction === 'asc' ? '↑' : '↓';
+            }
+
+            afficherRegles();
+        }
+
+        function toggleCompteDetails(compte) {
+            const arrow = event.target;
+            const detailRows = document.querySelectorAll(`[id^="detail-${compte}-"]`);
+            
+            if (arrow.classList.contains('expanded')) {
+                arrow.classList.remove('expanded');
+                detailRows.forEach(row => row.classList.remove('show'));
+            } else {
+                arrow.classList.add('expanded');
+                detailRows.forEach(row => row.classList.add('show'));
+            }
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('select-all');
+            const checkboxes = document.querySelectorAll('.rule-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+                const compte = checkbox.dataset.compte;
+                if (selectAll.checked) {
+                    selectedRules.add(compte);
+                    checkbox.closest('tr').classList.add('selected');
+                } else {
+                    selectedRules.delete(compte);
+                    checkbox.closest('tr').classList.remove('selected');
+                }
+            });
+
+            updateBulkActions();
+        }
+
+        function toggleRuleSelection(compte) {
+            const checkbox = document.querySelector(`[data-compte="${compte}"]`);
+            const row = checkbox.closest('tr');
+            
+            if (checkbox.checked) {
+                selectedRules.add(compte);
+                row.classList.add('selected');
+            } else {
+                selectedRules.delete(compte);
+                row.classList.remove('selected');
+            }
+
+            // Gérer la sélection avec Shift
+            if (event.shiftKey && selectedRules.size > 0) {
+                handleShiftSelection(compte);
+            }
+
+            updateBulkActions();
+        }
+
+        function handleShiftSelection(compte) {
+            // TODO: Implémenter la sélection avec Shift
+            console.log('Sélection Shift détectée pour:', compte);
+        }
+
+        function updateBulkActions() {
+            const bulkActions = document.getElementById('bulk-actions');
+            const bulkCount = document.getElementById('bulk-count');
+            const selectAll = document.getElementById('select-all');
+
+            if (selectedRules.size > 0) {
+                bulkActions.classList.add('show');
+                bulkCount.textContent = `${selectedRules.size} règle${selectedRules.size > 1 ? 's' : ''} sélectionnée${selectedRules.size > 1 ? 's' : ''}`;
+            } else {
+                bulkActions.classList.remove('show');
+            }
+
+            // Mettre à jour l'état du checkbox "tout sélectionner"
+            const totalComptes = new Set(reglesData.map(r => r.compte)).size;
+            if (selectedRules.size === totalComptes) {
+                selectAll.checked = true;
+                selectAll.indeterminate = false;
+            } else if (selectedRules.size > 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = true;
+            } else {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+            }
+        }
+
+        function toggleRegleActive(regleId) {
+            const regle = reglesData.find(r => r.id === regleId);
+            if (regle) {
+                regle.active = !regle.active;
+                console.log(`Règle ${regleId} ${regle.active ? 'activée' : 'désactivée'}`);
+                // TODO: Appel API pour sauvegarder l'état
+                mettreAJourStats();
+            }
+        }
+
+        // Actions bulk
+        function activerSelection() {
+            selectedRules.forEach(compte => {
+                const reglesCompte = reglesData.filter(r => r.compte === compte);
+                reglesCompte.forEach(regle => {
+                    regle.active = true;
+                });
+            });
+            
+            afficherRegles();
+            mettreAJourStats();
+            console.log('Règles activées:', Array.from(selectedRules));
+        }
+
+        function desactiverSelection() {
+            selectedRules.forEach(compte => {
+                const reglesCompte = reglesData.filter(r => r.compte === compte);
+                reglesCompte.forEach(regle => {
+                    regle.active = false;
+                });
+            });
+            
+            afficherRegles();
+            mettreAJourStats();
+            console.log('Règles désactivées:', Array.from(selectedRules));
+        }
+
+        function supprimerSelection() {
+            if (confirm(`Êtes-vous sûr de vouloir supprimer ${selectedRules.size} règle${selectedRules.size > 1 ? 's' : ''} ?`)) {
+                reglesData = reglesData.filter(regle => !selectedRules.has(regle.compte));
+                selectedRules.clear();
+                afficherRegles();
+                mettreAJourStats();
+                updateBulkActions();
+                console.log('Règles supprimées');
+            }
+        }
+
+        // Actions header
+        function retourDashboard() {
+            window.history.back();
+        }
+
+        function nouvelleRegle() {
+            window.location.href = '/regles/nouvelle';
+        }
+
+        function importerRegles() {
+            alert('Fonctionnalité d\'import - À implémenter');
+        }
+
+function exporterRegles() {
+    if (reglesData.length === 0) {
+        alert('Aucune règle à exporter');
+        return;
+    }
+
+    // Préparer les données CSV
+    const csvData = [];
+
+    // En-têtes
+    csvData.push(['Num. de compte', 'Libellé du compte', 'Mots-clés', 'Banque', 'Montant']);
+
+    // Données des règles
+    reglesData.forEach(regle => {
+// Reconstituer les expressions de mots-clés (joindre avec des espaces au lieu de virgules)
+const motsCles = Array.isArray(regle.mots_cles) ? regle.mots_cles.join(' ') : regle.mots_cles;
+        const banque = regle.banque || 'Toutes';
+        const montant = formatCritereMontant(regle.critere_montant);
+
+        csvData.push([
+            regle.compte,
+            regle.libelle_compte,
+            motsCles,
+            banque,
+            montant
+        ]);
+    });
+
+    // Convertir en CSV
+    const csvContent = csvData.map(row =>
+        row.map(field => `"${field.toString().replace(/"/g, '""')}"`).join(';')
+    ).join('\n');
+
+    // Créer et télécharger le fichier
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `regles_affectation_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    console.log('Export CSV effectué:', csvData.length - 1, 'règles exportées');
+}
+
+        function rafraichirRegles() {
+            console.log('Actualisation des règles...');
+            chargerRegles();
+        }
+
+        // Recherche
+        document.getElementById('search-regles').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.compte-row');
+            
+            rows.forEach(row => {
+                const compte = row.dataset.compte;
+                const compteText = row.textContent.toLowerCase();
+                const isVisible = compteText.includes(searchTerm);
+                row.style.display = isVisible ? 'table-row' : 'none';
+                
+                // Cacher aussi les détails si le compte parent est caché
+                const detailRows = document.querySelectorAll(`[id^="detail-${compte}-"]`);
+                detailRows.forEach(detailRow => {
+                    detailRow.style.display = isVisible ? detailRow.classList.contains('show') ? 'table-row' : 'none' : 'none';
+                });
+            });
+        });
+
+        // Navigation clavier
+        document.addEventListener('keydown', function(e) {
+            // Échapper pour désélectionner tout
+            if (e.key === 'Escape') {
+                selectedRules.clear();
+                document.querySelectorAll('.rule-checkbox').forEach(cb => {
+                    cb.checked = false;
+                    cb.closest('tr').classList.remove('selected');
+                });
+                updateBulkActions();
+            }
+
+            // Ctrl+A pour tout sélectionner
+            if (e.ctrlKey && e.key === 'a') {
+                e.preventDefault();
+                document.getElementById('select-all').checked = true;
+                toggleSelectAll();
+            }
+
+            // Delete pour supprimer la sélection
+            if (e.key === 'Delete' && selectedRules.size > 0) {
+                supprimerSelection();
+            }
+        });
+    </script>
+</body>
+</html>

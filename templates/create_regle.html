@@ -313,15 +313,15 @@
                             <option value=">=">≥</option>
                             <option value="between">Entre</option>
                         </select>
-                        <input type="number" class="form-control" id="montant-valeur" placeholder="Montant" onchange="filtrerTransactions()">
-                        <input type="number" class="form-control d-none" id="montant-valeur2" placeholder="Et" onchange="filtrerTransactions()">
+                        <input type="number" class="form-control" id="montant-valeur" placeholder="Montant" oninput="filtrerTransactions()">
+                        <input type="number" class="form-control d-none" id="montant-valeur2" placeholder="Et" oninput="filtrerTransactions()">
                     </div>
                 </div>
 
                 <div>
                     <label class="form-label">Recherche</label>
                     <input type="text" class="form-control form-control-sm" id="search-libelle"
-                           placeholder="Mots-clés..." onchange="filtrerTransactions()">
+                           placeholder="Mots-clés..." oninput="filtrerTransactions()">
                 </div>
             </div>
 
@@ -375,14 +375,6 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Mots-clés <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="mots-cles"
-                           placeholder="VIREMENT, VIR, CLIENT"
-                           oninput="previewRegle()" required>
-                    <small class="text-muted">Séparez par des virgules</small>
-                </div>
-
-                <div class="form-group">
                     <label>Compte de destination</label>
                     <div class="row">
                         <div class="col-6">
@@ -427,6 +419,7 @@ let toutesEcritures = {{ ecritures_json|safe }};
 let ecrituresFiltered = [];
 let compteSelectionne = null;
 let reglesExistantes = {{ regles_existantes|safe }};
+
 
 // Variables globales pour le filtrage
 let currentFilters = {
@@ -511,18 +504,15 @@ function surlignerMotsCles(texte, motsCles) {
 }
 
 function getMotsClesRecherche() {
-    const motsCles = document.getElementById('mots-cles').value;
+    // SEULEMENT la recherche du panneau central
     const recherche = document.getElementById('search-libelle').value;
 
     let allMotsCles = [];
-    if (motsCles) {
-        allMotsCles = allMotsCles.concat(motsCles.split(',').map(s => s.trim()));
-    }
     if (recherche) {
-        allMotsCles = allMotsCles.concat(recherche.split(' ').map(s => s.trim()));
+        allMotsCles = recherche.split(' ').map(s => s.trim()).filter(s => s);
     }
 
-    return allMotsCles.filter(s => s);
+    return allMotsCles;
 }
 
 function filtrerTransactions() {
@@ -579,53 +569,110 @@ function filtrerTransactions() {
 }
 
 function previewRegle() {
-    const motsCles = document.getElementById('mots-cles').value.toLowerCase().split(',').map(s => s.trim()).filter(s => s);
+    const motsCles = document.getElementById('mots-cles').value;
+    const journal = document.getElementById('regle-journal').value;
 
-    if (motsCles.length === 0 || !compteSelectionne) {
+    if (!motsCles || !compteSelectionne) {
+        // Réinitialiser l'affichage
         document.getElementById('preview-matches').textContent = '0';
         document.getElementById('preview-coverage').textContent = '0%';
         document.getElementById('preview-collision').textContent = '0%';
         return;
     }
 
-    // Calculer les matches sur les écritures filtrées
-    const matches = ecrituresFiltered.filter(ecriture => {
-        return motsCles.some(motCle =>
-            ecriture.ecriture_lib.toLowerCase().includes(motCle)
-        );
+    // Préparer les données pour l'API
+    const regleData = {
+        mots_cles: motsCles,
+        journal_code: journal || null,
+        fec_id: fecId,
+        compte_selectionne: compteSelectionne,
+        criteres_montant: null // Ajoutez la logique des critères de montant si nécessaire
+    };
+
+    // Appeler l'API pour calculer la collision
+    fetch('/regles/test-collision', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(regleData)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            const resultats = result.resultats;
+
+            // Mettre à jour l'affichage
+            document.getElementById('preview-matches').textContent = resultats.nb_matches_compte;
+            document.getElementById('preview-coverage').textContent = resultats.pourcentage_couverture.toFixed(1) + '%';
+
+            // Affichage de la collision avec couleur
+            const collisionElement = document.getElementById('preview-collision');
+            collisionElement.textContent = resultats.pourcentage_collision.toFixed(1) + '%';
+
+            // Coloration selon le niveau de collision
+            collisionElement.className = 'stat-number';
+            if (resultats.pourcentage_collision > 20) {
+                collisionElement.style.color = '#f44336'; // Rouge pour collision élevée
+            } else if (resultats.pourcentage_collision > 5) {
+                collisionElement.style.color = '#ff9800'; // Orange pour collision modérée
+            } else {
+                collisionElement.style.color = '#4caf50'; // Vert pour collision faible
+            }
+
+            // Mettre à jour l'impact potentiel dans la liste des comptes
+            const impactElement = document.getElementById(`impact-${compteSelectionne}`);
+            if (impactElement) {
+                impactElement.textContent = resultats.pourcentage_couverture.toFixed(1) + '%';
+            }
+
+            // Log pour debug (à supprimer en production)
+            console.log('Détail collision:', resultats.detail_collisions);
+
+        } else {
+            console.error('Erreur API:', result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur réseau:', error);
+        // Fallback en cas d'erreur réseau
+        document.getElementById('preview-collision').textContent = 'Erreur';
     });
 
-    const totalEcrituresCompte = toutesEcritures.filter(e => e.compte_contrepartie === compteSelectionne).length;
-    const coverage = totalEcrituresCompte > 0 ? (matches.length / totalEcrituresCompte * 100).toFixed(1) : 0;
-
-    // Détecter les collisions (simplifié)
-    let collision = 0;
-    if (matches.length > 0) {
-        // Calculer si d'autres règles matchent ces transactions
-        // Pour la démo, on met un calcul simplifié
-        collision = Math.random() * 10; // À remplacer par la vraie logique
-    }
-
-    // Mettre à jour l'affichage
-    document.getElementById('preview-matches').textContent = matches.length;
-    document.getElementById('preview-coverage').textContent = coverage + '%';
-
-    const collisionElement = document.getElementById('preview-collision');
-    collisionElement.textContent = collision.toFixed(1) + '%';
-    if (collision > 0) {
-        collisionElement.classList.add('collision-warning');
-    } else {
-        collisionElement.classList.remove('collision-warning');
-    }
-
-    // Mettre à jour l'impact potentiel dans la liste des comptes
-    const impactElement = document.getElementById(`impact-${compteSelectionne}`);
-    if (impactElement) {
-        impactElement.textContent = coverage + '%';
-    }
-
-    // Re-afficher les transactions avec surlignes
+    // Re-afficher les transactions avec surlignes (logique existante)
     afficherTransactions();
+}
+
+function transactionMatchRegleUnifiee(transaction, criteres) {
+    // 1. Vérifier recherche (si remplie)
+    if (criteres.recherche && !transaction.ecriture_lib.toLowerCase().includes(criteres.recherche)) {
+        return false;
+    }
+
+    // 2. Vérifier banque
+    if (criteres.banque && transaction.journal_code !== criteres.banque) {
+        return false;
+    }
+
+    // 3. Vérifier montant
+    if (criteres.montant_operateur && criteres.montant_valeur > 0) {
+        const montant = Math.abs(transaction.montant);
+        switch (criteres.montant_operateur) {
+            case '=': if (montant !== criteres.montant_valeur) return false; break;
+            case '!=': if (montant === criteres.montant_valeur) return false; break;
+            case '<': if (montant >= criteres.montant_valeur) return false; break;
+            case '>': if (montant <= criteres.montant_valeur) return false; break;
+            case '<=': if (montant > criteres.montant_valeur) return false; break;
+            case '>=': if (montant < criteres.montant_valeur) return false; break;
+            case 'between':
+                if (criteres.montant_valeur2 > 0 && (montant < criteres.montant_valeur || montant > criteres.montant_valeur2)) {
+                    return false;
+                }
+                break;
+        }
+    }
+
+    return true;
 }
 
 function viderFiltres() {
@@ -640,9 +687,12 @@ function viderFiltres() {
 }
 
 function creerRegle() {
+    // Récupérer les mots-clés depuis le panneau central
+    const motsClesPanneau = document.getElementById('search-libelle').value;
+
     const formData = {
         nom: document.getElementById('nom-regle').value,
-        mots_cles: document.getElementById('mots-cles').value.split(',').map(s => s.trim()).filter(s => s),
+        mots_cles: motsClesPanneau ? motsClesPanneau.split(',').map(s => s.trim()).filter(s => s) : [],
         compte_destination: document.getElementById('compte-destination').value,
         libelle_destination: document.getElementById('libelle-destination').value,
         journal_code: document.getElementById('regle-journal').value || null,
@@ -650,8 +700,14 @@ function creerRegle() {
         societe_id: societeId
     };
 
-    if (!formData.nom || !formData.mots_cles.length || !formData.compte_destination || !formData.libelle_destination) {
-        alert('Veuillez remplir tous les champs obligatoires');
+    // Validation modifiée
+    if (!formData.nom || !formData.compte_destination || !formData.libelle_destination) {
+        alert('Veuillez remplir le nom de la règle et le compte de destination');
+        return;
+    }
+
+    if (formData.mots_cles.length === 0) {
+        alert('Veuillez saisir des mots-clés dans le filtre de recherche du panneau central');
         return;
     }
 

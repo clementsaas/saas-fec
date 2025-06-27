@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
 import json
 from app.models import db
 from app.models.fec_file import FecFile
@@ -209,6 +209,7 @@ def create_regle():
         print(f"Erreur création règle: {e}")
         return jsonify({'success': False, 'error': 'Erreur interne du serveur'})
 
+
 @regles_bp.route('/regles/liste')
 def liste_regles():
     """Page de gestion des règles existantes"""
@@ -231,7 +232,44 @@ def liste_regles():
             return redirect(url_for('dashboard'))
         regles = RegleAffectation.query.filter_by(societe_id=societe.id).all()
 
-    return render_template('liste_regles.html', regles=regles, fec_file=fec_file)
+    # Préparer les données JSON pour JavaScript
+    regles_json = []
+    for regle in regles:
+        # Récupérer le libellé du compte depuis la table societes
+        societe = Societe.query.get(regle.societe_id)
+
+        regles_json.append({
+            'id': regle.id,
+            'nom': regle.nom,
+            'compte': regle.compte_destination,
+            'libelle_compte': regle.libelle_destination,
+            'mots_cles': regle.mots_cles or [],
+            'banque': regle.journal_code or '',
+            'critere_montant': regle.criteres_montant or {},
+            'impact': float(regle.pourcentage_couverture_total or 0),
+            'collision': 0.0,
+            'nb_transactions': regle.nb_transactions_couvertes or 0,
+            'nb_collisions': 0,
+            'active': bool(regle.is_active),
+            'created_at': regle.created_at.isoformat() if regle.created_at else ''
+        })
+
+    # Ligne supprimée - pas de remplacement
+    # Assurer que regles_json est bien défini même si vide
+    if not regles_json:
+        regles_json = []
+
+    # Log pour debug
+    current_app.logger.info(f"Nombre de regles trouvees: {len(regles)}")
+    current_app.logger.info(f"Nombre de regles JSON: {len(regles_json)}")
+
+    # Convertir en JSON valide
+    regles_json_string = json.dumps(regles_json, ensure_ascii=False, default=str)
+
+    return render_template('liste_regles.html',
+                           regles=regles,
+                           fec_file=fec_file,
+                           regles_json=regles_json_string)
 
 @regles_bp.route('/regles/<int:regle_id>/delete', methods=['POST'])
 def delete_regle(regle_id):
@@ -255,6 +293,60 @@ def delete_regle(regle_id):
     except Exception as e:
         db.session.rollback()
         print(f"Erreur suppression règle: {e}")
+        return jsonify({'success': False, 'error': 'Erreur interne du serveur'})
+
+
+@regles_bp.route('/regles/test-collision', methods=['POST'])
+def test_collision():
+    """API pour tester une règle et calculer la collision en temps réel"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Non connecté'}), 401
+
+    try:
+        data = request.get_json()
+
+        # Validation des données
+        if not all([data.get('mots_cles'), data.get('fec_id'), data.get('compte_selectionne')]):
+            return jsonify({'success': False, 'error': 'Paramètres manquants'})
+
+        # Récupérer les écritures
+        fec_id = data['fec_id']
+        compte_selectionne = data['compte_selectionne']
+
+        ecritures = EcritureBancaire.query.filter_by(fec_file_id=fec_id).all()
+
+        # Récupérer les règles existantes actives
+        fec_file = FecFile.query.get(fec_id)
+        societe = Societe.query.get(fec_file.societe_id)
+
+        regles_existantes = RegleAffectation.query.filter_by(
+            societe_id=societe.id,
+            is_active=True
+        ).all()
+
+        # Tester la règle avec collision
+        from app.services.regle_tester import RegleTester
+        tester = RegleTester()
+
+        # Préparer les données de la règle
+        regle_data = {
+            'mots_cles': [mot.strip() for mot in data['mots_cles'].split(',') if mot.strip()],
+            'journal_code': data.get('journal_code'),
+            'criteres_montant': data.get('criteres_montant')
+        }
+
+        # Test complet avec collision
+        resultats = tester.test_regle_avec_collision(
+            regle_data, ecritures, compte_selectionne, regles_existantes
+        )
+
+        return jsonify({
+            'success': True,
+            'resultats': resultats
+        })
+
+    except Exception as e:
+        print(f"Erreur test collision: {e}")
         return jsonify({'success': False, 'error': 'Erreur interne du serveur'})
 
 # Fonctions utilitaires
@@ -288,31 +380,51 @@ def calculer_statistiques_comptes(ecritures, regles_existantes):
 
     # Analyser chaque écriture
     for ecriture in ecritures:
-        # Déterminer le compte de contrepartie (logique simplifiée)
-        if not ecriture.compte_final.startswith('512'):
-            compte_contrepartie = ecriture.compte_final
-            libelle_contrepartie = ecriture.libelle_final
+        # CORRECTION : Utiliser les nouveaux champs compte_contrepartie et libelle_contrepartie
+        if hasattr(ecriture, 'compte_contrepartie') and ecriture.compte_contrepartie:
+            compte_contrepartie = ecriture.compte_contrepartie
+            libelle_contrepartie = ecriture.libelle_contrepartie or "Libellé non défini"
         else:
-            compte_contrepartie = "AUTRE"
-            libelle_contrepartie = "Compte non identifié"
+            # Fallback vers l'ancienne logique si les champs n'existent pas
+            if not ecriture.compte_final.startswith('512'):
+                compte_contrepartie = ecriture.compte_final
+                libelle_contrepartie = ecriture.libelle_final
+            else:
+                compte_contrepartie = "AUTRE"
+                libelle_contrepartie = "Compte non identifié"
 
         comptes_stats[compte_contrepartie]['compte'] = compte_contrepartie
         comptes_stats[compte_contrepartie]['libelle'] = libelle_contrepartie
         comptes_stats[compte_contrepartie]['nb_transactions'] += 1
         comptes_stats[compte_contrepartie]['transactions'].append(ecriture)
 
+    # Fonction pour formater les pourcentages avec précision adaptative
+    def format_pourcentage_precis(valeur):
+        if valeur == 0:
+            return 0
+        elif valeur < 0.1:
+            return round(valeur, 2)
+        else:
+            return round(valeur, 1)
+
     # Calculer les pourcentages
     result = []
     for compte, stats in comptes_stats.items():
         nb_transactions = stats['nb_transactions']
-        pourcentage_total = round((nb_transactions / total_ecritures * 100), 1) if total_ecritures > 0 else 0
+        pourcentage_total_brut = (nb_transactions / total_ecritures * 100) if total_ecritures > 0 else 0
 
         # Calculer le pourcentage traité (écritures couvertes)
         nb_couvertes = sum(1 for t in stats['transactions'] if t.id in ecritures_couvertes)
-        pourcentage_traite = round((nb_couvertes / nb_transactions * 100), 1) if nb_transactions > 0 else 0
+        pourcentage_traite_brut = (nb_couvertes / nb_transactions * 100) if nb_transactions > 0 else 0
 
-        # À faire = Total - Traité
-        pourcentage_a_faire = round(pourcentage_total - (nb_couvertes / total_ecritures * 100), 1)
+        # À faire = Total - Traité (en valeurs brutes)
+        pourcentage_a_faire_brut = pourcentage_total_brut - (
+                    nb_couvertes / total_ecritures * 100) if total_ecritures > 0 else 0
+
+        # Appliquer le formatage précis
+        pourcentage_total = format_pourcentage_precis(pourcentage_total_brut)
+        pourcentage_traite = format_pourcentage_precis(pourcentage_traite_brut)
+        pourcentage_a_faire = format_pourcentage_precis(max(0, pourcentage_a_faire_brut))
 
         result.append({
             'compte': compte,
@@ -320,7 +432,7 @@ def calculer_statistiques_comptes(ecritures, regles_existantes):
             'nb_transactions': nb_transactions,
             'pourcentage_total': pourcentage_total,
             'pourcentage_traite': pourcentage_traite,
-            'pourcentage_a_faire': max(0, pourcentage_a_faire),
+            'pourcentage_a_faire': pourcentage_a_faire,
             'pourcentage_impact': 0  # Sera calculé en temps réel côté client
         })
 

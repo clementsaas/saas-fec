@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from werkzeug.utils import secure_filename
 import os
 from app.models import db
@@ -22,7 +22,12 @@ def import_fec():
 def upload_fec():
     """Traitement de l'upload du fichier FEC"""
     if 'user_id' not in session:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'error': 'Non connecté'}), 401
         return redirect(url_for('auth.login'))
+
+    # Détecter si c'est une requête AJAX
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     try:
         # Récupérer les données du formulaire
@@ -32,24 +37,36 @@ def upload_fec():
 
         # Vérifier qu'un fichier a été uploadé
         if 'fec_file' not in request.files:
-            flash('Aucun fichier sélectionné', 'error')
+            error_msg = 'Aucun fichier sélectionné'
+            if is_ajax:
+                return jsonify({'success': False, 'error': error_msg}), 400
+            flash(error_msg, 'error')
             return render_template('import_fec.html')
 
         file = request.files['fec_file']
         if file.filename == '':
-            flash('Aucun fichier sélectionné', 'error')
+            error_msg = 'Aucun fichier sélectionné'
+            if is_ajax:
+                return jsonify({'success': False, 'error': error_msg}), 400
+            flash(error_msg, 'error')
             return render_template('import_fec.html')
 
         # Vérifier l'extension
         allowed_extensions = {'.txt', '.csv'}
         file_ext = os.path.splitext(file.filename)[1].lower()
         if file_ext not in allowed_extensions:
-            flash('Format de fichier non autorisé. Utilisez .txt ou .csv', 'error')
+            error_msg = 'Format de fichier non autorisé. Utilisez .txt ou .csv'
+            if is_ajax:
+                return jsonify({'success': False, 'error': error_msg}), 400
+            flash(error_msg, 'error')
             return render_template('import_fec.html')
 
         # Vérifications de base
         if not societe_nom:
-            flash('Le nom de la société est obligatoire', 'error')
+            error_msg = 'Le nom de la société est obligatoire'
+            if is_ajax:
+                return jsonify({'success': False, 'error': error_msg}), 400
+            flash(error_msg, 'error')
             return render_template('import_fec.html')
 
         # Créer ou récupérer la société
@@ -81,7 +98,10 @@ def upload_fec():
         ).count()
 
         if nb_fec_actifs >= 3:
-            flash('Cette société a déjà 3 fichiers FEC actifs. Supprimez-en un avant d\'importer.', 'error')
+            error_msg = 'Cette société a déjà 3 fichiers FEC actifs. Supprimez-en un avant d\'importer.'
+            if is_ajax:
+                return jsonify({'success': False, 'error': error_msg}), 400
+            flash(error_msg, 'error')
             return render_template('import_fec.html')
 
         # Sauvegarder temporairement le fichier
@@ -103,21 +123,38 @@ def upload_fec():
         # Supprimer le fichier temporaire
         os.remove(upload_path)
 
+        print(f"📊 Résultat du traitement: {result}")
+
         if result['success']:
+            print("✅ Traitement réussi, commit en cours...")
             db.session.commit()
+            print("✅ Commit terminé")
             flash(
                 f'✅ Import réussi ! {result["stats"]["nb_lignes_bancaires"]} écritures bancaires extraites sur {result["stats"]["nb_lignes_total"]} lignes.',
                 'success')
             return redirect(url_for('fec.view_fec', fec_id=result['fec_file_id']))
         else:
+            print("❌ Traitement échoué, rollback...")
             db.session.rollback()
             flash(f'❌ Erreur lors du traitement : {result["error"]}', 'error')
             return render_template('import_fec.html')
 
     except Exception as e:
+        print(f"❌ Exception dans upload_fec: {e}")
+        import traceback
+        traceback.print_exc()
         db.session.rollback()
         flash(f'❌ Erreur inattendue : {str(e)}', 'error')
+        return render_template('import_fec.html')
+
+    except Exception as e:
+        db.session.rollback()
+        error_msg = f'❌ Erreur inattendue : {str(e)}'
         print(f"Erreur upload FEC: {e}")  # Pour le debug
+
+        if is_ajax:
+            return jsonify({'success': False, 'error': error_msg}), 500
+        flash(error_msg, 'error')
         return render_template('import_fec.html')
 
 

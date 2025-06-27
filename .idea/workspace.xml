@@ -5,44 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="68dee4e5-c719-4968-ad38-a3da6f1f517d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/PythonProject.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/models/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/models/ecriture_bancaire.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/models/fec_file.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/models/organization.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/models/regle_affectation.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/models/societe.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/models/user.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/routes/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/routes/auth.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/routes/fec_import.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/routes/regles.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/services/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/services/fec_processor.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/services/regle_tester.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/utils/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/database.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/create_regle.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/dashboard.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/dashboard_advanced.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/dashboard_selector.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/import_fec.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/liste_regles.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/login.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/register.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/view_fec.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_complet.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_connexion.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_fec.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/test_table.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/routes/api.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/services/rule_suggester.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/services/transaction_grouper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/ecriture_bancaire.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/ecriture_bancaire.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/fec_import.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/fec_import.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/regles.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/regles.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/services/fec_processor.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/fec_processor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/services/regle_tester.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/regle_tester.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/create_regle.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/create_regle.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/liste_regles.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/liste_regles.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/societe_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/societe_dashboard.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,8 +29,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -71,20 +48,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Python.__init__.executor": "Run",
-    "Python.run.executor": "Run",
-    "Python.test_complet.executor": "Run",
-    "Python.test_connexion.executor": "Run",
-    "Python.test_table.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "settings.editor.selected.configurable": "configurable.group.language"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_complet.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_connexion.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_table.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.language&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python.run">
     <configuration name="__init__" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="PythonProject" />
