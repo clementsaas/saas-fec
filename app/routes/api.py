@@ -172,17 +172,36 @@ def groupements_intelligents():
         ecritures_data = []
         ecritures_pour_compte = 0
 
-        for ecriture in ecritures:
-            if not ecriture.compte_final.startswith('512'):
-                compte_contrepartie = ecriture.compte_final
-            else:
-                # Trouver la contrepartie
-                autres_ecritures = EcritureBancaire.query.filter_by(
-                    fec_file_id=fec_actif.id,
-                    ecriture_num=ecriture.ecriture_num
-                ).filter(~EcritureBancaire.compte_num.startswith('512')).first()
+        print(f"🔍 Recherche d'écritures pour le compte: '{compte_selectionne}'")
+        print(f"🔍 Total écritures à analyser: {len(ecritures)}")
 
-                compte_contrepartie = autres_ecritures.compte_final if autres_ecritures else "AUTRE"
+        debug_count = 0
+        for ecriture in ecritures:
+            # Essayer d'utiliser le champ compte_contrepartie s'il existe, sinon recalculer
+            if hasattr(ecriture, 'compte_contrepartie') and ecriture.compte_contrepartie:
+                compte_contrepartie = ecriture.compte_contrepartie
+                print(f"✅ Utilisation contrepartie sauvegardée: {compte_contrepartie}")
+            else:
+                # Fallback : recalculer la contrepartie
+                if not ecriture.compte_final.startswith('512'):
+                    compte_contrepartie = ecriture.compte_final
+                else:
+                    # Trouver la contrepartie (ligne non 512*)
+                    autres_ecritures = EcritureBancaire.query.filter_by(
+                        fec_file_id=fec_actif.id,
+                        ecriture_num=ecriture.ecriture_num
+                    ).filter(~EcritureBancaire.compte_num.startswith('512')).first()
+
+                    if autres_ecritures:
+                        compte_contrepartie = autres_ecritures.compte_final
+                    else:
+                        compte_contrepartie = "AUTRE"
+
+            # Debug : afficher quelques exemples
+            if debug_count < 10:
+                print(
+                    f"🔍 Écriture {ecriture.id}: compte_final={ecriture.compte_final}, contrepartie={compte_contrepartie}")
+                debug_count += 1
 
             # Ne garder que les écritures pour le compte sélectionné
             if compte_contrepartie == compte_selectionne:
@@ -207,42 +226,52 @@ def groupements_intelligents():
         print(f"📋 Préparé {len(ecritures_data)} écritures pour le compte {compte_selectionne}")
         print(f"📊 Écritures trouvées pour ce compte: {ecritures_pour_compte}")
 
-        # Utiliser le TransactionGrouper Python existant ou fallback simple
-        try:
-            from app.services.transaction_grouper import TransactionGrouper
-            groupeur = TransactionGrouper()
-            organized_data_by_compte = groupeur.smart_sort_transactions(ecritures_data)
-            groupements_compte = organized_data_by_compte.get(compte_selectionne, [])
-            print(f"📊 Groupements trouvés avec TransactionGrouper: {len(groupements_compte)}")
+        # Utiliser le TransactionGrouper professionnel
+        print(f"📋 Création des groupements avec {len(ecritures_data)} écritures")
 
-        except ImportError as e:
-            print(f"⚠️ TransactionGrouper non disponible: {e}")
-            # Fallback : créer des groupes simples
-            groupements_compte = []
+        groupements_compte = []
 
-            if len(ecritures_data) > 0:
-                # Analyse simple des mots récurrents
-                mots_count = {}
-                for ecriture in ecritures_data:
-                    mots = ecriture['ecriture_lib'].lower().split()
-                    for mot in mots:
-                        if len(mot) > 3:  # Ignorer les petits mots
-                            mots_count[mot] = mots_count.get(mot, 0) + 1
+        if len(ecritures_data) > 0:
+            try:
+                from app.services.transaction_grouper import TransactionGrouper
 
-                # Créer des groupes pour les mots qui apparaissent au moins 3 fois
-                for mot, count in mots_count.items():
-                    if count >= 3:
-                        transactions_groupe = [e for e in ecritures_data if mot in e['ecriture_lib'].lower()]
+                print(f"🧠 Utilisation du TransactionGrouper professionnel")
+                groupeur = TransactionGrouper()
 
-                        if len(transactions_groupe) >= 3:
-                            groupements_compte.append({
-                                'type': 'group',
-                                'pattern': mot.capitalize(),
-                                'count': len(transactions_groupe),
-                                'transactions': transactions_groupe
-                            })
+                # Le TransactionGrouper retourne des données organisées par compte
+                organized_data_by_compte = groupeur.smart_sort_transactions(ecritures_data)
 
-            print(f"📊 Groupements trouvés avec fallback: {len(groupements_compte)}")
+                # Debug : afficher tous les comptes trouvés
+                print(f"🔍 Comptes trouvés par TransactionGrouper: {list(organized_data_by_compte.keys())}")
+                print(f"🔍 Compte recherché: '{compte_selectionne}'")
+
+                # Récupérer les groupements pour le compte sélectionné
+                groupements_compte = organized_data_by_compte.get(compte_selectionne, [])
+
+                print(f"📊 Groupements trouvés avec TransactionGrouper: {len(groupements_compte)}")
+
+                # Si pas de groupements pour ce compte, essayer le premier compte disponible
+                if len(groupements_compte) == 0 and organized_data_by_compte:
+                    premier_compte = list(organized_data_by_compte.keys())[0]
+                    print(f"⚠️ Pas de groupements pour '{compte_selectionne}', essai avec '{premier_compte}'")
+                    groupements_compte = organized_data_by_compte.get(premier_compte, [])
+                    print(f"📊 Groupements trouvés pour '{premier_compte}': {len(groupements_compte)}")
+
+                # Debug : afficher les groupes trouvés
+                for i, groupe in enumerate(groupements_compte):
+                    if groupe.get('type') == 'group':
+                        print(f"🔍 Groupe {i}: '{groupe['pattern']}' - {groupe['count']} transactions")
+                        if 'suggested_keywords' in groupe:
+                            print(f"   Mots-clés suggérés: {groupe['suggested_keywords']}")
+
+            except ImportError as e:
+                print(f"⚠️ TransactionGrouper non disponible: {e}")
+                groupements_compte = []
+            except Exception as e:
+                print(f"❌ Erreur TransactionGrouper: {e}")
+                groupements_compte = []
+        else:
+            print("⚠️ Aucune écriture à analyser")
 
         # Filtrer selon show_covered si nécessaire
         if not show_covered:
@@ -265,10 +294,21 @@ def groupements_intelligents():
 
         print(f"🎯 Groupements finaux: {len(groupements_compte)}")
 
+        # Debug : afficher les groupements trouvés
+        for i, groupe in enumerate(groupements_compte):
+            if groupe.get('type') == 'group':
+                print(f"📋 Groupe {i}: {groupe['pattern']} - {groupe['count']} transactions")
+
         return jsonify({
             'success': True,
             'groupements': groupements_compte,
-            'compte': compte_selectionne
+            'compte': compte_selectionne,
+            'total_transactions_compte': ecritures_pour_compte,
+            'debug_info': {
+                'ecritures_total': len(ecritures),
+                'ecritures_pour_compte': ecritures_pour_compte,
+                'groupements_count': len(groupements_compte)
+            }
         })
 
     except Exception as e:

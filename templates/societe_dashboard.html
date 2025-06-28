@@ -3961,10 +3961,11 @@ if (transactionSort.field) {
 }
 
 // Réinitialiser la sélection de groupe et charger les groupements
-groupeSelectionne = null;
-setTimeout(() => {
-    chargerGroupementsIntelligents();
-}, 200);
+        groupeSelectionne = null;
+        setTimeout(() => {
+            console.log('🔄 Déclenchement chargement groupements pour compte:', compte);
+            chargerGroupementsIntelligents();
+        }, 200);
 
 }
 
@@ -5393,9 +5394,11 @@ fetch('/api/groupements-intelligents', {
         })
     })
     .then(response => response.json())
-    .then(data => {
+.then(data => {
+        console.log('📦 Réponse API groupements:', data);
         if (data.success) {
             groupementsIntelligents = data.groupements || [];
+            console.log('🧠 Groupements reçus:', groupementsIntelligents.length);
             afficherGroupementsIntelligents();
         } else {
             console.error('Erreur groupements:', data.error);
@@ -5417,14 +5420,21 @@ function afficherGroupementsIntelligents() {
     // Filtrer seulement les groupes (pas les transactions individuelles)
     const groupes = groupementsIntelligents.filter(item => item.type === 'group' && item.count >= 3);
 
-    countElement.textContent = `${groupes.length} groupe${groupes.length > 1 ? 's' : ''}`;
+    if (countElement) {
+        countElement.textContent = `${groupes.length} groupe${groupes.length > 1 ? 's' : ''}`;
+    }
 
     if (groupes.length === 0) {
-        container.innerHTML = '<div class="empty-groups-state"><p>Aucun groupement détecté pour ce compte</p></div>';
+        if (container) {
+            container.innerHTML = '<div class="empty-groups-state"><p>Aucun groupement détecté pour ce compte</p></div>';
+        }
         return;
     }
 
-    emptyState.style.display = 'none';
+    // Cache l'état vide seulement s'il existe
+    if (emptyState) {
+        emptyState.style.display = 'none';
+    }
 
     let html = '';
     groupes.forEach((groupe, index) => {
