@@ -146,10 +146,36 @@ class RuleSuggester:
                     if all(len(w) >= 3 and not w.isdigit() and w.lower() not in self.stop_words for w in
                            words_in_ngram):
                         common_ngrams.add(ngram)
+                        if self.debug:
+                            print(f"🔍 AFFECTIA : N-gram commun trouvé - '{ngram}'")
 
-            if common_ngrams:
-                # Prendre le n-gram le plus long et le plus spécifique
+            # Priorité spéciale aux n-grams de noms (2 mots de 3+ caractères, pas de mots vides)
+            name_ngrams = []
+            for ngram in common_ngrams:
+                words = ngram.split()
+                if (len(words) == 2 and
+                        all(len(w) >= 3 and not w.isdigit() and w.lower() not in self.stop_words for w in words) and
+                        all(w.isalpha() for w in words)):  # Uniquement des lettres (pas de chiffres ou symboles)
+                    name_ngrams.append(ngram)
+
+            if self.debug:
+                print(f"🔍 AFFECTIA : N-grams de noms détectés : {name_ngrams}")
+
+            if self.debug:
+                print(f"🔍 AFFECTIA : {len(common_ngrams)} n-gram(s) commun(s) détecté(s) : {list(common_ngrams)}")
+
+            if name_ngrams:
+                # Privilégier les n-grams de noms (prénom nom)
+                best_ngram = max(name_ngrams, key=lambda x: len(x))
+                if self.debug:
+                    print(f"✅ AFFECTIA : N-gram de nom sélectionné - '{best_ngram}'")
+            elif common_ngrams:
+                # Sinon, prendre le n-gram le plus long et le plus spécifique
                 best_ngram = max(common_ngrams, key=lambda x: (len(x.split()), len(x)))
+            else:
+                best_ngram = None
+
+            if best_ngram:
                 rules = [{
                     "mot_cle_1": best_ngram,
                     "transactions_couvertes": len(transactions),
@@ -158,6 +184,8 @@ class RuleSuggester:
                 if self.debug:
                     print(f"✅ AFFECTIA : Nom complet trouvé - {best_ngram} ({len(transactions)} transactions)")
                 return self._add_journal_and_amount_criteria(rules, transactions)
+            elif self.debug:
+                print(f"⚠️ AFFECTIA : Aucun n-gram commun trouvé, basculement vers analyse collective")
         # Compte collectif : repérer les noms récurrents dans les libellés (prénoms/noms d'employés)
         name_patterns = Counter()
         for trans in transactions:
