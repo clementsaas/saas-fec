@@ -237,7 +237,7 @@ def groupements_intelligents():
 
                 print(f"🚀 AFFECTIA : Utilisation du système de suggestion de règles")
 
-                suggester = RuleSuggester()
+                suggester = RuleSuggester(debug=True)
 
                 # Récupérer TOUTES les écritures pour la vérification des collisions
                 toutes_ecritures_compte = []
@@ -292,13 +292,16 @@ def groupements_intelligents():
                 print(f"🎯 AFFECTIA : {len(groupements_compte)} suggestions de règles générées")
 
             except ImportError as e:
-                print(f"⚠️ TransactionGrouper non disponible: {e}")
+                print(f"⚠️ RuleSuggester non disponible: {e}")
                 groupements_compte = []
             except Exception as e:
-                print(f"❌ Erreur TransactionGrouper: {e}")
+                print(f"❌ Erreur RuleSuggester: {e}")
+                import traceback
+                traceback.print_exc()
                 groupements_compte = []
         else:
             print("⚠️ Aucune écriture à analyser")
+            groupements_compte = []
 
         # Filtrer selon show_covered si nécessaire
         if not show_covered:

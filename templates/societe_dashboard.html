@@ -5418,7 +5418,7 @@ function afficherGroupementsIntelligents() {
     const emptyState = document.getElementById('empty-groups-state');
 
     // Filtrer seulement les groupes (pas les transactions individuelles)
-    const groupes = groupementsIntelligents.filter(item => item.type === 'group' && item.count >= 3);
+const groupes = groupementsIntelligents.filter(item => (item.type === 'group' || item.type === 'rule_suggestion') && item.count >= 3);
 
     if (countElement) {
         countElement.textContent = `${groupes.length} groupe${groupes.length > 1 ? 's' : ''}`;
