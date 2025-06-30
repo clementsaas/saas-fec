@@ -133,20 +133,30 @@ class RuleSuggester:
         if self.debug:
             print(f"👥 AFFECTIA : Analyse compte personnel {compte}")
         all_libelles = [self.normalize_text(t['ecriture_lib']) for t in transactions]
-        # Compte individuel (mot commun à tous les libellés, typiquement le nom)
+        # Compte individuel : chercher des n-grams communs à tous les libellés (typiquement prénom + nom)
         if all_libelles:
-            common_words = set(all_libelles[0].split())
-            for libelle in all_libelles[1:]:
-                common_words &= set(libelle.split())
-            name_candidates = [w for w in common_words
-                               if len(w) >= 3 and not w.isdigit() and w.lower() not in self.stop_words]
-            if name_candidates:
-                name = max(name_candidates, key=len)
+            # Extraire tous les n-grams de 1 à 3 mots du premier libellé
+            first_ngrams = self.extract_ngrams(all_libelles[0], max_length=3)
+            # Garder seulement ceux présents dans TOUS les libellés
+            common_ngrams = set()
+            for ngram in first_ngrams:
+                if all(ngram in libelle for libelle in all_libelles):
+                    # Filtrer les n-grams trop génériques
+                    words_in_ngram = ngram.split()
+                    if all(len(w) >= 3 and not w.isdigit() and w.lower() not in self.stop_words for w in
+                           words_in_ngram):
+                        common_ngrams.add(ngram)
+
+            if common_ngrams:
+                # Prendre le n-gram le plus long et le plus spécifique
+                best_ngram = max(common_ngrams, key=lambda x: (len(x.split()), len(x)))
                 rules = [{
-                    "mot_cle_1": name,
+                    "mot_cle_1": best_ngram,
                     "transactions_couvertes": len(transactions),
                     "collision": False
                 }]
+                if self.debug:
+                    print(f"✅ AFFECTIA : Nom complet trouvé - {best_ngram} ({len(transactions)} transactions)")
                 return self._add_journal_and_amount_criteria(rules, transactions)
         # Compte collectif : repérer les noms récurrents dans les libellés (prénoms/noms d'employés)
         name_patterns = Counter()
