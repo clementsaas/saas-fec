@@ -233,36 +233,63 @@ def groupements_intelligents():
 
         if len(ecritures_data) > 0:
             try:
-                from app.services.transaction_grouper import TransactionGrouper
+                from app.services.rule_suggester import RuleSuggester
 
-                print(f"🧠 Utilisation du TransactionGrouper professionnel")
-                groupeur = TransactionGrouper()
+                print(f"🚀 AFFECTIA : Utilisation du système de suggestion de règles")
 
-                # Le TransactionGrouper retourne des données organisées par compte
-                organized_data_by_compte = groupeur.smart_sort_transactions(ecritures_data)
+                suggester = RuleSuggester()
 
-                # Debug : afficher tous les comptes trouvés
-                print(f"🔍 Comptes trouvés par TransactionGrouper: {list(organized_data_by_compte.keys())}")
-                print(f"🔍 Compte recherché: '{compte_selectionne}'")
+                # Récupérer TOUTES les écritures pour la vérification des collisions
+                toutes_ecritures_compte = []
+                for ecriture in ecritures:
+                    if hasattr(ecriture, 'compte_contrepartie') and ecriture.compte_contrepartie:
+                        compte_contrepartie = ecriture.compte_contrepartie
+                    else:
+                        compte_contrepartie = "AUTRE"
 
-                # Récupérer les groupements pour le compte sélectionné
-                groupements_compte = organized_data_by_compte.get(compte_selectionne, [])
+                    toutes_ecritures_compte.append({
+                        'id': ecriture.id,
+                        'ecriture_lib': ecriture.ecriture_lib,
+                        'journal_code': ecriture.journal_code,
+                        'montant': float(ecriture.montant) if ecriture.sens == 'D' else -float(ecriture.montant),
+                        'compte_contrepartie': compte_contrepartie
+                    })
 
-                print(f"📊 Groupements trouvés avec TransactionGrouper: {len(groupements_compte)}")
+                # Suggérer des règles pour le compte sélectionné
+                suggested_rules = suggester.suggest_rules_for_account(
+                    compte_selectionne,
+                    ecritures_data,
+                    toutes_ecritures_compte
+                )
 
-                # Si pas de groupements pour ce compte, essayer le premier compte disponible
-                if len(groupements_compte) == 0 and organized_data_by_compte:
-                    premier_compte = list(organized_data_by_compte.keys())[0]
-                    print(f"⚠️ Pas de groupements pour '{compte_selectionne}', essai avec '{premier_compte}'")
-                    groupements_compte = organized_data_by_compte.get(premier_compte, [])
-                    print(f"📊 Groupements trouvés pour '{premier_compte}': {len(groupements_compte)}")
+                # Convertir les règles en format compatible avec l'interface
+                groupements_compte = []
+                for rule in suggested_rules:
+                    # Créer un "groupe" virtuel représentant la règle suggérée
+                    pattern_parts = [rule['mot_cle_1']]
+                    if 'mot_cle_2' in rule:
+                        pattern_parts.append(rule['mot_cle_2'])
 
-                # Debug : afficher les groupes trouvés
-                for i, groupe in enumerate(groupements_compte):
-                    if groupe.get('type') == 'group':
-                        print(f"🔍 Groupe {i}: '{groupe['pattern']}' - {groupe['count']} transactions")
-                        if 'suggested_keywords' in groupe:
-                            print(f"   Mots-clés suggérés: {groupe['suggested_keywords']}")
+                    pattern = ' & '.join(pattern_parts)
+
+                    # Trouver les transactions correspondantes
+                    matching_transactions = []
+                    for trans in ecritures_data:
+                        libelle_norm = suggester.normalize_text(trans['ecriture_lib'])
+                        if all(part in libelle_norm for part in pattern_parts):
+                            matching_transactions.append(trans)
+
+                    if matching_transactions:
+                        groupements_compte.append({
+                            'type': 'rule_suggestion',
+                            'pattern': pattern,
+                            'count': len(matching_transactions),
+                            'transactions': matching_transactions,
+                            'rule_data': rule,  # Données complètes de la règle
+                            'suggested_keywords': pattern_parts
+                        })
+
+                print(f"🎯 AFFECTIA : {len(groupements_compte)} suggestions de règles générées")
 
             except ImportError as e:
                 print(f"⚠️ TransactionGrouper non disponible: {e}")
