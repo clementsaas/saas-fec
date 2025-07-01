@@ -5437,16 +5437,23 @@ fetch('/api/groupements-intelligents', {
 // Fonction pour afficher les groupements intelligents
 function afficherGroupementsIntelligents() {
     const container = document.getElementById('groups-list');
+    const groupsContainer = document.getElementById('transaction-groups-container');
     const emptyState = document.getElementById('empty-groups-state');
 
     // Filtrer seulement les groupes (pas les transactions individuelles)
     const groupes = groupementsIntelligents.filter(item => (item.type === 'group' || item.type === 'rule_suggestion') && item.count >= 3);
 
-if (groupes.length === 0) {
-        if (container) {
-            container.innerHTML = '<div class="empty-groups-state"><p>Aucun groupement détecté pour ce compte</p></div>';
+    if (groupes.length === 0) {
+        // Masquer complètement le bloc suggestions
+        if (groupsContainer) {
+            groupsContainer.style.display = 'none';
         }
         return;
+    }
+
+    // Afficher le bloc suggestions
+    if (groupsContainer) {
+        groupsContainer.style.display = 'block';
     }
 
     // Cache l'état vide seulement s'il existe
@@ -5541,9 +5548,12 @@ function getTotalTransactionsCompte() {
 
 // Fonction pour afficher l'état vide des groupements
 function afficherEtatVideGroupements() {
-    const container = document.getElementById('groups-list');
+    const groupsContainer = document.getElementById('transaction-groups-container');
 
-    container.innerHTML = '<div class="empty-groups-state"><p>Sélectionnez un compte pour analyser les patterns</p></div>';
+    // Masquer complètement le bloc suggestions
+    if (groupsContainer) {
+        groupsContainer.style.display = 'none';
+    }
 }
 
 // Modifier la fonction filtrerTransactions existante pour recharger les groupements
