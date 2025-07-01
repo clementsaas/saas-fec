@@ -2833,82 +2833,92 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     transform: translateY(-1px);
 }
 
- /* Styles pour les groupements intelligents */
 .transaction-groups-container {
     margin-bottom: 20px;
 }
 
-.groups-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding: 0 4px;
+.automation-glass-background-suggestions {
+    position: relative;
+    background: linear-gradient(135deg,
+        rgba(102, 126, 234, 0.1) 0%,
+        rgba(118, 75, 162, 0.08) 50%,
+        rgba(102, 126, 234, 0.12) 100%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    overflow: hidden;
+    box-shadow:
+        0 2px 8px rgba(102, 126, 234, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-.groups-header h5 {
-    margin: 0;
+.automation-glass-background-suggestions:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 12px rgba(102, 126, 234, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.automation-content-suggestions {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
     font-size: 14px;
     font-weight: 600;
-    color: #1d1d1f;
-}
-
-.groups-count {
-    font-size: 12px;
-    color: #86868b;
-    font-weight: 500;
+    color: #667eea;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+    margin-bottom: 12px;
 }
 
 .groups-list {
+    position: relative;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.empty-groups-state {
-    text-align: center;
-    padding: 20px;
-    color: #86868b;
-    font-size: 13px;
-    font-style: italic;
-}
-
 .group-item {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 245, 247, 0.9) 100%);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 12px;
-    padding: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 250, 252, 0.98) 100%);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 10px;
+    padding: 10px 12px;
     cursor: pointer;
     transition: all 0.25s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.08);
+    backdrop-filter: blur(10px);
 }
 
 .group-item:hover {
-    background: linear-gradient(135deg, rgba(0, 122, 255, 0.08) 0%, rgba(88, 86, 214, 0.06) 100%);
-    border-color: rgba(0, 122, 255, 0.2);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(245, 247, 255, 1) 100%);
+    border-color: rgba(102, 126, 234, 0.3);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.15);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
 
 .group-item.selected {
-    background: linear-gradient(135deg, rgba(0, 122, 255, 0.12) 0%, rgba(88, 86, 214, 0.08) 100%);
-    border-color: rgba(0, 122, 255, 0.3);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.08) 100%);
+    border-color: rgba(102, 126, 234, 0.4);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .group-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .group-pattern {
     font-size: 13px;
-    font-weight: 600;
-    color: #1d1d1f;
+    font-weight: 700;
+    color: #2d3748;
     line-height: 1.3;
     flex: 1;
     margin-right: 8px;
@@ -2917,8 +2927,8 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
 .group-percentage {
     font-size: 12px;
     font-weight: 700;
-    color: #007aff;
-    background: rgba(0, 122, 255, 0.1);
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.2);
     padding: 2px 6px;
     border-radius: 6px;
     white-space: nowrap;
@@ -2926,7 +2936,7 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
 
 .group-stats {
     font-size: 11px;
-    color: #86868b;
+    color: #667eea;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -2936,11 +2946,15 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-weight: 500;
 }
 
-.group-stats-right {
-    color: #27AE60;
-    font-weight: 600;
+.empty-groups-state {
+    text-align: center;
+    padding: 16px;
+    color: #667eea;
+    font-size: 13px;
+    font-style: italic;
 }
 
     </style>
@@ -3237,14 +3251,23 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
 
 <!-- Conteneur des groupes de transactions intelligents -->
 <div class="transaction-groups-container" id="transaction-groups-container">
-    <div class="groups-header">
-        <h5>Opportunités de règles détectées</h5>
-        <span class="groups-count" id="groups-count">0 groupe</span>
-    </div>
-    <div class="groups-list" id="groups-list">
-        <!-- Les groupes seront injectés ici par JavaScript -->
-        <div class="empty-groups-state" id="empty-groups-state">
-            <p>Analysez les transactions pour découvrir des patterns</p>
+    <div class="automation-glass-background-suggestions">
+        <div class="automation-specular-highlight"></div>
+
+        <!-- Header du conteneur -->
+        <div class="automation-content-suggestions">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stars" viewBox="0 0 16 16" style="margin-right: 6px;">
+                <path d="M7.657 6.247c.11-.33.576-.33.686 0l.645 1.937a2.89 2.89 0 0 0 1.829 1.828l1.936.645c.33.11.33.576 0 .686l-1.937.645a2.89 2.89 0 0 0-1.828 1.829l-.645 1.936a.361.361 0 0 1-.686 0l-.645-1.937a2.89 2.89 0 0 0-1.828-1.828l-1.937-.645a.361.361 0 0 1 0-.686l1.937-.645a2.89 2.89 0 0 0 1.828-1.828zM3.794 1.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387A1.73 1.73 0 0 0 4.593 5.69l-.387 1.162a.217.217 0 0 1-.412 0L3.407 5.69A1.73 1.73 0 0 0 2.31 4.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387A1.73 1.73 0 0 0 3.407 2.31zM10.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732L9.1 2.137a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/>
+            </svg>
+            <span style="font-size: 14px; font-weight: 600;">Suggestions de règles</span>
+        </div>
+
+        <!-- Liste des suggestions dans le même conteneur -->
+        <div class="groups-list" id="groups-list">
+            <!-- Les groupes seront injectés ici par JavaScript -->
+            <div class="empty-groups-state" id="empty-groups-state">
+                <p>Analysez les transactions pour découvrir des patterns</p>
+            </div>
         </div>
     </div>
 </div>
@@ -5414,17 +5437,12 @@ fetch('/api/groupements-intelligents', {
 // Fonction pour afficher les groupements intelligents
 function afficherGroupementsIntelligents() {
     const container = document.getElementById('groups-list');
-    const countElement = document.getElementById('groups-count');
     const emptyState = document.getElementById('empty-groups-state');
 
     // Filtrer seulement les groupes (pas les transactions individuelles)
-const groupes = groupementsIntelligents.filter(item => (item.type === 'group' || item.type === 'rule_suggestion') && item.count >= 3);
+    const groupes = groupementsIntelligents.filter(item => (item.type === 'group' || item.type === 'rule_suggestion') && item.count >= 3);
 
-    if (countElement) {
-        countElement.textContent = `${groupes.length} groupe${groupes.length > 1 ? 's' : ''}`;
-    }
-
-    if (groupes.length === 0) {
+if (groupes.length === 0) {
         if (container) {
             container.innerHTML = '<div class="empty-groups-state"><p>Aucun groupement détecté pour ce compte</p></div>';
         }
@@ -5439,7 +5457,6 @@ const groupes = groupementsIntelligents.filter(item => (item.type === 'group' ||
     let html = '';
     groupes.forEach((groupe, index) => {
         const pourcentage = Math.round((groupe.count / getTotalTransactionsCompte()) * 100);
-        const montantTotal = groupe.transactions.reduce((sum, t) => sum + Math.abs(t.montant), 0);
 
         html += `
             <div class="group-item" onclick="selectionnerGroupe(${index})" data-group-index="${index}">
@@ -5450,11 +5467,6 @@ const groupes = groupementsIntelligents.filter(item => (item.type === 'group' ||
                 <div class="group-stats">
                     <div class="group-stats-left">
                         <span>${groupe.count} transactions</span>
-                        <span>•</span>
-                        <span>${montantTotal.toFixed(0)} €</span>
-                    </div>
-                    <div class="group-stats-right">
-                        ${groupe.count * 30}s économisées
                     </div>
                 </div>
             </div>
@@ -5478,14 +5490,32 @@ function selectionnerGroupe(index) {
     }
 
     groupeSelectionne = index;
-    const groupe = groupementsIntelligents.filter(item => item.type === 'group')[index];
+    const groupe = groupementsIntelligents.filter(item => (item.type === 'group' || item.type === 'rule_suggestion'))[index];
 
     if (groupe) {
         console.log('📊 Groupe sélectionné:', groupe.pattern);
 
-        // Remplir automatiquement la recherche avec le pattern du groupe
-        const searchInput = document.getElementById('search-keywords');
-        searchInput.value = groupe.pattern;
+        // Si c'est une suggestion de règle avec mots-clés séparés
+        if (groupe.suggested_keywords && groupe.suggested_keywords.length > 0) {
+            const keywordInput1 = document.getElementById('search-keywords');
+            const keywordInput2 = document.getElementById('search-keywords-2');
+
+            // Remplir le premier champ
+            keywordInput1.value = groupe.suggested_keywords[0] || '';
+
+            // Remplir le deuxième champ si disponible
+            if (groupe.suggested_keywords.length > 1) {
+                keywordInput2.style.display = 'block';
+                keywordInput2.value = groupe.suggested_keywords[1] || '';
+            } else {
+                keywordInput2.style.display = 'none';
+                keywordInput2.value = '';
+            }
+        } else {
+            // Mode fallback avec pattern complet
+            const searchInput = document.getElementById('search-keywords');
+            searchInput.value = groupe.pattern;
+        }
 
         // Vider les autres filtres pour se concentrer sur ce groupe
         document.getElementById('filter-banque').value = '';
@@ -5512,9 +5542,7 @@ function getTotalTransactionsCompte() {
 // Fonction pour afficher l'état vide des groupements
 function afficherEtatVideGroupements() {
     const container = document.getElementById('groups-list');
-    const countElement = document.getElementById('groups-count');
 
-    countElement.textContent = '0 groupe';
     container.innerHTML = '<div class="empty-groups-state"><p>Sélectionnez un compte pour analyser les patterns</p></div>';
 }
 
