@@ -1,4 +1,5 @@
 from collections import defaultdict, Counter
+import logging
 import re
 from typing import List, Dict, Optional, Set
 
@@ -42,16 +43,17 @@ class RuleSuggester:
                 ngrams_set.add(ngram)
         return ngrams_set
 
-    def find_account_specific_patterns(self, compte: str, transactions: List[Dict]) -> List[Dict]:
+    def find_account_specific_patterns(self, compte: str, transactions: List[Dict],
+                                       all_transactions: List[Dict] = None) -> List[Dict]:
         """Trouve les motifs spécifiques selon le type de compte"""
         if self.debug:
             print(f"🔍 AFFECTIA : Analyse spécifique pour le compte {compte}")
         # Comptes 164 (Emprunts)
         if compte.startswith('164'):
             return self._analyze_emprunt_account(compte, transactions)
-        # Comptes 401/411 (Fournisseurs/Clients)
+            # Comptes 401/411 (Fournisseurs/Clients)
         elif compte.startswith('401') or compte.startswith('411'):
-            return self._analyze_tiers_account(compte, transactions)
+            return self._analyze_tiers_account(compte, transactions, all_transactions)
         # Comptes 421/42 (Personnel et assimilés)
         elif compte.startswith('421') or compte.startswith('42'):
             return self._analyze_personnel_account(compte, transactions)
@@ -102,94 +104,342 @@ class RuleSuggester:
         # Ajouter critères journal/montant si applicables
         return self._add_journal_and_amount_criteria(rules, transactions)
 
-    def _analyze_tiers_account(self, compte: str, transactions: List[Dict]) -> List[Dict]:
+    def _analyze_tiers_account(self, compte: str, transactions: List[Dict], all_transactions: List[Dict] = None) -> \
+    List[Dict]:
         """Analyse spécifique pour les comptes fournisseurs/clients (401/411)"""
+        import logging
+        logger = logging.getLogger(__name__)
+
         if self.debug:
-            print(f"🏢 AFFECTIA : Analyse compte tiers {compte}")
+            logger.debug(f"🏢 AFFECTIA : Analyse compte tiers {compte}")
 
         try:
-            from thefuzz import fuzz
-            from unidecode import unidecode
+            from rapidfuzz import fuzz, process
             fuzzy_available = True
         except ImportError:
             fuzzy_available = False
             if self.debug:
-                print(f"⚠️ AFFECTIA : TheFuzz non disponible, fuzzy matching désactivé")
+                logger.debug(f"⚠️ AFFECTIA : RapidFuzz non disponible, fuzzy matching désactivé")
 
+        # Dictionnaire pour éviter les doublons (clé = mot_cle_1)
+        candidates_dict = {}
+
+        # Racines génériques étendues avec pluriels et variantes
+        generic_roots = {
+            'factur', 'factur', 'paiement', 'paie', 'virement', 'vir', 'cheque', 'chq',
+            'prelevement', 'prlv', 'remboursement', 'remb', 'achat', 'achats', 'vente', 'ventes',
+            'commerce', 'commerc', 'electronique', 'operation', 'oper', 'transaction', 'trans',
+            'carte', 'cartes', 'commande', 'commandes', 'cmd', 'livraison', 'livraisons',
+            'frais', 'service', 'services', 'prestation', 'prestations',
+            'societe', 'societes', 'entreprise', 'entreprises', 'company', 'companies',
+            'corp', 'corporation', 'sarl', 'sas', 'eurl', 'sa', 'ltd', 'inc', 'co', 'cie'
+        }
+
+        def normalize_for_comparison(text):
+            """Normalisation unifiée pour comparaisons (collision, fuzzy)"""
+            if not text:
+                return ""
+            try:
+                from unidecode import unidecode
+                normalized = unidecode(text.upper()).strip()
+            except ImportError:
+                normalized = text.upper().strip()
+            # Supprimer caractères spéciaux mais garder espaces et tirets
+            normalized = re.sub(r'[^\w\s-]', ' ', normalized)
+            normalized = re.sub(r'\s+', ' ', normalized).strip()
+            return normalized
+
+        def is_generic_word(mot_cle):
+            """Vérifie si un mot est générique (avec variantes et pluriels)"""
+            mot_clean = normalize_for_comparison(mot_cle).lower()
+            return any(mot_clean.startswith(root) for root in generic_roots)
+
+        def calculate_specificity_score(mot_cle, coverage_ratio):
+            """Calcule un score de spécificité équilibré avec pénalité généricité"""
+            # Pénalité très forte pour mots génériques
+            if is_generic_word(mot_cle):
+                return 0.1
+
+            # Score basé sur longueur mais modéré
+            length = len(mot_cle)
+            if length <= 2:
+                return 0.05
+            elif length == 3:
+                return 0.4
+            elif length == 4:
+                return 0.7
+            elif length <= 6:
+                return 1.0
+            else:
+                # Bonus modéré pour mots longs mais seulement si couverture forte
+                bonus = min(0.05, coverage_ratio * 0.1)  # Max +0.05, proportionnel à la couverture
+                return 1.0 + bonus
+
+        # PRÉ-CALCULS OPTIMISÉS pour éviter O(W × N)
+
+        # 1. Index inverse des libellés normalisés pour les transactions courantes
+        current_libelles_norm = []
+        libelle_to_transactions = {}
+
+        for i, trans in enumerate(transactions):
+            libelle_norm = normalize_for_comparison(trans['ecriture_lib'])
+            current_libelles_norm.append(libelle_norm)
+
+            # Index inverse : chaque mot → liste des indices de transactions
+            for word in libelle_norm.split():
+                if len(word) >= 3:
+                    if word not in libelle_to_transactions:
+                        libelle_to_transactions[word] = []
+                    libelle_to_transactions[word].append(i)
+
+        # 2. Pré-calcul pour détection collision (autres comptes)
+        other_libelles_norm = []
+        if all_transactions:
+            for trans in all_transactions:
+                trans_compte = None
+
+                # Identifier le compte de la transaction
+                if trans.get('compte_contrepartie'):
+                    trans_compte = trans['compte_contrepartie']
+                elif trans.get('compte_final') and not trans['compte_final'].startswith('512'):
+                    trans_compte = trans['compte_final']
+                elif trans.get('compte_num') and not trans['compte_num'].startswith('512'):
+                    trans_compte = trans['compte_num']
+
+                # Ne garder que les autres comptes
+                if trans_compte and trans_compte != compte:
+                    other_libelles_norm.append(normalize_for_comparison(trans['ecriture_lib']))
+
+        def find_matching_transactions_fast(mot_cle_norm):
+            """Trouve rapidement les transactions contenant le mot-clé (via index)"""
+            matching_indices = set()
+
+            # Chercher dans l'index inverse
+            if mot_cle_norm in libelle_to_transactions:
+                matching_indices.update(libelle_to_transactions[mot_cle_norm])
+
+            # Recherche par inclusion (fallback pour mots composés)
+            for word, indices in libelle_to_transactions.items():
+                if mot_cle_norm in word or word in mot_cle_norm:
+                    matching_indices.update(indices)
+
+            return [transactions[i] for i in matching_indices]
+
+        def check_collision_optimized(mot_cle):
+            """Détection collision optimisée avec normalisation uniforme"""
+            if not other_libelles_norm:
+                return False, 0, 0.0
+
+            # Normaliser le mot-clé pour comparaison
+            mot_cle_norm = normalize_for_comparison(mot_cle)
+
+            # Compter collisions avec normalisation
+            collision_count = sum(1 for libelle in other_libelles_norm if mot_cle_norm in libelle)
+            total_other = len(other_libelles_norm)
+            collision_ratio = collision_count / total_other if total_other > 0 else 0.0
+
+            # Seuils adaptatifs
+            has_significant_collision = (
+                                                collision_count >= 5 and collision_ratio >= 0.03  # Seuil plus strict
+                                        ) or (
+                                                collision_count >= 15  # Seuil absolu réduit
+                                        )
+
+            return has_significant_collision, collision_count, collision_ratio
+
+        def calculate_collision_penalty(has_collision, collision_ratio, coverage_ratio):
+            """Pénalité collision pondérée par la couverture du compte"""
+            if not has_collision:
+                return 1.0
+
+            # Pénalité de base selon le ratio de collision
+            if collision_ratio >= 0.4:
+                base_penalty = 0.1
+            elif collision_ratio >= 0.2:
+                base_penalty = 0.3
+            elif collision_ratio >= 0.1:
+                base_penalty = 0.5
+            elif collision_ratio >= 0.05:
+                base_penalty = 0.7
+            else:
+                base_penalty = 0.85
+
+            # Ajustement selon la couverture : plus la couverture est forte, moins on pénalise
+            coverage_bonus = min(0.3, coverage_ratio * 0.4)  # Max +30% si couverture parfaite
+            final_penalty = min(1.0, base_penalty + coverage_bonus)
+
+            return final_penalty
+
+        def add_candidate(mot_cle, trans_count, trans_matched, match_type, source_desc):
+            """Ajoute un candidat avec scoring optimisé"""
+            coverage = trans_count / len(transactions)
+            specificity_score = calculate_specificity_score(mot_cle, coverage)
+
+            # Détection collision
+            has_collision, collision_count, collision_ratio = check_collision_optimized(mot_cle)
+            collision_penalty = calculate_collision_penalty(has_collision, collision_ratio, coverage)
+
+            # Score composite final
+            composite_score = specificity_score * coverage * collision_penalty
+
+            # Log collision significative seulement
+            if self.debug and has_collision and collision_ratio >= 0.05:
+                logger.debug(
+                    f"⚠️ AFFECTIA : Collision '{mot_cle}' - {collision_count}/{len(other_libelles_norm)} ({collision_ratio:.1%}) - Pénalité: {collision_penalty:.2f}")
+
+            if mot_cle not in candidates_dict or candidates_dict[mot_cle]["composite_score"] < composite_score:
+                candidates_dict[mot_cle] = {
+                    "mot_cle_1": mot_cle,
+                    "transactions_couvertes": trans_count,
+                    "transactions_matched": trans_matched,
+                    "coverage_score": coverage,
+                    "specificity_score": specificity_score,
+                    "composite_score": composite_score,
+                    "collision": has_collision,
+                    "collision_count": collision_count,
+                    "collision_ratio": collision_ratio,
+                    "collision_penalty": collision_penalty,
+                    "match_type": match_type,
+                    "source": source_desc
+                }
+
+        # ÉTAPE 1 : Analyser le libellé du compte
+        compte_libelle = transactions[0].get('compte_libelle', '') if transactions else ''
+        if compte_libelle:
+            compte_words = self.normalize_text(compte_libelle).split()
+            significant_compte_words = [w for w in compte_words
+                                        if len(w) >= 3 and w.lower() not in self.stop_words and not w.isdigit()]
+
+            if self.debug:
+                logger.debug(f"🔍 AFFECTIA : Libellé '{compte_libelle}' → mots: {significant_compte_words}")
+
+            for word in significant_compte_words:
+                # Test exact optimisé
+                word_norm = normalize_for_comparison(word)
+                exact_matches = find_matching_transactions_fast(word_norm)
+
+                if len(exact_matches) >= self.min_occurrences:
+                    add_candidate(word, len(exact_matches), exact_matches, "exact_from_compte", "libellé compte")
+
+                # Test fuzzy optimisé avec RapidFuzz
+                if fuzzy_available and len(exact_matches) < len(
+                        transactions) * 0.8:  # Fuzzy seulement si exact insuffisant
+                    choices = [(libelle, i) for i, libelle in enumerate(current_libelles_norm)]
+                    word_norm_clean = normalize_for_comparison(word)
+
+                    # Utiliser RapidFuzz.process pour optimiser
+                    fuzzy_results = process.extract(
+                        word_norm_clean,
+                        [choice[0] for choice in choices],
+                        scorer=fuzz.partial_ratio,
+                        limit=len(choices),
+                        score_cutoff=max(70, 100 - len(word) * 3)
+                    )
+
+                    fuzzy_matches = []
+                    for result, score, idx in fuzzy_results:
+                        original_idx = choices[idx][1]
+                        fuzzy_matches.append(transactions[original_idx])
+
+                    if len(fuzzy_matches) >= self.min_occurrences and len(fuzzy_matches) > len(exact_matches):
+                        add_candidate(word, len(fuzzy_matches), fuzzy_matches, "fuzzy_from_compte",
+                                      "libellé compte (fuzzy)")
+
+        # ÉTAPE 2 : Patterns spéciaux (domaines, tirets)
+        domain_patterns = Counter()
+        company_names = Counter()
+
+        for trans in transactions:
+            original_text = trans['ecriture_lib'].upper()
+
+            # Domaines web
+            domains = re.findall(r'\b(\w{3,})\.(COM|FR|US|NET|ORG|CO|BE|DE|IT|ES)\b', original_text)
+            for domain_name, extension in domains:
+                domain_patterns[domain_name] += 1
+
+            # Noms avec tirets
+            words_with_hyphens = re.findall(r'\b\w{3,}(?:-\w{2,})+\b', original_text)
+            for word in words_with_hyphens:
+                if not word.replace('-', '').isdigit():
+                    company_names[word] += 1
+
+        # Ajouter patterns aux candidats
+        for pattern, count in domain_patterns.items():
+            if count >= self.min_occurrences:
+                matching_transactions = [t for t in transactions if pattern in t['ecriture_lib'].upper()]
+                add_candidate(pattern, count, matching_transactions, "domain_pattern", "domaine web")
+
+        for pattern, count in company_names.items():
+            if count >= self.min_occurrences:
+                matching_transactions = [t for t in transactions if pattern in t['ecriture_lib'].upper()]
+                add_candidate(pattern, count, matching_transactions, "hyphenated_name", "nom avec tirets")
+
+        # ÉTAPE 3 : N-grams avec fuzzy
         all_libelles = [self.normalize_text(t['ecriture_lib']) for t in transactions]
         if all_libelles:
-            # Extraire tous les n-grams de 1 à 5 mots du premier libellé
-            first_ngrams = self.extract_ngrams(all_libelles[0], max_length=5)
-            # Garder seulement ceux présents dans TOUS les libellés
+            # N-grams communs
+            first_ngrams = self.extract_ngrams(all_libelles[0], max_length=4)  # Réduit à 4 pour performance
             common_ngrams = set()
             for ngram in first_ngrams:
                 if all(ngram in libelle for libelle in all_libelles):
-                    # Filtrer les n-grams trop génériques
                     words_in_ngram = ngram.split()
                     if all(len(w) >= 3 and not w.isdigit() and w.lower() not in self.stop_words for w in
                            words_in_ngram):
                         common_ngrams.add(ngram)
-                        if self.debug:
-                            print(f"🔍 AFFECTIA : N-gram commun trouvé - '{ngram}'")
 
+            # Ajouter n-grams
+            for ngram in common_ngrams:
+                add_candidate(ngram, len(transactions), transactions, "ngram_exact", "n-gram commun")
+
+            # Fuzzy n-grams avec compte
+            if fuzzy_available and len(compte_libelle) >= 3 and common_ngrams:
+                compte_norm = normalize_for_comparison(compte_libelle)
+                ngrams_list = list(common_ngrams)
+
+                # Utiliser RapidFuzz pour optimiser
+                fuzzy_ngram_results = process.extract(
+                    compte_norm,
+                    ngrams_list,
+                    scorer=fuzz.token_set_ratio,
+                    limit=3,
+                    score_cutoff=70
+                )
+
+                for ngram, score, _ in fuzzy_ngram_results:
+                    add_candidate(ngram, len(transactions), transactions, "ngram_fuzzy", f"n-gram fuzzy ({score})")
+
+        # SÉLECTION DU MEILLEUR CANDIDAT
+        all_candidates = list(candidates_dict.values())
+
+        if not all_candidates:
             if self.debug:
-                print(f"🔍 AFFECTIA : {len(common_ngrams)} n-gram(s) commun(s) détecté(s) : {list(common_ngrams)}")
+                logger.debug(f"⚠️ AFFECTIA : Aucun candidat pour {compte}")
+            return self._analyze_general_account(compte, transactions)
 
-            # Recherche de correspondance avec le nom du compte via fuzzy matching
-            if fuzzy_available and len(compte) >= 3:
-                compte_clean = unidecode(compte.lower()).replace('-', ' ').replace('_', ' ')
-                if self.debug:
-                    print(f"🔍 AFFECTIA : Recherche fuzzy pour '{compte}' → '{compte_clean}'")
+        # Tri optimisé
+        all_candidates.sort(key=lambda x: (
+            -x["composite_score"],
+            -x["coverage_score"],
+            -len(x["mot_cle_1"])
+        ))
 
-                fuzzy_matches = []
-                for ngram in common_ngrams:
-                    ngram_clean = unidecode(ngram.lower()).replace('-', ' ').replace('_', ' ')
+        # Logging intelligent et concis
+        if self.debug and all_candidates:
+            best = all_candidates[0]
+            collision_info = f"collision {best['collision_count']} ({best['collision_ratio']:.1%})" if best[
+                'collision'] else "✓"
+            logger.debug(
+                f"✅ AFFECTIA : '{best['mot_cle_1']}' - Score: {best['composite_score']:.2f} - {collision_info}")
 
-                    # Utiliser plusieurs types de scores TheFuzz
-                    partial_score = fuzz.partial_ratio(compte_clean, ngram_clean)
-                    token_set_score = fuzz.token_set_ratio(compte_clean, ngram_clean)
-                    best_score = max(partial_score, token_set_score)
+        # Retourner le meilleur candidat
+        best_candidate = all_candidates[0]
+        rules = [{
+            "mot_cle_1": best_candidate["mot_cle_1"],
+            "transactions_couvertes": best_candidate["transactions_couvertes"],
+            "collision": best_candidate["collision"]
+        }]
 
-                    if best_score >= 80:  # Seuil de similarité
-                        fuzzy_matches.append((ngram, best_score))
-                        if self.debug:
-                            print(f"🎯 AFFECTIA : Match fuzzy - '{ngram}' (score: {best_score})")
-
-                # Prioriser la meilleure correspondance fuzzy
-                if fuzzy_matches:
-                    fuzzy_matches.sort(key=lambda x: (-x[1], -len(x[0].split()), -len(x[0])))
-                    best_ngram = fuzzy_matches[0][0]
-                    if self.debug:
-                        print(
-                            f"✅ AFFECTIA : Meilleur match fuzzy sélectionné - '{best_ngram}' (score: {fuzzy_matches[0][1]})")
-                elif common_ngrams:
-                    # Pas de match fuzzy, prendre le n-gram le plus long
-                    best_ngram = max(common_ngrams, key=lambda x: (len(x.split()), len(x)))
-                    if self.debug:
-                        print(f"✅ AFFECTIA : N-gram général sélectionné - '{best_ngram}'")
-                else:
-                    best_ngram = None
-            else:
-                # Pas de fuzzy matching, utiliser la logique classique
-                if common_ngrams:
-                    best_ngram = max(common_ngrams, key=lambda x: (len(x.split()), len(x)))
-                    if self.debug:
-                        print(f"✅ AFFECTIA : N-gram classique sélectionné - '{best_ngram}'")
-                else:
-                    best_ngram = None
-
-            if best_ngram:
-                rules = [{
-                    "mot_cle_1": best_ngram,
-                    "transactions_couvertes": len(transactions),
-                    "collision": False
-                }]
-                return self._add_journal_and_amount_criteria(rules, transactions)
-
-        # Aucun n-gram distinctif commun → analyse générale
-        if self.debug:
-            print(f"⚠️ AFFECTIA : Pas de motif unique de tiers pour {compte}, analyse générale.")
-        return self._analyze_general_account(compte, transactions)
+        return self._add_journal_and_amount_criteria(rules, transactions)
 
     def _analyze_personnel_account(self, compte: str, transactions: List[Dict]) -> List[Dict]:
         """Analyse spécifique pour les comptes de personnel (421/42)"""
@@ -566,8 +816,9 @@ class RuleSuggester:
             if self.debug:
                 print(f"⚠️ AFFECTIA : Pas assez de transactions pour le compte {compte}")
             return []
-        # 1. Motifs spécifiques selon le type de compte
-        candidate_rules = self.find_account_specific_patterns(compte, transactions)
+
+            # 1. Motifs spécifiques selon le type de compte
+        candidate_rules = self.find_account_specific_patterns(compte, transactions, all_transactions)
         # 2. Ajout des critères journal et montant aux règles candidates
         candidate_rules = self._add_journal_and_amount_criteria(candidate_rules, transactions)
         # 3. Vérification de l'unicité des règles (collisions inter-comptes)
