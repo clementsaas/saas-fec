@@ -106,24 +106,87 @@ class RuleSuggester:
         """Analyse spécifique pour les comptes fournisseurs/clients (401/411)"""
         if self.debug:
             print(f"🏢 AFFECTIA : Analyse compte tiers {compte}")
+
+        try:
+            from thefuzz import fuzz
+            from unidecode import unidecode
+            fuzzy_available = True
+        except ImportError:
+            fuzzy_available = False
+            if self.debug:
+                print(f"⚠️ AFFECTIA : TheFuzz non disponible, fuzzy matching désactivé")
+
         all_libelles = [self.normalize_text(t['ecriture_lib']) for t in transactions]
         if all_libelles:
-            # Mots présents dans TOUS les libellés du compte
-            common_words = set(all_libelles[0].split())
-            for libelle in all_libelles[1:]:
-                common_words &= set(libelle.split())
-            significant_words = [w for w in common_words
-                                  if len(w) >= 3 and w.lower() not in self.stop_words and not w.isdigit()]
-            if significant_words:
-                # Prendre le mot le plus long commun à toutes les transactions
-                word_in_all = max(significant_words, key=len)
+            # Extraire tous les n-grams de 1 à 5 mots du premier libellé
+            first_ngrams = self.extract_ngrams(all_libelles[0], max_length=5)
+            # Garder seulement ceux présents dans TOUS les libellés
+            common_ngrams = set()
+            for ngram in first_ngrams:
+                if all(ngram in libelle for libelle in all_libelles):
+                    # Filtrer les n-grams trop génériques
+                    words_in_ngram = ngram.split()
+                    if all(len(w) >= 3 and not w.isdigit() and w.lower() not in self.stop_words for w in
+                           words_in_ngram):
+                        common_ngrams.add(ngram)
+                        if self.debug:
+                            print(f"🔍 AFFECTIA : N-gram commun trouvé - '{ngram}'")
+
+            if self.debug:
+                print(f"🔍 AFFECTIA : {len(common_ngrams)} n-gram(s) commun(s) détecté(s) : {list(common_ngrams)}")
+
+            # Recherche de correspondance avec le nom du compte via fuzzy matching
+            if fuzzy_available and len(compte) >= 3:
+                compte_clean = unidecode(compte.lower()).replace('-', ' ').replace('_', ' ')
+                if self.debug:
+                    print(f"🔍 AFFECTIA : Recherche fuzzy pour '{compte}' → '{compte_clean}'")
+
+                fuzzy_matches = []
+                for ngram in common_ngrams:
+                    ngram_clean = unidecode(ngram.lower()).replace('-', ' ').replace('_', ' ')
+
+                    # Utiliser plusieurs types de scores TheFuzz
+                    partial_score = fuzz.partial_ratio(compte_clean, ngram_clean)
+                    token_set_score = fuzz.token_set_ratio(compte_clean, ngram_clean)
+                    best_score = max(partial_score, token_set_score)
+
+                    if best_score >= 80:  # Seuil de similarité
+                        fuzzy_matches.append((ngram, best_score))
+                        if self.debug:
+                            print(f"🎯 AFFECTIA : Match fuzzy - '{ngram}' (score: {best_score})")
+
+                # Prioriser la meilleure correspondance fuzzy
+                if fuzzy_matches:
+                    fuzzy_matches.sort(key=lambda x: (-x[1], -len(x[0].split()), -len(x[0])))
+                    best_ngram = fuzzy_matches[0][0]
+                    if self.debug:
+                        print(
+                            f"✅ AFFECTIA : Meilleur match fuzzy sélectionné - '{best_ngram}' (score: {fuzzy_matches[0][1]})")
+                elif common_ngrams:
+                    # Pas de match fuzzy, prendre le n-gram le plus long
+                    best_ngram = max(common_ngrams, key=lambda x: (len(x.split()), len(x)))
+                    if self.debug:
+                        print(f"✅ AFFECTIA : N-gram général sélectionné - '{best_ngram}'")
+                else:
+                    best_ngram = None
+            else:
+                # Pas de fuzzy matching, utiliser la logique classique
+                if common_ngrams:
+                    best_ngram = max(common_ngrams, key=lambda x: (len(x.split()), len(x)))
+                    if self.debug:
+                        print(f"✅ AFFECTIA : N-gram classique sélectionné - '{best_ngram}'")
+                else:
+                    best_ngram = None
+
+            if best_ngram:
                 rules = [{
-                    "mot_cle_1": word_in_all,
+                    "mot_cle_1": best_ngram,
                     "transactions_couvertes": len(transactions),
                     "collision": False
                 }]
                 return self._add_journal_and_amount_criteria(rules, transactions)
-        # Aucun mot distinctif commun à toutes les écritures -> cas compte collectif (on bascule en analyse générale)
+
+        # Aucun n-gram distinctif commun → analyse générale
         if self.debug:
             print(f"⚠️ AFFECTIA : Pas de motif unique de tiers pour {compte}, analyse générale.")
         return self._analyze_general_account(compte, transactions)
