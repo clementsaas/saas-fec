@@ -1286,7 +1286,7 @@ body {
         }
 
         .compte-number {
-            font-size: 12px;
+            font-size: 11px;
             color: #86868b;
             font-weight: 400;
             white-space: nowrap;
@@ -1296,11 +1296,12 @@ body {
 
         .compte-libelle {
             font-weight: 500;
-            font-size: 12px;
+            font-size: 11px;
             color: #1d1d1f;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-transform: uppercase;
         }
 
 .compte-percentage {
@@ -1384,11 +1385,11 @@ body {
     position: relative;
 }
 
-        .transactions-header {
+.transactions-header {
             display: grid;
             grid-template-columns: 80px 1fr 120px;
             gap: 15px;
-            padding: 15px 20px 15px 45px;
+            padding: 15px 20px 15px 15px;
             background: #f9f9fb;
             font-size: 11px;
             font-weight: 600;
@@ -1418,8 +1419,14 @@ body {
             margin-left: 4px;
         }
 
-        .sortable-transaction-header:hover .sort-icon-transaction {
+.sortable-transaction-header:hover .sort-icon-transaction {
             opacity: 1;
+        }
+
+.sortable-transaction-header:last-child {
+            text-align: right;
+            justify-content: flex-end;
+            padding-right: 0px;
         }
 
         .sort-icon-transaction.active {
@@ -1794,11 +1801,11 @@ body {
     display: grid;
     grid-template-columns: 80px 1fr 120px;
     gap: 15px;
-    padding: 10px 20px 10px 45px;
+    align-items: center;
+    padding: 12px 20px 12px 15px;
     border-bottom: 1px solid #f5f5f7;
     transition: all 0.2s ease;
-    align-items: center;
-    user-select: text;
+    min-height: 50px;
 }
 
         .transaction-item:hover {
@@ -1816,32 +1823,32 @@ body {
 
         .transaction-libelle {
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
             color: #1d1d1f;
             line-height: 1.4;
             cursor: text;
         }
 
 .keyword-highlight {
-            background: #009999;
-            color: white;
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
+    background: #667eea;
+    color: white;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 600;
+}
 
 .keyword-highlight-2 {
-            background: #994d00;
-            color: white;
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
+    background: #66c0ea;
+    color: white;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 600;
+}
 
         .transaction-montant {
             text-align: right;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
         }
 
 .montant-positif { color: #00ac56; }
@@ -2918,7 +2925,7 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
 .group-pattern {
     font-size: 13px;
     font-weight: 700;
-    color: #2d3748;
+    color: #3d4a95;
     line-height: 1.3;
     flex: 1;
     margin-right: 8px;
@@ -3026,7 +3033,7 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 6px;">
                         <path d="M7.657 6.247c.11-.33.576-.33.686 0l.645 1.937a2.89 2.89 0 0 0 1.829 1.828l1.936.645c.33.11.33.576 0 .686l-1.937.645a2.89 2.89 0 0 0-1.828 1.829l-.645 1.936a.361.361 0 0 1-.686 0l-.645-1.937a2.89 2.89 0 0 0-1.828-1.828l-1.937-.645a.361.361 0 0 1 0-.686l1.937-.645a2.89 2.89 0 0 0 1.828-1.828zM3.794 1.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387A1.73 1.73 0 0 0 4.593 5.69l-.387 1.162a.217.217 0 0 1-.412 0L3.407 5.69A1.73 1.73 0 0 0 2.31 4.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387A1.73 1.73 0 0 0 3.407 2.31zM10.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732L9.1 2.137a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/>
                     </svg>
-                    <span style="margin-right: 6px; font-size: 14.5px; font-weight: 500;">Automatisation</span>
+                    <span style="margin-right: 7px; font-size: 15.5px; font-weight: 500;">Automatisation</span>
                     <span class="percentage" id="automation-percentage">{{ automatisation_globale if automatisation_globale else '0' }}%</span>
                 </div>
             </div>
@@ -3239,15 +3246,280 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
         <div class="specular-highlight"></div>
         <div class="impact-content">
             <div class="impact-value-modern" id="impact-percentage">0%</div>
-            <div class="impact-label-modern">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 6px;">
-                    <path d="M7.657 6.247c.11-.33.576-.33.686 0l.645 1.937a2.89 2.89 0 0 0 1.829 1.828l1.936.645c.33.11.33.576 0 .686l-1.937.645a2.89 2.89 0 0 0-1.828 1.829l-.645 1.936a.361.361 0 0 1-.686 0l-.645-1.937a2.89 2.89 0 0 0-1.828-1.828l-1.937-.645a.361.361 0 0 1 0-.686l1.937-.645a2.89 2.89 0 0 0 1.828-1.828zM3.794 1.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387A1.73 1.73 0 0 0 4.593 5.69l-.387 1.162a.217.217 0 0 1-.412 0L3.407 5.69A1.73 1.73 0 0 0 2.31 4.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387A1.73 1.73 0 0 0 3.407 2.31zM10.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732L9.1 2.137a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/>
-                </svg>
+<div class="impact-label-modern">
                 Impact potentiel
             </div>
         </div>
     </div>
 </div>
+
+<button class="create-rule-btn-liquid" onclick="creerNouvelleRegle()">
+    <div class="btn-specular-highlight"></div>
+    <span class="btn-content">Créer une nouvelle règle</span>
+</button>
+
+<!-- Filtres avancés collapsibles Apple Intelligence -->
+<div class="filters-container-ai">
+    <div class="filters-header-ai" onclick="toggleFiltersAI()">
+        <div class="filters-title-ai">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="filter-icon-ai" viewBox="0 0 16 16">
+                <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>
+            </svg>
+            <span>Filtres avancés</span>
+        </div>
+        <svg class="filters-chevron-ai" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+        </svg>
+        <div class="filters-specular-highlight"></div>
+    </div>
+
+    <div class="filters-body-ai" id="filters-body-ai" style="display: none;">
+        <div class="filter-group-ai">
+            <label class="checkbox-label-ai">
+                <input type="checkbox" id="show-covered-transactions" onchange="filtrerTransactions();">
+                <span class="checkbox-text-ai">Afficher transactions traitées</span>
+            </label>
+        </div>
+
+        <div class="filter-group-ai">
+            <label class="filter-label-ai">Banque</label>
+            <select class="filter-input-ai" id="filter-banque" onchange="filtrerTransactions();">
+                <option value="">Toutes les banques</option>
+            </select>
+        </div>
+
+        <div class="filter-group-ai">
+            <div class="montant-filter-ai">
+                <select class="filter-input-ai filter-input-small-ai" id="montant-operateur" onchange="filtrerTransactions(); toggleMontantSecond();">
+                    <option value="=" selected>=</option>
+                    <option value="!=">≠</option>
+                    <option value="<"><</option>
+                    <option value=">">></option>
+                    <option value="<=">≤</option>
+                    <option value=">=">≥</option>
+                    <option value="entre">Entre</option>
+                </select>
+                <input type="number" class="filter-input-ai" id="montant-valeur"
+                       placeholder="Montant" autocomplete="off" onchange="filtrerTransactions();">
+                <input type="number" class="filter-input-ai" id="montant-valeur2"
+                       placeholder="Et" autocomplete="off" onchange="filtrerTransactions();" style="display: none;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Apple Intelligence Filter Design - Compact */
+.filters-container-ai {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(247, 250, 252, 0.12) 100%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.filters-container-ai.expanded {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.filters-header-ai {
+    padding: 12px 16px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+.filters-header-ai:hover {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(247, 250, 252, 0.08) 100%);
+}
+
+.filters-specular-highlight {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.06) 50%,
+        transparent 60%
+    );
+    animation: filtersSpecularMove 6s ease-in-out infinite;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+@keyframes filtersSpecularMove {
+    0%, 100% { transform: translate(-30%, -30%) rotate(45deg); }
+    50% { transform: translate(30%, 30%) rotate(45deg); }
+}
+
+.filters-title-ai {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    letter-spacing: -0.02em;
+    z-index: 2;
+    position: relative;
+}
+
+.filter-icon-ai {
+    color: #007aff;
+    opacity: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 122, 255, 0.3));
+}
+
+.filters-chevron-ai {
+    color: #86868b;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 2;
+    position: relative;
+}
+
+.filters-chevron-ai.expanded {
+    transform: rotate(180deg);
+    color: #007aff;
+}
+
+.filters-body-ai {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(247, 250, 252, 0.05) 100%);
+    animation: filtersBodyExpand 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes filtersBodyExpand {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.filter-group-ai {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-label-ai {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1d1d1f;
+    letter-spacing: -0.01em;
+    margin-bottom: 2px;
+}
+
+.filter-input-ai {
+    padding: 8px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    color: #1d1d1f;
+    font-weight: 400;
+    outline: none;
+}
+
+.filter-input-ai:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 122, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.1);
+}
+
+.filter-input-ai:focus {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(0, 122, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.15);
+}
+
+.filter-input-small-ai {
+    flex: 0 0 60px;
+}
+
+.checkbox-label-ai {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 6px 0;
+    transition: all 0.2s ease;
+}
+
+.checkbox-label-ai:hover {
+    transform: translateX(2px);
+}
+
+.checkbox-label-ai input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #007aff;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.checkbox-text-ai {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1d1d1f;
+    letter-spacing: -0.01em;
+}
+
+.montant-filter-ai {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.montant-filter-ai .filter-input-ai:not(.filter-input-small-ai) {
+    flex: 1;
+}
+</style>
+
+<script>
+function toggleFiltersAI() {
+    const body = document.getElementById('filters-body-ai');
+    const chevron = document.querySelector('.filters-chevron-ai');
+    const container = document.querySelector('.filters-container-ai');
+
+    if (body.style.display === 'none') {
+        body.style.display = 'flex';
+        chevron.classList.add('expanded');
+        container.classList.add('expanded');
+    } else {
+        body.style.display = 'none';
+        chevron.classList.remove('expanded');
+        container.classList.remove('expanded');
+    }
+}
+</script>
 
 <!-- Conteneur des groupes de transactions intelligents -->
 <div class="transaction-groups-container" id="transaction-groups-container">
@@ -3269,58 +3541,6 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
                 <p>Analysez les transactions pour découvrir des patterns</p>
             </div>
         </div>
-    </div>
-</div>
-
-<button class="create-rule-btn-liquid" onclick="creerNouvelleRegle()">
-    <div class="btn-specular-highlight"></div>
-    <span class="btn-content">Créer une nouvelle règle</span>
-</button>
-
- <!-- Nouveau conteneur de filtres permanent -->
-<div class="filters-container-permanent">
-    <div class="filters-header">
-        <h4>Filtres avancés</h4>
-    </div>
-
-    <div class="filters-body">
-        <div class="filter-group-permanent">
-            <label class="filter-label-permanent">Affichage</label>
-            <label class="checkbox-label-permanent">
-                <input type="checkbox" id="show-covered-transactions" onchange="filtrerTransactions();">
-                <span>Transactions couvertes</span>
-            </label>
-        </div>
-
-        <div class="filter-group-permanent">
-            <label class="filter-label-permanent">Banque</label>
-            <select class="filter-input-permanent" id="filter-banque" onchange="filtrerTransactions();">
-                <option value="">Toutes</option>
-            </select>
-        </div>
-
-        <div class="filter-group-permanent">
-            <label class="filter-label-permanent">Montant</label>
-            <div class="montant-filter-permanent">
-                <select class="filter-input-permanent" id="montant-operateur" onchange="filtrerTransactions(); toggleMontantSecond();" style="width: 60px;">
-                    <option value="=" selected>=</option>
-                    <option value="!=">≠</option>
-                    <option value="<"><</option>
-                    <option value=">">></option>
-                    <option value="<=">≤</option>
-                    <option value=">=">≥</option>
-                    <option value="entre">Entre</option>
-                </select>
-                <input type="number" class="filter-input-permanent" id="montant-valeur"
-                       placeholder="Montant" autocomplete="off" onchange="filtrerTransactions();" style="flex: 1;">
-                <input type="number" class="filter-input-permanent" id="montant-valeur2"
-                       placeholder="Et" autocomplete="off" onchange="filtrerTransactions();" style="display: none; flex: 1;">
-            </div>
-        </div>
-
-        <button class="filter-reset-btn-permanent" onclick="resetFilters()">
-            🔄 Réinitialiser
-        </button>
     </div>
 </div>
 
@@ -4184,8 +4404,8 @@ html += `
         <div class="transaction-libelle" onmouseup="handleTextSelection()">
             ${ecriture.ecriture_lib}
         </div>
-        <div class="transaction-montant ${montantClass}">
-            ${signe}${montantFormate} €
+<div class="transaction-montant ${montantClass}">
+            ${signe}${montantFormate}
         </div>
     </div>
 `;
@@ -4465,11 +4685,7 @@ document.addEventListener('click', function(e) {
                     keywordInput2.value = '';
                     filtrerTransactions();
 
-                    // Effet visuel
-                    keywordInput2.style.background = '#fffacd';
-                    setTimeout(() => {
-                        keywordInput2.style.background = '';
-                    }, 200);
+// Effet visuel supprimé
                 }
                 // Sinon, vider le premier champ et cacher le deuxième
                 else if (keywordInput1.value.trim() !== '') {
@@ -4480,11 +4696,7 @@ document.addEventListener('click', function(e) {
                     keywordInput2.value = '';
                     filtrerTransactions();
 
-                    // Effet visuel
-                    keywordInput1.style.background = '#fffacd';
-                    setTimeout(() => {
-                        keywordInput1.style.background = '';
-                    }, 200);
+// Effet visuel supprimé
                 }
                 return;
             }
