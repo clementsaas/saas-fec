@@ -1,7 +1,7 @@
 from collections import defaultdict, Counter
 import logging
 import re
-from typing import List, Dict, Optional, Set, Counter as TypingCounter
+from typing import List, Dict, Optional, Set
 
 class RuleSuggester:
     """Algorithme Affectia pour suggérer des règles d'affectation des transactions bancaires"""
@@ -42,80 +42,6 @@ class RuleSuggester:
                     continue
                 ngrams_set.add(ngram)
         return ngrams_set
-
-    def extract_ngrams_all(self, libelles: List[str], n_max: int = 4, min_df: int = 3, max_set: int = 50) -> tuple[
-        dict[str, set[int] | tuple[int, int]], TypingCounter]:
-        """
-        Extrait tous les n-grams de tous les libellés avec optimisation mémoire
-
-        Args:
-            libelles: Liste des libellés à analyser
-            n_max: Nombre maximum de mots par n-gram
-            min_df: Fréquence documentaire minimale pour retenir un n-gram
-            max_set: Seuil au-dessus duquel on ne stocke que le compteur (pas les indices)
-
-        Returns:
-            tuple: (ngram_indices_dict, df_counter)
-                - ngram_indices_dict: {ngram: set(indices) ou tuple(sample_idx, count)}
-                - df_counter: Counter des fréquences documentaires
-        """
-        # Cache de normalisation pour éviter les appels redondants
-        normalized_libelles = [self.normalize_text(libelle) for libelle in libelles]
-
-        ngram_indices = {}
-        df_counter = Counter()
-
-        for doc_idx, libelle_norm in enumerate(normalized_libelles):
-            words = libelle_norm.split()
-
-            # Extraire n-grams de ce document
-            doc_ngrams = set()
-            for n in range(1, min(len(words) + 1, n_max + 1)):
-                for i in range(len(words) - n + 1):
-                    ngram_words = words[i:i + n]
-
-                    # Filtrer uniquement les tokens courts ou numériques
-                    if any(len(w) < 3 or w.isdigit() for w in ngram_words):
-                        continue
-
-                    # Ignorer n-grams entièrement composés de mots vides
-                    if all(w.lower() in self.stop_words for w in ngram_words):
-                        continue
-
-                    # Filtrer n-grams commençant ou finissant par un stop-word
-                    if ngram_words[0].lower() in self.stop_words or ngram_words[-1].lower() in self.stop_words:
-                        continue
-
-                    ngram = ' '.join(ngram_words)
-                    doc_ngrams.add(ngram)
-
-            # Mettre à jour les compteurs pour ce document
-            for ngram in doc_ngrams:
-                df_counter[ngram] += 1
-
-                # Gestion optimisée des indices
-                if ngram not in ngram_indices:
-                    ngram_indices[ngram] = {doc_idx}
-                elif isinstance(ngram_indices[ngram], set):
-                    ngram_indices[ngram].add(doc_idx)
-                    # Conversion en compteur si trop fréquent, mais conserver un échantillon
-                    if len(ngram_indices[ngram]) > max_set:
-                        sample_idx = next(iter(ngram_indices[ngram]))
-                        ngram_indices[ngram] = (sample_idx, len(ngram_indices[ngram]))  # (échantillon, count)
-                else:
-                    # Déjà un compteur, incrémenter
-                    ngram_indices[ngram] = (ngram_indices[ngram][0], ngram_indices[ngram][1] + 1)
-
-        # Filtrer par fréquence documentaire minimale
-        filtered_ngrams = {}
-        filtered_df = Counter()
-
-        for ngram, df in df_counter.items():
-            if df >= min_df:
-                filtered_ngrams[ngram] = ngram_indices[ngram]
-                filtered_df[ngram] = df
-
-        return filtered_ngrams, filtered_df
 
     def find_account_specific_patterns(self, compte: str, transactions: List[Dict],
                                        all_transactions: List[Dict] = None) -> List[Dict]:
@@ -448,23 +374,22 @@ class RuleSuggester:
                 matching_transactions = [t for t in transactions if pattern in t['ecriture_lib'].upper()]
                 add_candidate(pattern, count, matching_transactions, "hyphenated_name", "nom avec tirets")
 
-                # ÉTAPE 3 : N-grams avec fuzzy
-                all_libelles = [t['ecriture_lib'] for t in transactions]
-                if all_libelles:
-                    # Utiliser la nouvelle méthode extract_ngrams_all
-                    ngrams_dict, df_counter = self.extract_ngrams_all(
-                        all_libelles,
-                        n_max=4,
-                        min_df=len(transactions),  # N-grams présents dans TOUTES les transactions
-                        max_set=50
-                    )
+        # ÉTAPE 3 : N-grams avec fuzzy
+        all_libelles = [self.normalize_text(t['ecriture_lib']) for t in transactions]
+        if all_libelles:
+            # N-grams communs
+            first_ngrams = self.extract_ngrams(all_libelles[0], max_length=4)  # Réduit à 4 pour performance
+            common_ngrams = set()
+            for ngram in first_ngrams:
+                if all(ngram in libelle for libelle in all_libelles):
+                    words_in_ngram = ngram.split()
+                    if all(len(w) >= 3 and not w.isdigit() and w.lower() not in self.stop_words for w in
+                           words_in_ngram):
+                        common_ngrams.add(ngram)
 
-                    # Les n-grams sont déjà filtrés par min_df=len(transactions)
-                    common_ngrams = set(ngrams_dict.keys())
-
-                    # Ajouter n-grams
-                    for ngram in common_ngrams:
-                        add_candidate(ngram, len(transactions), transactions, "ngram_exact", "n-gram commun")
+            # Ajouter n-grams
+            for ngram in common_ngrams:
+                add_candidate(ngram, len(transactions), transactions, "ngram_exact", "n-gram commun")
 
             # Fuzzy n-grams avec compte
             if fuzzy_available and len(compte_libelle) >= 3 and common_ngrams:
@@ -685,57 +610,34 @@ class RuleSuggester:
             if self.debug:
                 print(f"⚠️ AFFECTIA : Pas assez de transactions ({len(transactions)} < {self.min_occurrences})")
             return []
-            # Utiliser la nouvelle méthode extract_ngrams_all
-            all_libelles = [t['ecriture_lib'] for t in transactions]
-            ngrams_dict, df_counter = self.extract_ngrams_all(
-                all_libelles,
-                n_max=5,
-                min_df=self.min_occurrences,
-                max_set=50
-            )
-
-            def _get_signature_for_dedup(indices_data):
-                """
-                Retourne un hashable représentant l'ensemble exact de transactions ou,
-                à défaut, un tuple (count, hash_sample) qui réduit les collisions.
-                """
-                if isinstance(indices_data, set):
-                    # Utiliser frozenset pour hashing fiable
-                    return frozenset(indices_data)
-                elif isinstance(indices_data, tuple):
-                    sample_idx, total = indices_data
-                    # Hash léger, réduit les collisions 'même count'
-                    return (total, sample_idx % 97)
-                else:
-                    # int simple
-                    return (indices_data, None)
-
-                    # Trier par fréquence puis longueur avec ordre stable
-                    frequent_ngrams = list(df_counter.most_common())
-                    frequent_ngrams.sort(key=lambda x: (x[1], len(x[0]), x[0]), reverse=True)
-
-            selected_ngrams = []
-            for ngram, count in frequent_ngrams[:10]:  # considérer jusqu'aux 10 motifs les plus fréquents
-                # Obtenir signature pour déduplication
-                indices_data = ngrams_dict.get(ngram)
-                trans_signature = _get_signature_for_dedup(indices_data)
-
-                # Vérifier si ce motif est redondant avec un motif déjà sélectionné
-                redundant = False
-                for sel_ng, _ in selected_ngrams:
-                    sel_indices_data = ngrams_dict.get(sel_ng)
-                    sel_signature = _get_signature_for_dedup(sel_indices_data)
-
-                    # Comparaison de signatures (set complet ou count)
-                    if trans_signature == sel_signature:
-                        # Si même couverture, garder le motif le plus long
-                        if len(ngram) > len(sel_ng):
-                            selected_ngrams = [(ng, cnt) for ng, cnt in selected_ngrams if ng != sel_ng]
-                            selected_ngrams.append((ngram, count))
-                        redundant = True
-                        break
-                if not redundant:
-                    selected_ngrams.append((ngram, count))
+        ngram_counter = Counter()
+        ngram_transaction_ids = {}
+        # Extraire tous les n-grams (1 à 5 mots) de chaque transaction et compter les transactions correspondantes
+        for trans in transactions:
+            libelle = self.normalize_text(trans['ecriture_lib'])
+            trans_id = trans.get('id', None) or id(trans)
+            for ngram in self.extract_ngrams(libelle):
+                ngram_counter[ngram] += 1
+                # Suivre l'ensemble des IDs de transactions contenant ce n-gram
+                ngram_transaction_ids.setdefault(ngram, set()).add(trans_id)
+        # Ne garder que les n-grams fréquents (min_occurrences) et trier par fréquence puis longueur
+        frequent_ngrams = [(ng, cnt) for ng, cnt in ngram_counter.items() if cnt >= self.min_occurrences]
+        frequent_ngrams.sort(key=lambda x: (x[1], len(x[0])), reverse=True)
+        selected_ngrams = []
+        for ngram, count in frequent_ngrams[:10]:  # considérer jusqu'aux 10 motifs les plus fréquents
+            trans_ids = ngram_transaction_ids.get(ngram, set())
+            # Vérifier si ce motif est redondant avec un motif déjà sélectionné (même couverture de transactions)
+            redundant = False
+            for sel_ng, _ in selected_ngrams:
+                if trans_ids == ngram_transaction_ids.get(sel_ng, set()):
+                    # Si même couverture, garder le motif le plus long
+                    if len(ngram) > len(sel_ng):
+                        selected_ngrams = [(ng, cnt) for ng, cnt in selected_ngrams if ng != sel_ng]
+                        selected_ngrams.append((ngram, count))
+                    redundant = True
+                    break
+            if not redundant:
+                selected_ngrams.append((ngram, count))
         # Construire les règles à partir des motifs retenus (max 3 règles)
         rules = []
         for ngram, count in selected_ngrams[:3]:
