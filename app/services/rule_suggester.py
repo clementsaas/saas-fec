@@ -548,6 +548,7 @@ class RuleSuggester:
         if self.debug:
             print(f"👥 AFFECTIA : Analyse compte personnel {compte}")
         all_libelles = [self.normalize_text(t['ecriture_lib']) for t in transactions]
+
         # Compte individuel : chercher des n-grams communs à tous les libellés (typiquement prénom + nom)
         if all_libelles:
             # Extraire tous les n-grams de 1 à 3 mots du premier libellé
@@ -563,6 +564,100 @@ class RuleSuggester:
                         common_ngrams.add(ngram)
                         if self.debug:
                             print(f"🔍 AFFECTIA : N-gram commun trouvé - '{ngram}'")
+
+            # NOUVELLE APPROCHE : Chercher des mots communs à la majorité des libellés (≥80%)
+            # pour pouvoir ensuite les combiner avec d'autres mots fréquents
+            from collections import Counter
+
+            # Compter tous les mots dans tous les libellés
+            all_words = []
+            for libelle in all_libelles:
+                words = libelle.split()
+                filtered_words = [w for w in words if
+                                  len(w) >= 3 and not w.isdigit() and w.lower() not in self.stop_words]
+                all_words.extend(filtered_words)
+
+            word_counts = Counter(all_words)
+            total_transactions = len(transactions)
+
+            # Identifier les mots présents dans au moins 80% des transactions
+            frequent_words = []
+            for word, count in word_counts.items():
+                coverage_ratio = count / total_transactions
+                if coverage_ratio >= 0.8:  # 80% de couverture minimum
+                    frequent_words.append((word, count, coverage_ratio))
+
+            # Trier par couverture décroissante
+            frequent_words.sort(key=lambda x: (-x[2], -len(x[0])))
+
+            if self.debug:
+                print(f"🔍 AFFECTIA : Mots fréquents (≥80%) : {[(w, f'{c:.1%}') for w, _, c in frequent_words]}")
+
+                # Essayer TOUTES les combinaisons possibles des mots les plus fréquents
+                candidate_rules = []
+
+                # Tester toutes les combinaisons 2 à 2 des mots fréquents
+                # Utiliser un set pour éviter les doublons de combinaisons
+                tested_combinations = set()
+
+                for i in range(min(len(frequent_words), 4)):  # Limiter aux 4 mots les plus fréquents
+                    for j in range(i + 1, min(len(frequent_words), 4)):
+                        word1, count1, coverage1 = frequent_words[i]
+                        word2, count2, coverage2 = frequent_words[j]
+
+                        # Normaliser l'ordre des mots pour éviter les doublons
+                        # Toujours mettre le mot le plus long en premier, puis par ordre alphabétique
+                        if len(word1) > len(word2) or (len(word1) == len(word2) and word1 < word2):
+                            normalized_combo = (word1, word2)
+                        else:
+                            normalized_combo = (word2, word1)
+
+                        # Éviter les combinaisons déjà testées
+                        if normalized_combo in tested_combinations:
+                            continue
+                        tested_combinations.add(normalized_combo)
+
+                        # Compter les transactions contenant les deux mots
+                        transactions_with_both = []
+                        for trans in transactions:
+                            libelle = self.normalize_text(trans['ecriture_lib'])
+                            if normalized_combo[0] in libelle and normalized_combo[1] in libelle:
+                                transactions_with_both.append(trans)
+
+                        if len(transactions_with_both) >= self.min_occurrences:
+                            candidate_rules.append({
+                                "mot_cle_1": normalized_combo[0],
+                                "mot_cle_2": normalized_combo[1],
+                                "transactions_couvertes": len(transactions_with_both),
+                                "collision": False
+                            })
+                            if self.debug:
+                                print(
+                                    f"✅ AFFECTIA : Règle combinée trouvée - '{normalized_combo[0]}' + '{normalized_combo[1]}' ({len(transactions_with_both)} transactions)")
+
+            # Ajouter aussi les mots seuls comme alternatives
+            for word, count, coverage in frequent_words[:2]:
+                transactions_with_word = []
+                for trans in transactions:
+                    libelle = self.normalize_text(trans['ecriture_lib'])
+                    if word in libelle:
+                        transactions_with_word.append(trans)
+
+                if len(transactions_with_word) >= self.min_occurrences:
+                    candidate_rules.append({
+                        "mot_cle_1": word,
+                        "transactions_couvertes": len(transactions_with_word),
+                        "collision": False
+                    })
+                    if self.debug:
+                        print(
+                            f"✅ AFFECTIA : Règle simple trouvée - '{word}' ({len(transactions_with_word)} transactions)")
+
+            if candidate_rules:
+                # Trier par couverture décroissante mais NE PAS limiter ici
+                # car il faut d'abord vérifier les collisions
+                candidate_rules.sort(key=lambda r: -r['transactions_couvertes'])
+                return self._add_journal_and_amount_criteria(candidate_rules, transactions)
 
             # Priorité spéciale aux n-grams de noms (2 mots de 3+ caractères, pas de mots vides)
             name_ngrams = []
@@ -850,16 +945,25 @@ class RuleSuggester:
         validated_rules = []
         for rule in rules:
             collision = False
+            collision_details = []
             for trans in all_transactions:
                 if trans['compte_contrepartie'] == compte:
                     continue  # ignorer les transactions du compte cible lui-même
                 libelle = self.normalize_text(trans['ecriture_lib'])
+
+                # Vérifier mot_cle_1
                 if rule['mot_cle_1'] not in libelle:
                     continue
+
+                # Vérifier mot_cle_2 (OBLIGATOIRE s'il existe)
                 if 'mot_cle_2' in rule and rule['mot_cle_2'] not in libelle:
                     continue
+
+                # Vérifier journal
                 if 'journal' in rule and trans['journal_code'] != rule['journal']:
                     continue
+
+                # Vérifier montant
                 if 'montant' in rule:
                     crit = rule['montant']
                     m = trans['montant']
@@ -871,17 +975,30 @@ class RuleSuggester:
                         continue
                     elif crit == '< 0' and m >= 0:
                         continue
+
                 # Si tous les critères sont remplis, on a une collision
                 collision = True
+                collision_details.append(trans['compte_contrepartie'])
                 if self.debug:
-                    print(f"❌ AFFECTIA : Collision pour règle '{rule['mot_cle_1']}' avec compte {trans['compte_contrepartie']}")
+                    rule_desc = f"'{rule['mot_cle_1']}'"
+                    if 'mot_cle_2' in rule:
+                        rule_desc += f" + '{rule['mot_cle_2']}'"
+                    print(f"❌ AFFECTIA : Collision pour règle {rule_desc} avec compte {trans['compte_contrepartie']}")
                 break
+
             rule['collision'] = collision
             validated_rules.append(rule)
+
             if not collision and self.debug:
-                print(f"✅ AFFECTIA : Règle '{rule['mot_cle_1']}' sans collision")
+                rule_desc = f"'{rule['mot_cle_1']}'"
+                if 'mot_cle_2' in rule:
+                    rule_desc += f" + '{rule['mot_cle_2']}'"
+                print(f"✅ AFFECTIA : Règle {rule_desc} sans collision")
             elif collision and self.debug:
-                print(f"❌ AFFECTIA : Règle '{rule['mot_cle_1']}' écartée (collision)")
+                rule_desc = f"'{rule['mot_cle_1']}'"
+                if 'mot_cle_2' in rule:
+                    rule_desc += f" + '{rule['mot_cle_2']}'"
+                print(f"❌ AFFECTIA : Règle {rule_desc} écartée (collision)")
         return validated_rules
 
     def enhance_rules_with_second_keyword(self, rules: List[Dict], compte: str, transactions: List[Dict], all_transactions: List[Dict]) -> List[Dict]:
@@ -972,12 +1089,52 @@ class RuleSuggester:
         candidate_rules = self.enhance_rules_with_second_keyword(candidate_rules, compte, transactions, all_transactions)
         # 5. Ne conserver que les règles sans collision
         valid_rules = [rule for rule in candidate_rules if not rule.get('collision', False)]
+
+        # 5.5. Déduplication des règles avec mots-clés identiques mais dans un ordre différent
+        deduplicated_rules = []
+        seen_combinations = set()
+
+        for rule in valid_rules:
+            if 'mot_cle_2' in rule:
+                # Normaliser l'ordre des mots-clés pour détecter les doublons
+                word1, word2 = rule['mot_cle_1'], rule['mot_cle_2']
+                if len(word1) > len(word2) or (len(word1) == len(word2) and word1 < word2):
+                    normalized_combo = (word1, word2)
+                else:
+                    normalized_combo = (word2, word1)
+
+                if normalized_combo not in seen_combinations:
+                    seen_combinations.add(normalized_combo)
+                    # Utiliser la combinaison normalisée
+                    rule['mot_cle_1'] = normalized_combo[0]
+                    rule['mot_cle_2'] = normalized_combo[1]
+                    deduplicated_rules.append(rule)
+                    if self.debug:
+                        print(
+                            f"🔧 AFFECTIA : Règle dédupliquée gardée - '{normalized_combo[0]}' + '{normalized_combo[1]}'")
+                elif self.debug:
+                    print(f"🔧 AFFECTIA : Règle dédupliquée supprimée - '{word1}' + '{word2}'")
+            else:
+                # Règle simple, pas de déduplication nécessaire
+                deduplicated_rules.append(rule)
+
+        valid_rules = deduplicated_rules
+
         # 6. Tri des règles (couverture desc, nb de mots-clés desc, longueur totale desc)
         valid_rules.sort(key=lambda r: (
             -r['transactions_couvertes'],
             -(1 + (1 if 'mot_cle_2' in r else 0)),
             -(len(r['mot_cle_1']) + (len(r['mot_cle_2']) if 'mot_cle_2' in r else 0))
         ))
+
+        # 6.5. Filtrage prioritaire : si une règle a 100% de couverture, ne garder que celles-ci
+        max_coverage = max(r['transactions_couvertes'] for r in valid_rules) if valid_rules else 0
+        if max_coverage == len(transactions):
+            # Il y a au moins une règle avec 100% de couverture, ne garder que celles-ci
+            valid_rules = [r for r in valid_rules if r['transactions_couvertes'] == max_coverage]
+            if self.debug:
+                print(f"🎯 AFFECTIA : Filtrage sur couverture 100% - {len(valid_rules)} règle(s) conservée(s)")
+
         # 7. Limiter à 3 règles max
         final_rules = valid_rules[:3]
         if self.debug:
