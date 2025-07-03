@@ -547,10 +547,93 @@ class RuleSuggester:
         """Analyse spécifique pour les comptes de personnel (421/42)"""
         if self.debug:
             print(f"👥 AFFECTIA : Analyse compte personnel {compte}")
+
+        from collections import Counter
+
+        # Compter tous les mots dans tous les libellés
+        all_words = []
         all_libelles = [self.normalize_text(t['ecriture_lib']) for t in transactions]
 
-        # Compte individuel : chercher des n-grams communs à tous les libellés (typiquement prénom + nom)
-        if all_libelles:
+        for libelle in all_libelles:
+            words = libelle.split()
+            filtered_words = [w for w in words if
+                              len(w) >= 3 and not w.isdigit() and w.lower() not in self.stop_words]
+            all_words.extend(filtered_words)
+
+        word_counts = Counter(all_words)
+        total_transactions = len(transactions)
+
+        # Identifier les mots présents dans au moins 50% des transactions (seuil abaissé)
+        frequent_words = []
+        for word, count in word_counts.items():
+            coverage_ratio = count / total_transactions
+            if coverage_ratio >= 0.5:  # 50% de couverture minimum
+                frequent_words.append((word, count, coverage_ratio))
+
+        # Trier par couverture décroissante puis par longueur
+        frequent_words.sort(key=lambda x: (-x[2], -len(x[0])))
+
+        if self.debug:
+            print(f"🔍 AFFECTIA : Mots fréquents (≥50%) : {[(w, f'{c:.1%}') for w, _, c in frequent_words]}")
+
+        candidate_rules = []
+
+        # 1. Tester toutes les combinaisons 2 à 2 des mots fréquents
+        tested_combinations = set()
+        for i in range(min(len(frequent_words), 6)):  # Élargir aux 6 mots les plus fréquents
+            for j in range(i + 1, min(len(frequent_words), 6)):
+                word1, count1, coverage1 = frequent_words[i]
+                word2, count2, coverage2 = frequent_words[j]
+
+                # Normaliser l'ordre des mots pour éviter les doublons
+                if len(word1) > len(word2) or (len(word1) == len(word2) and word1 < word2):
+                    normalized_combo = (word1, word2)
+                else:
+                    normalized_combo = (word2, word1)
+
+                # Éviter les combinaisons déjà testées
+                if normalized_combo in tested_combinations:
+                    continue
+                tested_combinations.add(normalized_combo)
+
+                # Compter les transactions contenant les deux mots
+                transactions_with_both = []
+                for trans in transactions:
+                    libelle = self.normalize_text(trans['ecriture_lib'])
+                    if normalized_combo[0] in libelle and normalized_combo[1] in libelle:
+                        transactions_with_both.append(trans)
+
+                if len(transactions_with_both) >= 1:  # Au moins 1 transaction (seuil abaissé)
+                    candidate_rules.append({
+                        "mot_cle_1": normalized_combo[0],
+                        "mot_cle_2": normalized_combo[1],
+                        "transactions_couvertes": len(transactions_with_both),
+                        "collision": False
+                    })
+                    if self.debug:
+                        print(
+                            f"✅ AFFECTIA : Règle combinée trouvée - '{normalized_combo[0]}' + '{normalized_combo[1]}' ({len(transactions_with_both)} transactions)")
+
+        # 2. Ajouter aussi les mots seuls comme alternatives
+        for word, count, coverage in frequent_words[:3]:  # Élargir aux 3 mots les plus fréquents
+            transactions_with_word = []
+            for trans in transactions:
+                libelle = self.normalize_text(trans['ecriture_lib'])
+                if word in libelle:
+                    transactions_with_word.append(trans)
+
+            if len(transactions_with_word) >= 1:  # Au moins 1 transaction
+                candidate_rules.append({
+                    "mot_cle_1": word,
+                    "transactions_couvertes": len(transactions_with_word),
+                    "collision": False
+                })
+                if self.debug:
+                    print(
+                        f"✅ AFFECTIA : Règle simple trouvée - '{word}' ({len(transactions_with_word)} transactions)")
+
+        # 3. Recherche classique des n-grams communs comme fallback
+        if not candidate_rules and all_libelles:
             # Extraire tous les n-grams de 1 à 3 mots du premier libellé
             first_ngrams = self.extract_ngrams(all_libelles[0], max_length=3)
             # Garder seulement ceux présents dans TOUS les libellés
@@ -565,100 +648,6 @@ class RuleSuggester:
                         if self.debug:
                             print(f"🔍 AFFECTIA : N-gram commun trouvé - '{ngram}'")
 
-            # NOUVELLE APPROCHE : Chercher des mots communs à la majorité des libellés (≥80%)
-            # pour pouvoir ensuite les combiner avec d'autres mots fréquents
-            from collections import Counter
-
-            # Compter tous les mots dans tous les libellés
-            all_words = []
-            for libelle in all_libelles:
-                words = libelle.split()
-                filtered_words = [w for w in words if
-                                  len(w) >= 3 and not w.isdigit() and w.lower() not in self.stop_words]
-                all_words.extend(filtered_words)
-
-            word_counts = Counter(all_words)
-            total_transactions = len(transactions)
-
-            # Identifier les mots présents dans au moins 80% des transactions
-            frequent_words = []
-            for word, count in word_counts.items():
-                coverage_ratio = count / total_transactions
-                if coverage_ratio >= 0.8:  # 80% de couverture minimum
-                    frequent_words.append((word, count, coverage_ratio))
-
-            # Trier par couverture décroissante
-            frequent_words.sort(key=lambda x: (-x[2], -len(x[0])))
-
-            if self.debug:
-                print(f"🔍 AFFECTIA : Mots fréquents (≥80%) : {[(w, f'{c:.1%}') for w, _, c in frequent_words]}")
-
-                # Essayer TOUTES les combinaisons possibles des mots les plus fréquents
-                candidate_rules = []
-
-                # Tester toutes les combinaisons 2 à 2 des mots fréquents
-                # Utiliser un set pour éviter les doublons de combinaisons
-                tested_combinations = set()
-
-                for i in range(min(len(frequent_words), 4)):  # Limiter aux 4 mots les plus fréquents
-                    for j in range(i + 1, min(len(frequent_words), 4)):
-                        word1, count1, coverage1 = frequent_words[i]
-                        word2, count2, coverage2 = frequent_words[j]
-
-                        # Normaliser l'ordre des mots pour éviter les doublons
-                        # Toujours mettre le mot le plus long en premier, puis par ordre alphabétique
-                        if len(word1) > len(word2) or (len(word1) == len(word2) and word1 < word2):
-                            normalized_combo = (word1, word2)
-                        else:
-                            normalized_combo = (word2, word1)
-
-                        # Éviter les combinaisons déjà testées
-                        if normalized_combo in tested_combinations:
-                            continue
-                        tested_combinations.add(normalized_combo)
-
-                        # Compter les transactions contenant les deux mots
-                        transactions_with_both = []
-                        for trans in transactions:
-                            libelle = self.normalize_text(trans['ecriture_lib'])
-                            if normalized_combo[0] in libelle and normalized_combo[1] in libelle:
-                                transactions_with_both.append(trans)
-
-                        if len(transactions_with_both) >= self.min_occurrences:
-                            candidate_rules.append({
-                                "mot_cle_1": normalized_combo[0],
-                                "mot_cle_2": normalized_combo[1],
-                                "transactions_couvertes": len(transactions_with_both),
-                                "collision": False
-                            })
-                            if self.debug:
-                                print(
-                                    f"✅ AFFECTIA : Règle combinée trouvée - '{normalized_combo[0]}' + '{normalized_combo[1]}' ({len(transactions_with_both)} transactions)")
-
-            # Ajouter aussi les mots seuls comme alternatives
-            for word, count, coverage in frequent_words[:2]:
-                transactions_with_word = []
-                for trans in transactions:
-                    libelle = self.normalize_text(trans['ecriture_lib'])
-                    if word in libelle:
-                        transactions_with_word.append(trans)
-
-                if len(transactions_with_word) >= self.min_occurrences:
-                    candidate_rules.append({
-                        "mot_cle_1": word,
-                        "transactions_couvertes": len(transactions_with_word),
-                        "collision": False
-                    })
-                    if self.debug:
-                        print(
-                            f"✅ AFFECTIA : Règle simple trouvée - '{word}' ({len(transactions_with_word)} transactions)")
-
-            if candidate_rules:
-                # Trier par couverture décroissante mais NE PAS limiter ici
-                # car il faut d'abord vérifier les collisions
-                candidate_rules.sort(key=lambda r: -r['transactions_couvertes'])
-                return self._add_journal_and_amount_criteria(candidate_rules, transactions)
-
             # Priorité spéciale aux n-grams de noms (2 mots de 3+ caractères, pas de mots vides)
             name_ngrams = []
             for ngram in common_ngrams:
@@ -671,31 +660,35 @@ class RuleSuggester:
             if self.debug:
                 print(f"🔍 AFFECTIA : N-grams de noms détectés : {name_ngrams}")
 
-            if self.debug:
-                print(f"🔍 AFFECTIA : {len(common_ngrams)} n-gram(s) commun(s) détecté(s) : {list(common_ngrams)}")
-
             if name_ngrams:
                 # Privilégier les n-grams de noms (prénom nom)
                 best_ngram = max(name_ngrams, key=lambda x: len(x))
+                candidate_rules.append({
+                    "mot_cle_1": best_ngram,
+                    "transactions_couvertes": len(transactions),
+                    "collision": False
+                })
                 if self.debug:
                     print(f"✅ AFFECTIA : N-gram de nom sélectionné - '{best_ngram}'")
             elif common_ngrams:
                 # Sinon, prendre le n-gram le plus long et le plus spécifique
                 best_ngram = max(common_ngrams, key=lambda x: (len(x.split()), len(x)))
-            else:
-                best_ngram = None
-
-            if best_ngram:
-                rules = [{
+                candidate_rules.append({
                     "mot_cle_1": best_ngram,
                     "transactions_couvertes": len(transactions),
                     "collision": False
-                }]
+                })
                 if self.debug:
-                    print(f"✅ AFFECTIA : Nom complet trouvé - {best_ngram} ({len(transactions)} transactions)")
-                return self._add_journal_and_amount_criteria(rules, transactions)
-            elif self.debug:
-                print(f"⚠️ AFFECTIA : Aucun n-gram commun trouvé, basculement vers analyse collective")
+                    print(f"✅ AFFECTIA : N-gram commun sélectionné - '{best_ngram}'")
+
+        if candidate_rules:
+            # Trier par couverture décroissante puis par nombre de mots-clés
+            candidate_rules.sort(key=lambda r: (-r['transactions_couvertes'], -(1 + (1 if 'mot_cle_2' in r else 0))))
+            return self._add_journal_and_amount_criteria(candidate_rules, transactions)
+
+        if self.debug:
+            print(f"⚠️ AFFECTIA : Aucune règle trouvée pour le compte personnel {compte}")
+        return []
         # Compte collectif : repérer les noms récurrents dans les libellés (prénoms/noms d'employés)
         name_patterns = Counter()
         for trans in transactions:
