@@ -1,7 +1,7 @@
-from collections import defaultdict, Counter
-import logging
 import re
+from collections import Counter
 from typing import List, Dict, Optional, Set, Counter as TypingCounter
+
 
 class RuleSuggester:
     """Algorithme Affectia pour suggérer des règles d'affectation des transactions bancaires"""
@@ -178,7 +178,8 @@ class RuleSuggester:
         # Ajouter critères journal/montant si applicables
         return self._add_journal_and_amount_criteria(rules, transactions)
 
-    def _analyze_tiers_account(self, compte: str, transactions: List[Dict], all_transactions: List[Dict] = None) -> \
+    def _analyze_tiers_account(self, compte: str, transactions: List[Dict], all_transactions: List[Dict] = None,
+                               compte_libelle=None) -> \
     List[Dict]:
         """Analyse spécifique pour les comptes fournisseurs/clients (401/411)"""
         import logging
@@ -392,8 +393,34 @@ class RuleSuggester:
                 word_norm = normalize_for_comparison(word)
                 exact_matches = find_matching_transactions_fast(word_norm)
 
-                if len(exact_matches) >= self.min_occurrences:
-                    add_candidate(word, len(exact_matches), exact_matches, "exact_from_compte", "libellé compte")
+                # Pour les comptes 401/411, accepter même avec moins de min_occurrences si c'est le libellé du compte
+                min_required = 1 if (compte.startswith('401') or compte.startswith('411')) else self.min_occurrences
+
+                if len(exact_matches) >= min_required:
+                    # Bonus spécial pour les mots du libellé de compte : score forcé à 100% si couverture parfaite
+                    coverage = len(exact_matches) / len(transactions)
+                    if coverage == 1.0:  # Couverture parfaite = 100%
+                        # Score maximum garanti pour éviter la pénalisation
+                        candidates_dict[word] = {
+                            "mot_cle_1": word,
+                            "transactions_couvertes": len(exact_matches),
+                            "transactions_matched": exact_matches,
+                            "coverage_score": 1.0,
+                            "specificity_score": 2.0,  # Score artificiellement élevé
+                            "composite_score": 2.0,  # Score composite maximum
+                            "collision": False,  # Pas de collision forcée
+                            "collision_count": 0,
+                            "collision_ratio": 0.0,
+                            "collision_penalty": 1.0,
+                            "match_type": "exact_from_compte_perfect",
+                            "source": "libellé compte (couverture parfaite)"
+                        }
+                        if self.debug:
+                            logger.debug(
+                                f"🎯 AFFECTIA : Mot du compte '{word}' avec couverture parfaite - score maximum garanti")
+                    else:
+                        add_candidate(word, len(exact_matches), exact_matches, "exact_from_compte",
+                                      "libellé compte")
 
                 # Test fuzzy optimisé avec RapidFuzz
                 if fuzzy_available and len(exact_matches) < len(
@@ -619,15 +646,30 @@ class RuleSuggester:
         ur_patterns = Counter()
         for trans in transactions:
             libelle = self.normalize_text(trans['ecriture_lib'])
-            # Codes commençant par "UR" suivis de chiffres
-            for code in set(re.findall(r'UR\d+', libelle)):
+            # Extraire les codes UR avec ou sans espace : "UR123456" ou "UR 123456"
+            for code in set(re.findall(r'UR\s*\d{6,}', libelle)):
                 ur_patterns[code] += 1
+
         rules = []
-        for code, count in ur_patterns.most_common(3):
-            if count >= self.min_occurrences:
-                rules.append({"mot_cle_1": code, "transactions_couvertes": count, "collision": False})
+        if ur_patterns:
+            # Garder seulement le code UR le plus long avec couverture maximale
+            codes_by_coverage = {}
+            for code, count in ur_patterns.items():
+                if count >= self.min_occurrences:
+                    codes_by_coverage[count] = codes_by_coverage.get(count, []) + [code]
+
+            if codes_by_coverage:
+                # Prendre la couverture maximale
+                max_coverage = max(codes_by_coverage.keys())
+                best_codes = codes_by_coverage[max_coverage]
+
+                # Parmi les codes à couverture maximale, prendre le plus long
+                best_code = max(best_codes, key=len)
+
+                rules.append({"mot_cle_1": best_code, "transactions_couvertes": max_coverage, "collision": False})
                 if self.debug:
-                    print(f"✅ AFFECTIA : Règle URSSAF trouvée - {code} ({count} transactions)")
+                    print(f"✅ AFFECTIA : Règle URSSAF trouvée - {best_code} ({max_coverage} transactions)")
+
         # Si aucun code "URxxxx" récurrent, chercher simplement "URSSAF"
         if not rules:
             urssaf_count = sum(1 for t in transactions if 'URSSAF' in self.normalize_text(t['ecriture_lib']))
@@ -685,57 +727,59 @@ class RuleSuggester:
             if self.debug:
                 print(f"⚠️ AFFECTIA : Pas assez de transactions ({len(transactions)} < {self.min_occurrences})")
             return []
-            # Utiliser la nouvelle méthode extract_ngrams_all
-            all_libelles = [t['ecriture_lib'] for t in transactions]
-            ngrams_dict, df_counter = self.extract_ngrams_all(
-                all_libelles,
-                n_max=5,
-                min_df=self.min_occurrences,
-                max_set=50
-            )
 
-            def _get_signature_for_dedup(indices_data):
-                """
-                Retourne un hashable représentant l'ensemble exact de transactions ou,
-                à défaut, un tuple (count, hash_sample) qui réduit les collisions.
-                """
-                if isinstance(indices_data, set):
-                    # Utiliser frozenset pour hashing fiable
-                    return frozenset(indices_data)
-                elif isinstance(indices_data, tuple):
-                    sample_idx, total = indices_data
-                    # Hash léger, réduit les collisions 'même count'
-                    return (total, sample_idx % 97)
-                else:
-                    # int simple
-                    return (indices_data, None)
+        # Utiliser la nouvelle méthode extract_ngrams_all
+        all_libelles = [t['ecriture_lib'] for t in transactions]
+        ngrams_dict, df_counter = self.extract_ngrams_all(
+            all_libelles,
+            n_max=5,
+            min_df=self.min_occurrences,
+            max_set=50
+        )
 
-                    # Trier par fréquence puis longueur avec ordre stable
-                    frequent_ngrams = list(df_counter.most_common())
-                    frequent_ngrams.sort(key=lambda x: (x[1], len(x[0]), x[0]), reverse=True)
+        def _get_signature_for_dedup(indices_data):
+            """
+            Retourne un hashable représentant l'ensemble exact de transactions ou,
+            à défaut, un tuple (count, hash_sample) qui réduit les collisions.
+            """
+            if isinstance(indices_data, set):
+                # Utiliser frozenset pour hashing fiable
+                return frozenset(indices_data)
+            elif isinstance(indices_data, tuple):
+                sample_idx, total = indices_data
+                # Hash léger, réduit les collisions 'même count'
+                return (total, sample_idx % 97)
+            else:
+                # int simple
+                return (indices_data, None)
 
-            selected_ngrams = []
-            for ngram, count in frequent_ngrams[:10]:  # considérer jusqu'aux 10 motifs les plus fréquents
-                # Obtenir signature pour déduplication
-                indices_data = ngrams_dict.get(ngram)
-                trans_signature = _get_signature_for_dedup(indices_data)
+        # Trier par fréquence puis longueur avec ordre stable
+        frequent_ngrams = list(df_counter.most_common())
+        frequent_ngrams.sort(key=lambda x: (x[1], len(x[0]), x[0]), reverse=True)
 
-                # Vérifier si ce motif est redondant avec un motif déjà sélectionné
-                redundant = False
-                for sel_ng, _ in selected_ngrams:
-                    sel_indices_data = ngrams_dict.get(sel_ng)
-                    sel_signature = _get_signature_for_dedup(sel_indices_data)
+        selected_ngrams = []
+        for ngram, count in frequent_ngrams[:10]:  # considérer jusqu'aux 10 motifs les plus fréquents
+            # Obtenir signature pour déduplication
+            indices_data = ngrams_dict.get(ngram)
+            trans_signature = _get_signature_for_dedup(indices_data)
 
-                    # Comparaison de signatures (set complet ou count)
-                    if trans_signature == sel_signature:
-                        # Si même couverture, garder le motif le plus long
-                        if len(ngram) > len(sel_ng):
-                            selected_ngrams = [(ng, cnt) for ng, cnt in selected_ngrams if ng != sel_ng]
-                            selected_ngrams.append((ngram, count))
-                        redundant = True
-                        break
-                if not redundant:
-                    selected_ngrams.append((ngram, count))
+            # Vérifier si ce motif est redondant avec un motif déjà sélectionné
+            redundant = False
+            for sel_ng, _ in selected_ngrams:
+                sel_indices_data = ngrams_dict.get(sel_ng)
+                sel_signature = _get_signature_for_dedup(sel_indices_data)
+
+                # Comparaison de signatures (set complet ou count)
+                if trans_signature == sel_signature:
+                    # Si même couverture, garder le motif le plus long
+                    if len(ngram) > len(sel_ng):
+                        selected_ngrams = [(ng, cnt) for ng, cnt in selected_ngrams if ng != sel_ng]
+                        selected_ngrams.append((ngram, count))
+                    redundant = True
+                    break
+            if not redundant:
+                selected_ngrams.append((ngram, count))
+
         # Construire les règles à partir des motifs retenus (max 3 règles)
         rules = []
         for ngram, count in selected_ngrams[:3]:
@@ -906,16 +950,19 @@ class RuleSuggester:
                     print(f"❌ AFFECTIA : Échec de l'amélioration pour la règle '{rule['mot_cle_1']}'")
         return improved_rules
 
-    def suggest_rules_for_account(self, compte: str, transactions: List[Dict], all_transactions: List[Dict]) -> List[Dict]:
+    def suggest_rules_for_account(self, compte: str, transactions: List[Dict], all_transactions: List[Dict]) -> List[
+        Dict]:
         """Analyse un compte et suggère jusqu'à 3 règles d'affectation basées sur ses transactions"""
         if self.debug:
             print(f"\n🚀 AFFECTIA : Début de l'analyse du compte {compte} ({len(transactions)} transactions)")
-        if len(transactions) < self.min_occurrences:
+
+        # Pour les comptes 401/411, accepter même avec moins de transactions (analyse du libellé)
+        if len(transactions) < self.min_occurrences and not (compte.startswith('401') or compte.startswith('411')):
             if self.debug:
                 print(f"⚠️ AFFECTIA : Pas assez de transactions pour le compte {compte}")
             return []
 
-            # 1. Motifs spécifiques selon le type de compte
+        # 1. Motifs spécifiques selon le type de compte
         candidate_rules = self.find_account_specific_patterns(compte, transactions, all_transactions)
         # 2. Ajout des critères journal et montant aux règles candidates
         candidate_rules = self._add_journal_and_amount_criteria(candidate_rules, transactions)
