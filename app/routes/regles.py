@@ -216,21 +216,117 @@ def liste_regles():
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
 
-    fec_id = request.args.get('fec_id')
-    if not fec_id:
-        # Afficher toutes les règles de l'organisation
-        societes = Societe.query.filter_by(organization_id=session['organization_id']).all()
-        societe_ids = [s.id for s in societes]
-        regles = RegleAffectation.query.filter(RegleAffectation.societe_id.in_(societe_ids)).all()
-        fec_file = None
-    else:
-        # Afficher les règles pour un FEC spécifique
-        fec_file = FecFile.query.get_or_404(fec_id)
-        societe = Societe.query.get(fec_file.societe_id)
-        if societe.organization_id != session['organization_id']:
-            flash('Accès non autorisé', 'error')
+    # Récupérer la société active depuis l'URL ou la session
+    societe_id = request.args.get('societe_id')
+
+    if societe_id:
+        # Société spécifiée dans l'URL
+        try:
+            societe_id = int(societe_id)
+            societe_active = Societe.query.get_or_404(societe_id)
+            if societe_active.organization_id != session['organization_id']:
+                flash('Accès non autorisé', 'error')
+                return redirect(url_for('dashboard'))
+        except (ValueError, TypeError):
+            flash('ID de société invalide', 'error')
             return redirect(url_for('dashboard'))
-        regles = RegleAffectation.query.filter_by(societe_id=societe.id).all()
+    else:
+        # Prendre la première société de l'organisation
+        societe_active = Societe.query.filter_by(organization_id=session['organization_id']).first()
+        if not societe_active:
+            flash('Aucune société trouvée', 'error')
+            return redirect(url_for('dashboard'))
+        societe_id = societe_active.id
+
+    # Récupérer le FEC le plus récent et actif pour cette société
+    fec_file = FecFile.query.filter_by(
+        societe_id=societe_id,
+        is_active=True
+    ).order_by(FecFile.date_import.desc()).first()
+
+    # Récupérer toutes les sociétés pour le dropdown
+    societes = Societe.query.filter_by(organization_id=session['organization_id']).all()
+
+    # Récupérer les règles pour cette société
+    regles = RegleAffectation.query.filter_by(societe_id=societe_id).all()
+
+    # NOUVELLES DONNÉES pour le panneau gauche (comme dans le dashboard)
+    ecritures = []
+    comptes_statistiques = []
+    journaux = []
+    automatisation_globale = 0
+    ecritures_json = []
+
+    if fec_file:
+        # Récupérer les écritures bancaires
+        ecritures = EcritureBancaire.query.filter_by(fec_file_id=fec_file.id).all()
+
+        # Calculer les statistiques par compte
+        comptes_statistiques = calculer_statistiques_comptes(ecritures, regles)
+
+        # Calculer l'automatisation globale
+        automatisation_globale = calculer_automatisation_globale(ecritures, regles)
+
+        # Récupérer les journaux
+        journaux_query = db.session.query(
+            EcritureBancaire.journal_code,
+            EcritureBancaire.journal_lib
+        ).filter_by(fec_file_id=fec_file.id).distinct().all()
+
+        journaux = [{'journal_code': j.journal_code, 'journal_lib': j.journal_lib} for j in journaux_query]
+
+        # Préparer les écritures pour JavaScript (comme dans le dashboard)
+        from app.services.regle_tester import RegleTester
+        tester = RegleTester()
+        ecritures_couvertes = set()
+
+        for regle in regles:
+            if regle.is_active:
+                matches = tester.test_regle_object(regle, ecritures)
+                for match in matches:
+                    ecritures_couvertes.add(match.id)
+
+        for ecriture in ecritures:
+            # Calculer le compte de contrepartie
+            compte_contrepartie = None
+            libelle_contrepartie = None
+
+            if hasattr(ecriture, 'compte_contrepartie') and ecriture.compte_contrepartie:
+                compte_contrepartie = ecriture.compte_contrepartie
+                libelle_contrepartie = ecriture.libelle_contrepartie
+            elif not ecriture.compte_final.startswith('512'):
+                compte_contrepartie = ecriture.compte_final
+                libelle_contrepartie = ecriture.libelle_final
+            else:
+                # Trouver la contrepartie dans la même écriture
+                autres_ecritures = EcritureBancaire.query.filter_by(
+                    fec_file_id=fec_file.id,
+                    ecriture_num=ecriture.ecriture_num
+                ).filter(~EcritureBancaire.compte_num.startswith('512')).first()
+
+                if autres_ecritures:
+                    compte_contrepartie = autres_ecritures.compte_final
+                    libelle_contrepartie = autres_ecritures.libelle_final
+                else:
+                    compte_contrepartie = "AUTRE"
+                    libelle_contrepartie = "Compte non identifié"
+
+            ecritures_json.append({
+                'id': ecriture.id,
+                'ecriture_lib': ecriture.ecriture_lib,
+                'journal_code': ecriture.journal_code,
+                'journal_lib': ecriture.journal_lib,
+                'ecriture_date': ecriture.ecriture_date.strftime('%d/%m/%Y'),
+                'ecriture_num': ecriture.ecriture_num,
+                'piece_ref': ecriture.piece_ref,
+                'montant': float(ecriture.montant) if ecriture.sens == 'D' else -float(ecriture.montant),
+                'sens': ecriture.sens,
+                'compte_final': ecriture.compte_final,
+                'libelle_final': ecriture.libelle_final,
+                'compte_contrepartie': compte_contrepartie,
+                'libelle_contrepartie': libelle_contrepartie,
+                'couverte_par_regle': ecriture.id in ecritures_couvertes
+            })
 
     # Préparer les données JSON pour JavaScript
     regles_json = []
@@ -280,9 +376,14 @@ def liste_regles():
     return render_template('liste_regles.html',
                            regles=regles,
                            fec_file=fec_file,
+                           fec_actif=fec_file,
                            regles_json=regles_json_string,
                            societe=societe_active,
                            societes=societes,
+                           ecritures_json=json.dumps(ecritures_json),
+                           comptes_statistiques=comptes_statistiques,
+                           journaux=journaux,
+                           automatisation_globale=automatisation_globale,
                            current_page='regles')
 
 @regles_bp.route('/regles/<int:regle_id>/delete', methods=['POST'])

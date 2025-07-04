@@ -20,6 +20,9 @@ body {
     margin-left: -70px;
     padding-left: 90px;
     min-height: calc(100vh - 80px);
+    display: grid !important;
+    grid-template-columns: 400px 1fr !important;
+    gap: 20px;
 }
 
         .header-section {
@@ -495,22 +498,474 @@ body {
             line-height: 1.5;
         }
 
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .main-container {
-                padding: 15px;
-            }
+/* Styles spécifiques à la page liste_regles */
+body {
+    overflow-y: auto !important;
+}
 
-            .header-section {
-                flex-direction: column;
-                gap: 20px;
-                align-items: stretch;
-            }
+.main-container {
+    padding: 20px;
+    margin-left: -70px;
+    padding-left: 90px;
+    min-height: calc(100vh - 80px);
+    display: grid !important;
+    grid-template-columns: 400px 1fr !important;
+    gap: 20px;
+    height: calc(100vh - 65px);
+}
 
-            .regles-table-container {
-                overflow-x: scroll;
-            }
-        }
+/* EXACT COPY from societe_dashboard.html */
+.panel {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-header {
+    background: white;
+    color: #1d1d1f;
+    padding: 20px;
+    font-weight: 600;
+    font-size: 16px;
+    border-bottom: 1px solid #f5f5f7;
+}
+
+.panel-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.search-container {
+    padding: 15px 20px;
+    background: #f9f9fb;
+    border-bottom: 1px solid #e5e5ea;
+}
+
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    color: #86868b;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.search-clear-btn:hover {
+    background: rgba(134, 134, 139, 0.1);
+    color: #1d1d1f;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.search-clear-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.search-input {
+    padding-right: 35px !important;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 12px 8px 35px;
+    border: 1px solid #d2d2d7;
+    border-radius: 8px;
+    font-size: 13px;
+    background: white;
+    transition: border-color 0.2s ease;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 10px center;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #007aff;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.comptes-header {
+    display: grid;
+    grid-template-columns: 1fr 85px;
+    gap: 8px;
+    padding: 10px 20px 10px 15px;
+    background: #f9f9fb;
+    font-size: 11px;
+    font-weight: 600;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e5e5ea;
+    text-align: center;
+}
+
+.comptes-header .sortable-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.comptes-header .sortable-header:first-child {
+    justify-content: flex-start;
+}
+
+.comptes-header .sortable-header:last-child {
+    justify-content: flex-end;
+}
+
+.sortable-header {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.2s ease;
+}
+
+.sortable-header:hover {
+    color: #1d1d1f;
+}
+
+.sort-icon {
+    font-size: 12px;
+    color: #d2d2d7;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    margin-left: 4px;
+}
+
+.sortable-header:hover .sort-icon {
+    opacity: 1;
+}
+
+.sort-icon.active {
+    opacity: 1;
+    color: #1d1d1f;
+}
+
+.sort-icon.asc::before {
+    content: '↑';
+}
+
+.sort-icon.desc::before {
+    content: '↓';
+}
+
+.sort-icon:not(.asc):not(.desc)::before {
+    content: '↓';
+}
+
+#sort-icon-compte:not(.asc):not(.desc)::before {
+    content: '↑';
+}
+
+.compte-item {
+    display: grid;
+    grid-template-columns: 1fr 85px;
+    gap: 8px;
+    padding: 10px 20px 10px 15px;
+    border-bottom: 1px solid #f5f5f7;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    align-items: center;
+    height: 60px;
+    position: relative;
+    border-radius: 0;
+}
+
+.compte-item:hover {
+    background: #f8f9fb;
+    transform: translateX(1px);
+}
+
+.compte-item.selected {
+    background: linear-gradient(135deg, #f3f4f7 0%, #eaecf0 100%);
+    color: #1d1d1f;
+    border-left: 3px solid #c5c9d0;
+    transform: translateX(2px);
+    box-shadow:
+        0 2px 8px rgba(243, 244, 247, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border-radius: 0 8px 8px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.compte-item.selected .compte-number {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.compte-item.selected .compte-libelle {
+    color: #34495e;
+}
+
+.compte-item.selected .stat-afaire {
+    color: #27AE60;
+    font-weight: 600;
+}
+
+.compte-item.selected::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 60%
+    );
+    animation: selectedShine 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes selectedShine {
+    0%, 100% {
+        transform: translateX(-100%) rotate(45deg);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(100%) rotate(45deg);
+        opacity: 0.3;
+    }
+}
+
+.compte-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.compte-number {
+    font-size: 11px;
+    color: #86868b;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compte-libelle {
+    font-weight: 500;
+    font-size: 11px;
+    color: #1d1d1f;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+}
+
+.stat-afaire {
+    text-align: center;
+    font-weight: 500;
+    color: #27AE60;
+    font-size: 12px;
+    position: relative;
+    cursor: help;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tooltip-custom {
+    position: absolute;
+    background: #1d1d1f;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 99999;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 5px;
+}
+
+.tooltip-custom::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-bottom-color: #1d1d1f;
+}
+
+/* État vide */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #86868b;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    margin-bottom: 10px;
+    color: #1d1d1f;
+}
+
+.empty-state p {
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+/* Panel principal des règles - STYLE DASHBOARD */
+.regles-panel {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.regles-header {
+    background: white;
+    padding: 20px 30px;
+    border-bottom: 1px solid #f5f5f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.regles-stats {
+    color: #86868b;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.regles-toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.regles-table-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.regles-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.regles-table th {
+    background: #f9f9fb;
+    padding: 15px 20px;
+    text-align: left;
+    font-weight: 600;
+    color: #86868b;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e5e5ea;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.regles-table th:first-child {
+    width: 50px;
+    text-align: center;
+}
+
+.regles-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.regles-table th.sortable:hover {
+    background: #f0f0f2;
+}
+
+.regles-table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f5f5f7;
+    vertical-align: middle;
+}
+
+.regles-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.regles-table tbody tr:hover {
+    background: #f9f9fb;
+}
+
+/* Autres styles existants... */
+.btn-apple {
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #e5e5ea;
+    color: #1d1d1f;
+}
+
+.btn-apple:hover {
+    background: #d1d1d6;
+}
+
+.btn-apple.success {
+    background: #00d4d4;
+    color: white;
+}
+
+.btn-apple.success:hover {
+    background: #00baba;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .main-container {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+
+    .panel {
+        margin-bottom: 20px;
+    }
+}
     </style>
 </head>
 <body>
@@ -522,47 +977,52 @@ body {
 
     <div class="main-container">
         <!-- Header Section spécifique à cette page -->
-        <div class="header-section">
-            <div class="header-title">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#007aff" viewBox="0 0 16 16">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <h1>Règles d'affectation</h1>
+<!-- GAUCHE : Comptes (3 colonnes avec recherche) -->
+        <div class="panel">
+            <div class="panel-header">
+                Comptes de contrepartie
             </div>
-            <div class="header-actions">
-                <button class="btn-apple" onclick="retourDashboard()">
-                    ← Retour
-                </button>
-                <button class="btn-apple primary" onclick="importerRegles()">
-                    📥 Importer
-                </button>
-                <button class="btn-apple primary" onclick="exporterRegles()">
-                    📤 Exporter
-                </button>
-                <button class="btn-apple success" onclick="nouvelleRegle()">
-                    + Nouvelle règle
-                </button>
+
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <input type="text" class="search-input" id="compte-search" placeholder="Rechercher un compte..." autocomplete="off" oninput="filtrerComptes(); updateClearButton();">
+                    <button class="search-clear-btn" id="compte-search-clear" onclick="clearCompteSearch()" style="display: none;" title="Effacer la recherche">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="comptes-header">
+                <div class="sortable-header" onclick="trierComptes('compte')">
+                    Compte
+                    <span class="sort-icon" id="sort-icon-compte"></span>
+                </div>
+                <div class="sortable-header" onclick="trierComptes('gain')">
+                    Gain potentiel
+                    <span class="sort-icon" id="sort-icon-gain"></span>
+                </div>
+            </div>
+
+            <div class="panel-body" id="comptes-list">
+                <!-- Les comptes seront injectés ici par JavaScript -->
+                <div class="empty-state" id="comptes-empty">
+                    <div>📊</div>
+                    <p>Aucun compte disponible</p>
+                    <small>Importez un fichier FEC pour commencer</small>
+                </div>
             </div>
         </div>
 
-        <!-- Panel principal -->
+        <!-- CENTRE : Panel principal des règles -->
         <div class="regles-panel">
-            <!-- Header du panel -->
+<!-- Header du panel -->
             <div class="regles-header">
                 <div>
                     <h3 style="margin: 0; color: #1d1d1f; font-size: 20px; font-weight: 600;">
                         Gestion des règles
                     </h3>
-                    <div class="regles-stats" id="regles-stats">
-                        0 règle • 0% d'automatisation globale
-                    </div>
-                </div>
-                <div class="regles-toolbar">
-                    <input type="text" id="search-regles" placeholder="Rechercher..."
-                           style="padding: 8px 12px; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 14px;">
-                    <button class="btn-apple" onclick="rafraichirRegles()">
-                        🔄 Actualiser
-                    </button>
                 </div>
             </div>
 
@@ -581,7 +1041,7 @@ body {
             <!-- Table des règles -->
             <div class="regles-table-container">
                 <table class="regles-table" id="regles-table">
-                    <thead>
+<thead>
                         <tr>
                             <th>
                                 <label class="checkbox-custom">
@@ -593,6 +1053,7 @@ body {
                                 Contrepartie
                                 <span class="sort-icon">↕</span>
                             </th>
+                            <th>Mots-clés</th>
                             <th class="sortable" onclick="trierRegles('impact')">
                                 % Impact
                                 <span class="sort-icon">↕</span>
@@ -601,7 +1062,6 @@ body {
                                 % Collision
                                 <span class="sort-icon">↕</span>
                             </th>
-                            <th>Mots-clés</th>
                             <th>Banque</th>
                             <th>Montant</th>
                             <th class="sortable" onclick="trierRegles('active')">
@@ -719,77 +1179,17 @@ function chargerRegles() {
                 const maxCollision = Math.max(...reglesCompte.map(r => r.collision));
                 const totalCollisions = reglesCompte.reduce((sum, r) => sum + r.nb_collisions, 0);
 
-                // Ligne principale du compte
-                html += `
-                    <tr class="compte-row" data-compte="${compte}">
-                        <td>
-                            <label class="checkbox-custom">
-                                <input type="checkbox" class="rule-checkbox" data-compte="${compte}" onchange="toggleRuleSelection('${compte}')">
-                                <span class="checkbox-mark"></span>
-                            </label>
-                        </td>
-                        <td>
-                            <div class="compte-number">${formatCompteNumber(compte)}</div>
-                            <div style="font-size: 12px; color: #86868b;">${reglePrincipale.libelle_compte}</div>
-                        </td>
-                        <td>
-                            <div class="tooltip-custom">
-                                <span class="pourcentage-impact">${totalImpact.toFixed(1)}%</span>
-                                <div class="tooltip-text">${totalTransactions} transactions couvertes</div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="tooltip-custom">
-                                <span class="pourcentage-collision ${getCollisionClass(maxCollision)}">${maxCollision.toFixed(1)}%</span>
-                                <div class="tooltip-text">${totalCollisions} collisions détectées</div>
-                            </div>
-                        </td>
-                        <td>
-                            ${hasMultiple ? 
-                                `<span style="color: #86868b; font-style: italic;">${reglesCompte.length} règles</span>` :
-                                `<div class="mots-cles-container">
-                                    ${reglePrincipale.mots_cles.map(mot => `<span class="mot-cle-badge">${mot}</span>`).join('')}
-                                </div>`
-                            }
-                        </td>
-                        <td>
-                            ${hasMultiple ? 
-                                `<span style="color: #86868b; font-style: italic;">Mixte</span>` :
-                                `<span class="compte-bancaire">${reglePrincipale.banque || 'Toutes'}</span>`
-                            }
-                        </td>
-                        <td>
-                            ${hasMultiple ? 
-                                `<span style="color: #86868b; font-style: italic;">Mixte</span>` :
-                                `<span class="critere-montant">${formatCritereMontant(reglePrincipale.critere_montant)}</span>`
-                            }
-                        </td>
-                        <td>
-                            ${hasMultiple ?
-                                `<span style="color: #86868b; font-size: 12px;">${reglesCompte.filter(r => r.active).length}/${reglesCompte.length}</span>` :
-                                `<label class="toggle-switch">
-                                    <input type="checkbox" ${reglePrincipale.active ? 'checked' : ''} onchange="toggleRegleActive(${reglePrincipale.id})">
-                                    <span class="toggle-slider"></span>
-                                </label>`
-                            }
-                        </td>
-                        <td>
-                            ${hasMultiple ? 
-                                `<span class="expand-arrow" onclick="toggleCompteDetails('${compte}')">▶</span>` :
-                                ''
-                            }
-                        </td>
-                    </tr>
-                `;
-
-                // Lignes de détail pour les comptes avec plusieurs règles
-                if (hasMultiple) {
-                    reglesCompte.forEach((regle, index) => {
-                        html += `
+// Ligne principale du compte
+html += `
                             <tr class="detail-row" id="detail-${compte}-${index}">
                                 <td></td>
                                 <td style="padding-left: 40px;">
                                     <div style="font-size: 12px; color: #86868b;">Règle ${index + 1}</div>
+                                </td>
+                                <td>
+                                    <div class="mots-cles-container">
+                                        ${regle.mots_cles.map(mot => `<span class="mot-cle-badge">${mot}</span>`).join('')}
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="tooltip-custom">
@@ -801,11 +1201,6 @@ function chargerRegles() {
                                     <div class="tooltip-custom">
                                         <span class="pourcentage-collision ${getCollisionClass(regle.collision)}">${regle.collision.toFixed(1)}%</span>
                                         <div class="tooltip-text">${regle.nb_collisions} collisions</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="mots-cles-container">
-                                        ${regle.mots_cles.map(mot => `<span class="mot-cle-badge">${mot}</span>`).join('')}
                                     </div>
                                 </td>
                                 <td>
@@ -849,14 +1244,8 @@ function chargerRegles() {
             return `${critere.operateur} ${critere.valeur}€`;
         }
 
-        function mettreAJourStats() {
-            const statsElement = document.getElementById('regles-stats');
-            const nbRegles = reglesData.length;
-            const nbActives = reglesData.filter(r => r.active).length;
-            const automationMoyenne = reglesData.length > 0 ? 
-                reglesData.reduce((sum, r) => sum + r.impact, 0) / reglesData.length : 0;
-
-            statsElement.textContent = `${nbRegles} règle${nbRegles > 1 ? 's' : ''} • ${nbActives} active${nbActives > 1 ? 's' : ''} • ${automationMoyenne.toFixed(1)}% d'automatisation moyenne`;
+function mettreAJourStats() {
+            // Fonction vide - plus de stats à afficher
         }
 
         function trierRegles(field) {
@@ -1071,29 +1460,10 @@ const motsCles = Array.isArray(regle.mots_cles) ? regle.mots_cles.join(' ') : re
     console.log('Export CSV effectué:', csvData.length - 1, 'règles exportées');
 }
 
-        function rafraichirRegles() {
+function rafraichirRegles() {
             console.log('Actualisation des règles...');
             chargerRegles();
         }
-
-        // Recherche
-        document.getElementById('search-regles').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('.compte-row');
-            
-            rows.forEach(row => {
-                const compte = row.dataset.compte;
-                const compteText = row.textContent.toLowerCase();
-                const isVisible = compteText.includes(searchTerm);
-                row.style.display = isVisible ? 'table-row' : 'none';
-                
-                // Cacher aussi les détails si le compte parent est caché
-                const detailRows = document.querySelectorAll(`[id^="detail-${compte}-"]`);
-                detailRows.forEach(detailRow => {
-                    detailRow.style.display = isVisible ? detailRow.classList.contains('show') ? 'table-row' : 'none' : 'none';
-                });
-            });
-        });
 
         // Navigation clavier
         document.addEventListener('keydown', function(e) {
@@ -1120,10 +1490,256 @@ const motsCles = Array.isArray(regle.mots_cles) ? regle.mots_cles.join(' ') : re
             }
         });
 
+// Variables pour le panneau gauche (récupérées depuis le backend)
+let compteSelectionne = null;
+let currentSort = { field: 'gain', direction: 'desc' };
+let comptesStatistiques = {{ comptes_statistiques|safe if comptes_statistiques else '[]' }};
+let toutesEcritures = {{ ecritures_json|safe if ecritures_json else '[]' }};
+let journaux = {{ journaux|safe if journaux else '[]' }};
+const societeId = {{ societe.id if societe else 'null' }};
+
+console.log('📊 Données chargées:', {
+    nbComptes: comptesStatistiques.length,
+    nbEcritures: toutesEcritures.length,
+    societeId: societeId
+});
+
+// Fonctions pour le panneau gauche
+function filtrerComptes() {
+    const searchTerm = document.getElementById('compte-search').value.toLowerCase();
+    const comptes = document.querySelectorAll('.compte-item');
+
+    comptes.forEach(compte => {
+        const numeroCompte = compte.dataset.compte.toLowerCase();
+        const libelleCompte = compte.dataset.libelle.toLowerCase();
+
+        let isVisible = false;
+
+        if (/^\d+$/.test(searchTerm)) {
+            isVisible = numeroCompte.startsWith(searchTerm);
+        } else {
+            const numeroMatch = numeroCompte.startsWith(searchTerm);
+            const libelleMatch = libelleCompte.includes(searchTerm);
+            isVisible = numeroMatch || libelleMatch;
+        }
+
+        compte.style.display = isVisible ? 'grid' : 'none';
+    });
+}
+
+function updateClearButton() {
+    const searchInput = document.getElementById('compte-search');
+    const clearButton = document.getElementById('compte-search-clear');
+
+    if (searchInput.value.trim() !== '') {
+        clearButton.style.display = 'flex';
+    } else {
+        clearButton.style.display = 'none';
+    }
+}
+
+function clearCompteSearch() {
+    const searchInput = document.getElementById('compte-search');
+    const clearButton = document.getElementById('compte-search-clear');
+
+    searchInput.value = '';
+    clearButton.style.display = 'none';
+    filtrerComptes();
+    searchInput.focus();
+}
+
+function trierComptes(field) {
+    const container = document.getElementById('comptes-list');
+    const items = Array.from(container.querySelectorAll('.compte-item'));
+
+    if (currentSort.field === field) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSort.field = field;
+        currentSort.direction = field === 'compte' ? 'asc' : 'desc';
+    }
+
+    updateSortIcons(field, currentSort.direction);
+
+    items.sort((a, b) => {
+        let aValue, bValue;
+
+        switch (field) {
+            case 'compte':
+                aValue = a.dataset.compte;
+                bValue = b.dataset.compte;
+                break;
+            case 'gain':
+                aValue = parseFloat(a.dataset.gain);
+                bValue = parseFloat(b.dataset.gain);
+                break;
+        }
+
+        if (currentSort.direction === 'asc') {
+            return aValue > bValue ? 1 : -1;
+        } else {
+            return aValue < bValue ? 1 : -1;
+        }
+    });
+
+    items.forEach(item => container.appendChild(item));
+}
+
+function updateSortIcons(activeField, direction) {
+    const allIcons = document.querySelectorAll('.sort-icon');
+    allIcons.forEach(icon => {
+        icon.classList.remove('asc', 'desc', 'active');
+    });
+
+    const activeIcon = document.getElementById(`sort-icon-${activeField}`);
+    if (activeIcon) {
+        activeIcon.classList.add('active', direction);
+    }
+}
+
+function selectionnerCompte(compte) {
+    document.querySelectorAll('.compte-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+
+    const compteElement = document.querySelector(`[data-compte="${compte}"]`);
+    if (compteElement) {
+        compteElement.classList.add('selected');
+    }
+
+    compteSelectionne = compte;
+    console.log('🏦 Compte sélectionné:', compte);
+}
+
+function chargerComptes() {
+    const container = document.getElementById('comptes-list');
+    const emptyState = document.getElementById('comptes-empty');
+
+    if (comptesStatistiques.length === 0) {
+        container.innerHTML = '';
+        container.appendChild(emptyState);
+        return;
+    }
+
+    // Filtrer les comptes pour exclure ceux 100% traités
+    const comptesAffichables = comptesStatistiques.filter(compte => {
+        const pourcentageAFaire = parseFloat(compte.pourcentage_a_faire);
+        return pourcentageAFaire > 0; // Ne garder que les comptes avec du travail à faire
+    });
+
+    console.log('📊 Comptes filtrés:', {
+        total: comptesStatistiques.length,
+        affichables: comptesAffichables.length,
+        masques: comptesStatistiques.length - comptesAffichables.length
+    });
+
+    // Si aucun compte n'a de travail à faire, afficher un message spécial
+    if (comptesAffichables.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div>🎉</div>
+                <p>Tous les comptes sont 100% traités !</p>
+                <small>Félicitations, l'automatisation est complète</small>
+            </div>
+        `;
+        return;
+    }
+
+    // Cacher l'état vide
+    if (emptyState) emptyState.style.display = 'none';
+
+    let html = '';
+    comptesAffichables.forEach(compte => {
+        const compteNumber = formatCompteNumber(compte.compte);
+        // Fonction pour formater les pourcentages avec précision adaptative (données déjà formatées côté serveur)
+        const formatPourcentage = (valeur) => {
+            const num = parseFloat(valeur);
+            if (num === 0) return '0%';
+            return num + '%';
+        };
+
+        html += `
+            <div class="compte-item"
+                 data-compte="${compte.compte}"
+                 data-percentage="${compte.pourcentage_total}"
+                 data-gain="${compte.pourcentage_a_faire}"
+                 data-libelle="${compte.libelle}"
+                 data-nb-transactions="${compte.nb_transactions}"
+                 onclick="selectionnerCompte('${compte.compte}')">
+                <div class="compte-info">
+                    <div class="compte-number">${compteNumber}</div>
+                    <div class="compte-libelle">${compte.libelle}</div>
+                </div>
+                <div class="stat-afaire"
+                     onmouseenter="showTooltip(this, 'Traité: ${formatPourcentage(compte.pourcentage_traite)} • ${compte.nb_transactions} transactions')"
+                     onmouseleave="hideTooltip(this)">
+                    ${formatPourcentage(compte.pourcentage_a_faire)}
+                    <div class="tooltip-custom">Traité: ${formatPourcentage(compte.pourcentage_traite)}% • ${compte.nb_transactions} transactions</div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+
+    // Appliquer le tri par défaut (libellé croissant) si c'est la première fois
+    if (currentSort.field === 'gain') {
+        setTimeout(() => {
+            applquerTriExistant();
+        }, 50);
+    }
+}
+
+function formatCompteNumber(compte) {
+    // Formater le numéro de compte : 62700000003 → 627 00000003
+    if (compte.length >= 6) {
+        return compte.substring(0, 3) + ' ' + compte.substring(3);
+    }
+    return compte;
+}
+
+function applquerTriExistant() {
+    if (!currentSort.field) return;
+    trierComptes(currentSort.field);
+}
+
+// Gestion des tooltips
+function showTooltip(element, text) {
+    const tooltip = element.querySelector('.tooltip-custom');
+    if (tooltip) {
+        tooltip.textContent = text;
+        tooltip.style.opacity = '1';
+    }
+}
+
+function hideTooltip(element) {
+    const tooltip = element.querySelector('.tooltip-custom');
+    if (tooltip) {
+        tooltip.style.opacity = '0';
+    }
+}
+
+// Initialiser le panneau gauche
+document.addEventListener('DOMContentLoaded', function() {
+    chargerComptes();
+    chargerRegles();
+});
+
 // Fonctions manquantes pour la compatibilité avec les includes
 function selectCompanyAI(societeId) {
     console.log('🏢 Changement de société:', societeId);
-    window.location.href = `/societe/${societeId}`;
+    document.getElementById('companyDropdown').style.display = 'none';
+
+    // Vérifier sur quelle page nous sommes
+    const currentPath = window.location.pathname;
+
+    if (currentPath.includes('/regles/liste')) {
+        // Rester sur la page des règles mais changer de société
+        window.location.href = `/regles/liste?societe_id=${societeId}`;
+    } else {
+        // Aller au dashboard de la société
+        window.location.href = `/societe/${societeId}`;
+    }
 }
 
 function filterCompaniesAI() {
