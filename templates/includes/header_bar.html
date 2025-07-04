@@ -1,0 +1,147 @@
+<!-- Barre du haut commune -->
+<div class="header-bar">
+    <div class="company-section" onclick="toggleCompanyDropdown()">
+        <div class="ai-company-content">
+            <div class="ai-company-main">
+                <div class="ai-company-name">{{ societe_active.nom if societe_active else 'Aucune société' }}</div>
+                <div class="ai-company-siret">{{ societe_active.siret if societe_active and societe_active.siret else 'Pas de SIRET' }}</div>
+            </div>
+            {% if automatisation_globale is defined %}
+            <div class="automation-score">
+                {{ automatisation_globale }}%
+            </div>
+            {% endif %}
+            <svg class="dropdown-indicator" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+            </svg>
+        </div>
+
+        <!-- Dropdown des sociétés -->
+        <div class="apple-intelligence-dropdown" id="companyDropdown">
+            <div class="ai-dropdown-content">
+                <!-- Barre de recherche -->
+                <div class="ai-search-container">
+                    <input type="text"
+                           class="ai-search-input"
+                           placeholder="Rechercher une société..."
+                           id="companySearchInput"
+                           onkeyup="filterCompanies()">
+                </div>
+
+                <!-- Liste des sociétés -->
+                <div class="ai-companies-list" id="companiesList">
+                    {% if societes %}
+                        {% for societe in societes %}
+                        <div class="ai-company-item {{ 'current' if societe.id == societe_active.id else '' }}"
+                             data-company-id="{{ societe.id }}"
+                             onclick="changerSociete({{ societe.id }})">
+                            <div class="ai-company-content">
+                                <div class="ai-company-main">
+                                    <div class="ai-company-name">{{ societe.nom }}</div>
+                                    <div class="ai-company-siret">{{ societe.siret if societe.siret else 'Pas de SIRET' }}</div>
+                                </div>
+                                {% if societe.id == societe_active.id %}
+                                <div class="ai-current-indicator">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z"/>
+                                    </svg>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="ai-no-companies">
+                            <p>Aucune société trouvée</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        {% if current_page == 'dashboard' %}
+            <button class="btn-apple" onclick="nouveauFEC()">+ Nouveau FEC</button>
+            <button class="btn-apple" onclick="importerRegles()">Importer</button>
+            <button class="btn-apple" onclick="exporterRegles()">Exporter</button>
+            <button class="btn-apple primary" onclick="voirListeRegles()">Liste des règles</button>
+        {% elif current_page == 'regles' %}
+            <button class="btn-apple" onclick="nouveauFEC()">+ Nouveau FEC</button>
+            <button class="btn-apple" onclick="creerNouvelleRegle()">+ Nouvelle Règle</button>
+            <button class="btn-apple primary" onclick="window.location.href='/dashboard'">Retour Dashboard</button>
+        {% endif %}
+
+        <!-- Menu paramètres -->
+        <div class="settings-dropdown">
+            <svg class="settings-icon" onclick="toggleSettingsDropdown()" viewBox="0 0 24 24">
+                <path d="M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11.03L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11.03L19.5,12L19.43,12.97L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.03 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10Z"/>
+            </svg>
+
+            <div class="dropdown-menu-apple" id="settingsDropdown">
+                <div class="dropdown-item-apple" onclick="gererUtilisateurs()">Gérer les utilisateurs</div>
+                <div class="dropdown-item-apple" onclick="parametresOrganisation()">Paramètres organisation</div>
+                <div class="dropdown-item-apple" onclick="deconnexion()">Déconnexion</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Fonctions communes pour la barre du haut
+function toggleCompanyDropdown() {
+    const dropdown = document.getElementById('companyDropdown');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+
+function toggleSettingsDropdown() {
+    const dropdown = document.getElementById('settingsDropdown');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+
+function changerSociete(societeId) {
+    window.location.href = `/dashboard?societe_id=${societeId}`;
+}
+
+function filterCompanies() {
+    const input = document.getElementById('companySearchInput');
+    const filter = input.value.toLowerCase();
+    const companies = document.querySelectorAll('.ai-company-item');
+
+    companies.forEach(company => {
+        const name = company.querySelector('.ai-company-name').textContent.toLowerCase();
+        const siret = company.querySelector('.ai-company-siret').textContent.toLowerCase();
+
+        if (name.indexOf(filter) > -1 || siret.indexOf(filter) > -1) {
+            company.style.display = '';
+        } else {
+            company.style.display = 'none';
+        }
+    });
+}
+
+// Fermer les dropdowns en cliquant ailleurs
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.company-section')) {
+        document.getElementById('companyDropdown').style.display = 'none';
+    }
+    if (!event.target.closest('.settings-dropdown')) {
+        document.getElementById('settingsDropdown').style.display = 'none';
+    }
+});
+
+// Fonctions de paramètres (à personnaliser)
+function gererUtilisateurs() {
+    console.log('Gestion des utilisateurs (à implémenter)');
+}
+
+function parametresOrganisation() {
+    console.log('Paramètres organisation (à implémenter)');
+}
+
+function deconnexion() {
+    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+        window.location.href = '/logout';
+    }
+}
+</script>
