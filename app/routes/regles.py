@@ -266,10 +266,24 @@ def liste_regles():
     # Convertir en JSON valide
     regles_json_string = json.dumps(regles_json, ensure_ascii=False, default=str)
 
+    # Déterminer la société active pour la header_bar
+    if fec_file:
+        societe_active = Societe.query.get(fec_file.societe_id)
+    else:
+        # Prendre la première société de l'organisation
+        societe_active = Societe.query.filter_by(organization_id=session['organization_id']).first()
+
+    # Récupérer toutes les sociétés pour le dropdown de la header_bar
+    if 'societes' not in locals():
+        societes = Societe.query.filter_by(organization_id=session['organization_id']).all()
+
     return render_template('liste_regles.html',
                            regles=regles,
                            fec_file=fec_file,
-                           regles_json=regles_json_string)
+                           regles_json=regles_json_string,
+                           societe=societe_active,
+                           societes=societes,
+                           current_page='regles')
 
 @regles_bp.route('/regles/<int:regle_id>/delete', methods=['POST'])
 def delete_regle(regle_id):
