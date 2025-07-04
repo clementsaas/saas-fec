@@ -1,0 +1,1046 @@
+        /* Style Apple */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f7;
+    margin: 0;
+    padding: 0;
+    color: #1d1d1f;
+    overflow-y: hidden;
+}
+
+        .header-bar {
+            background: white;
+            border-bottom: 1px solid #d2d2d7;
+            padding: 2px 5px 2px 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+.company-section {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 12px 20px;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    margin-left: 0;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    position: relative;
+    overflow: visible;
+    width: 400px; /* Largeur fixe pour correspondre au dropdown */
+    min-width: 400px;
+}
+
+.logo-company-container {
+    position: relative;
+}
+
+/* Indicateur de dropdown */
+.dropdown-indicator {
+    margin-left: 8px;
+    color: #86868b;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    opacity: 0.7;
+}
+
+.company-section:hover .dropdown-indicator {
+    opacity: 1;
+    transform: translateY(1px);
+}
+
+/* Apple Intelligence Dropdown */
+.apple-intelligence-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    width: 100%; /* Prend la largeur du conteneur parent */
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(247, 250, 252, 0.92) 30%,
+        rgba(255, 255, 255, 0.90) 100%);
+    backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.15),
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    display: none;
+    z-index: 10000;
+    overflow: hidden;
+    animation: aiDropdownAppear 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes aiDropdownAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.ai-dropdown-content {
+    padding: 8px;
+}
+
+/* Barre de recherche Apple Intelligence */
+.ai-search-container {
+    padding: 8px 0 12px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    margin-bottom: 8px;
+}
+
+.ai-search-wrapper {
+    position: relative;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.ai-search-wrapper:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 122, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.1);
+}
+
+.ai-search-wrapper:focus-within {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 122, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.ai-search-input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1d1d1f;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.ai-search-input::placeholder {
+    color: #86868b;
+    font-weight: 400;
+}
+
+.ai-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #86868b;
+    transition: color 0.2s ease;
+}
+
+.ai-search-wrapper:focus-within .ai-search-icon {
+    color: #007aff;
+}
+
+/* Liste des sociétés Apple Intelligence */
+.ai-companies-list {
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.ai-companies-list::-webkit-scrollbar {
+    display: none;
+}
+
+.ai-company-item {
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-company-item:hover {
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.08) 0%,
+        rgba(88, 86, 214, 0.06) 100%);
+    transform: translateY(-1px) scale(1.01);
+    box-shadow:
+        0 4px 16px rgba(0, 122, 255, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.ai-company-item:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 70%
+    );
+    animation: aiCompanyShine 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes aiCompanyShine {
+    0%, 100% {
+        transform: translateX(-100%) rotate(45deg);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(100%) rotate(45deg);
+        opacity: 0.6;
+    }
+}
+
+.ai-company-item.selected {
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.12) 0%,
+        rgba(88, 86, 214, 0.08) 100%);
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 16px rgba(0, 122, 255, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.ai-company-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.ai-company-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.ai-company-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ai-company-siret {
+    font-size: 12px;
+    color: #86868b;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ai-current-indicator {
+    color: #007aff;
+    margin-left: 12px;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.ai-company-item:hover .ai-current-indicator {
+    opacity: 1;
+}
+
+/* État sélectionné avec navigation clavier */
+.ai-company-item.keyboard-selected {
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.15) 0%,
+        rgba(88, 86, 214, 0.10) 100%);
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 16px rgba(0, 122, 255, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.company-section:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.company-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 60%
+    );
+    animation: companySpecularMove 8s ease-in-out infinite;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Indicateur de dropdown */
+.dropdown-indicator {
+    margin-left: 8px;
+    color: #86868b;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    opacity: 0.7;
+}
+
+.company-section:hover .dropdown-indicator {
+    opacity: 1;
+    transform: translateY(1px);
+}
+
+/* Apple Intelligence Dropdown */
+.apple-intelligence-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 450px;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(247, 250, 252, 0.92) 30%,
+        rgba(255, 255, 255, 0.90) 100%);
+    backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.15),
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    display: none;
+    z-index: 10000;
+    overflow: hidden;
+    animation: aiDropdownAppear 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes aiDropdownAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.ai-dropdown-content {
+    padding: 8px;
+}
+
+/* Barre de recherche Apple Intelligence */
+.ai-search-container {
+    padding: 8px 0 12px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    margin-bottom: 8px;
+}
+
+.ai-search-wrapper {
+    position: relative;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.ai-search-wrapper:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 122, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.1);
+}
+
+.ai-search-wrapper:focus-within {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 122, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.ai-search-input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1d1d1f;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.ai-search-input::placeholder {
+    color: #86868b;
+    font-weight: 400;
+}
+
+.ai-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #86868b;
+    transition: color 0.2s ease;
+}
+
+.ai-search-wrapper:focus-within .ai-search-icon {
+    color: #007aff;
+}
+
+/* Liste des sociétés Apple Intelligence */
+.ai-companies-list {
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.ai-companies-list::-webkit-scrollbar {
+    display: none;
+}
+
+.ai-company-item {
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-company-item:hover {
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.08) 0%,
+        rgba(88, 86, 214, 0.06) 100%);
+    transform: translateY(-1px) scale(1.01);
+    box-shadow:
+        0 4px 16px rgba(0, 122, 255, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.ai-company-item:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 70%
+    );
+    animation: aiCompanyShine 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes aiCompanyShine {
+    0%, 100% {
+        transform: translateX(-100%) rotate(45deg);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(100%) rotate(45deg);
+        opacity: 0.6;
+    }
+}
+
+.ai-company-item.selected {
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.12) 0%,
+        rgba(88, 86, 214, 0.08) 100%);
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 16px rgba(0, 122, 255, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.ai-company-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.ai-company-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.ai-company-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ai-company-siret {
+    font-size: 12px;
+    color: #86868b;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ai-current-indicator {
+    color: #007aff;
+    margin-left: 12px;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.ai-company-item:hover .ai-current-indicator {
+    opacity: 1;
+}
+
+/* État sélectionné avec navigation clavier */
+.ai-company-item.keyboard-selected {
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.15) 0%,
+        rgba(88, 86, 214, 0.10) 100%);
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 16px rgba(0, 122, 255, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+@keyframes companySpecularMove {
+    0%, 100% {
+        transform: translate(-30%, -30%) rotate(45deg);
+        opacity: 0.4;
+    }
+    50% {
+        transform: translate(30%, 30%) rotate(45deg);
+        opacity: 0.8;
+    }
+}
+
+.company-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+.company-name-section h2 {
+    margin: 0;
+    color: #1d1d1f;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.automation-score-section {
+    display: flex;
+    align-items: center;
+}
+
+.automation-glass-background {
+    position: relative;
+    background: linear-gradient(135deg,
+        rgba(102, 126, 234, 0.1) 0%,
+        rgba(118, 75, 162, 0.08) 50%,
+        rgba(102, 126, 234, 0.12) 100%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    border-radius: 12px;
+    padding: 6px 16px;
+    overflow: hidden;
+    box-shadow:
+        0 2px 8px rgba(102, 126, 234, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.automation-glass-background:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 12px rgba(102, 126, 234, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.automation-specular-highlight {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 45%,
+        rgba(255, 255, 255, 0.08) 50%,
+        transparent 55%
+    );
+    animation: automationSpecularMove 6s ease-in-out infinite;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+@keyframes automationSpecularMove {
+    0%, 100% {
+        transform: translate(-40%, -40%) rotate(45deg);
+        opacity: 0.5;
+    }
+    50% {
+        transform: translate(40%, 40%) rotate(45deg);
+        opacity: 0.9;
+    }
+}
+
+.automation-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #667eea;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.automation-content .percentage {
+    font-weight: 700;
+    color: #667eea;
+}
+
+/* Nouveau dropdown moderne */
+.company-dropdown-modern {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    width: 400px;
+    max-height: 350px;
+    overflow: hidden;
+    z-index: 1001;
+    display: none;
+    margin-top: 8px;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+.company-search-modern {
+    padding: 15px;
+    border-bottom: 1px solid #f5f5f7;
+    background: #f9f9fb;
+}
+
+.company-search-input-modern {
+    width: 100%;
+    padding: 8px 12px 8px 35px;
+    border: 1px solid #d2d2d7;
+    border-radius: 12px;
+    font-size: 13px;
+    background: white;
+    transition: border-color 0.2s ease;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 10px center;
+}
+
+.company-search-input-modern:focus {
+    outline: none;
+    border-color: #007aff;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.company-list-modern {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.company-item-modern {
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border-bottom: 1px solid #f5f5f7;
+    position: relative;
+    overflow: hidden;
+}
+
+.company-item-modern:hover {
+    background: linear-gradient(135deg, #f3f4f7 0%, #eaecf0 100%);
+    transform: translateX(2px);
+    box-shadow:
+        0 2px 8px rgba(243, 244, 247, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border-radius: 0 8px 8px 0;
+    border-left: 3px solid #c5c9d0;
+}
+
+.company-item-modern:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 60%
+    );
+    animation: companyItemShine 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes companyItemShine {
+    0%, 100% {
+        transform: translateX(-100%) rotate(45deg);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(100%) rotate(45deg);
+        opacity: 0.3;
+    }
+}
+
+.company-item-modern:last-child {
+    border-bottom: none;
+}
+
+.company-item-content {
+    position: relative;
+    z-index: 2;
+}
+
+.company-item-name {
+    font-weight: 500;
+    color: #1d1d1f;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.company-item-modern:hover .company-item-name {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.company-item-info {
+    font-size: 12px;
+    color: #86868b;
+    font-weight: 400;
+}
+
+.company-item-modern:hover .company-item-info {
+    color: #34495e;
+}
+
+.logo-lune {
+    width: 65px;
+    height: 65px;
+    fill: #1d1d1f;
+}
+
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-apple {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #e5e5ea;
+            color: #1d1d1f;
+        }
+
+        .btn-apple:hover {
+            background: #d1d1d6;
+        }
+
+        .btn-apple.primary {
+            background: #1d1d1f;
+            color: white;
+        }
+
+        .btn-apple.primary:hover {
+            background: #000;
+        }
+
+        .settings-dropdown {
+            position: relative;
+        }
+
+        .settings-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            fill: #1d1d1f;
+            transition: transform 0.2s ease;
+        }
+
+        .settings-icon:hover {
+            transform: rotate(30deg);
+        }
+
+        .dropdown-menu-apple {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            min-width: 200px;
+            margin-top: 8px;
+            padding: 8px;
+            display: none;
+            z-index: 1001;
+        }
+
+        .dropdown-item-apple {
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-size: 14px;
+        }
+
+        .dropdown-item-apple:hover {
+            background: #f5f5f7;
+        }
+
+/* Nouvelle barre latérale */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 70px;
+    height: 100vh;
+    background: linear-gradient(180deg, #f3f4f7 0%, #e8eaef 100%);
+    z-index: 1002;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    box-shadow:
+        2px 0 20px rgba(0,0,0,0.08),
+        inset -1px 0 0 rgba(255,255,255,0.6);
+    backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid rgba(0,0,0,0.06);
+}
+
+.sidebar-logo svg {
+    width: 100%;
+    height: 100%;
+    fill: #6b7280;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
+
+.sidebar-item {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.8);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.sidebar-item:hover {
+    background: rgba(255,255,255,1);
+    transform: translateY(-1px) scale(1.02);
+    box-shadow:
+        0 4px 12px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+}
+
+.sidebar-item.active {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    border-color: rgba(107, 114, 128, 0.3);
+    box-shadow:
+        0 4px 16px rgba(107, 114, 128, 0.3),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+    transform: translateY(-1px);
+}
+
+.sidebar-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255,255,255,0.2) 50%,
+        transparent 70%
+    );
+    animation: sidebarShine 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes sidebarShine {
+    0%, 100% {
+        transform: translateX(-100%) rotate(45deg);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(100%) rotate(45deg);
+        opacity: 1;
+    }
+}
+
+.sidebar-item svg {
+    width: 20px;
+    height: 20px;
+    fill: #4a5568;
+    transition: all 0.25s ease;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+
+.sidebar-item:hover svg {
+    fill: #2d3748;
+    transform: scale(1.1);
+}
+
+.sidebar-item.active svg {
+    fill: #374151;
+    transform: scale(1.1);
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+
+        .sidebar-logo {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar-logo svg {
+            width: 100%;
+            height: 100%;
+            fill: white;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-item {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .sidebar-item.active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .sidebar-item svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        /* Ajuster le layout principal pour la sidebar */
+        body {
+            margin-left: 70px;
+        }
+
+.header-bar {
+    background: white;
+    border-bottom: 1px solid #d2d2d7;
+    padding: 2px 5px 2px 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-left: -70px;
+    padding-left: 90px;
+}
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 400px 1fr 350px;
+            gap: 20px;
+            padding: 20px;
+            height: calc(100vh - 65px);
+            margin-left: -70px;
+            padding-left: 90px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: white;
+            color: #1d1d1f;
+            padding: 20px;
+            font-weight: 600;
+            font-size: 16px;
+            border-bottom: 1px solid #f5f5f7;
+        }
