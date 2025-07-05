@@ -1143,20 +1143,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function chargerRegles() {
-    // Récupérer les vraies règles depuis le template avec échappement correct
+    // Récupérer les vraies règles depuis le template de manière sécurisée
     try {
-        const reglesJsonString = `{{ regles_json|safe }}`;
-        console.log('🔍 JSON brut reçu (premiers 200 chars):', reglesJsonString.substring(0, 200));
-
-        // Parser le JSON
-        reglesData = JSON.parse(reglesJsonString);
+        // Utiliser une variable JavaScript générée côté serveur
+        reglesData = {{ regles_json|safe }};
         console.log('✅ Règles chargées avec succès:', reglesData.length, 'règles');
         if (reglesData.length > 0) {
             console.log('📋 Exemple de règle:', reglesData[0]);
         }
     } catch (e) {
         console.error('❌ Erreur chargement règles:', e);
-        console.error('📄 Chaîne JSON problématique:', `{{ regles_json|safe }}`.substring(0, 500));
         reglesData = [];
     }
     afficherRegles();

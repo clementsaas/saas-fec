@@ -403,8 +403,22 @@ def liste_regles():
     current_app.logger.info(f"Nombre de regles trouvees: {len(regles)}")
     current_app.logger.info(f"Nombre de regles JSON: {len(regles_json)}")
 
-    # Convertir en JSON valide
-    regles_json_string = json.dumps(regles_json, ensure_ascii=False, default=str)
+    # Convertir en JSON valide avec échappement sécurisé
+    def json_encoder(obj):
+        """Encodeur JSON personnalisé pour éviter les caractères problématiques"""
+        if hasattr(obj, 'isoformat'):
+            return obj.isoformat()
+        elif isinstance(obj, str):
+            # Échapper les caractères problématiques
+            return obj.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r')
+        return str(obj)
+
+    try:
+        regles_json_string = json.dumps(regles_json, ensure_ascii=True, default=json_encoder)
+        print(f"🔍 DEBUG - JSON généré avec succès: {len(regles_json_string)} caractères")
+    except Exception as e:
+        print(f"❌ DEBUG - Erreur génération JSON: {e}")
+        regles_json_string = "[]"
 
     # Déterminer la société active pour la header_bar
     if fec_file:
