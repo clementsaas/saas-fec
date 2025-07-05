@@ -1114,116 +1114,107 @@ function chargerRegles() {
     mettreAJourStats();
 }
 
-        function afficherRegles() {
-            const tbody = document.getElementById('regles-tbody');
-            const emptyState = document.getElementById('empty-state');
+function afficherRegles() {
+    const tbody = document.getElementById('regles-tbody');
+    const emptyState = document.getElementById('empty-state');
 
-            if (reglesData.length === 0) {
-                tbody.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
+    if (reglesData.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
 
-            emptyState.style.display = 'none';
+    emptyState.style.display = 'none';
 
-            // Trier les règles
-            const reglesTries = [...reglesData].sort((a, b) => {
-                let aVal, bVal;
-                
-                switch (sortConfig.field) {
-                    case 'compte':
-                        aVal = a.compte;
-                        bVal = b.compte;
-                        break;
-                    case 'impact':
-                        aVal = a.impact;
-                        bVal = b.impact;
-                        break;
-                    case 'collision':
-                        aVal = a.collision;
-                        bVal = b.collision;
-                        break;
-                    case 'active':
-                        aVal = a.active ? 1 : 0;
-                        bVal = b.active ? 1 : 0;
-                        break;
-                    default:
-                        return 0;
-                }
+    // Trier les règles
+    const reglesTries = [...reglesData].sort((a, b) => {
+        let aVal, bVal;
 
-                if (sortConfig.direction === 'asc') {
-                    return aVal > bVal ? 1 : -1;
-                } else {
-                    return aVal < bVal ? 1 : -1;
-                }
-            });
-
-            // Grouper par compte
-            const reglesGroupees = {};
-            reglesTries.forEach(regle => {
-                if (!reglesGroupees[regle.compte]) {
-                    reglesGroupees[regle.compte] = [];
-                }
-                reglesGroupees[regle.compte].push(regle);
-            });
-
-            let html = '';
-            Object.keys(reglesGroupees).forEach(compte => {
-                const reglesCompte = reglesGroupees[compte];
-                const reglePrincipale = reglesCompte[0];
-                const hasMultiple = reglesCompte.length > 1;
-
-                // Calculer les totaux pour le compte
-                const totalImpact = reglesCompte.reduce((sum, r) => sum + r.impact, 0);
-                const totalTransactions = reglesCompte.reduce((sum, r) => sum + r.nb_transactions, 0);
-                const maxCollision = Math.max(...reglesCompte.map(r => r.collision));
-                const totalCollisions = reglesCompte.reduce((sum, r) => sum + r.nb_collisions, 0);
-
-// Ligne principale du compte
-html += `
-                            <tr class="detail-row" id="detail-${compte}-${index}">
-                                <td></td>
-                                <td style="padding-left: 40px;">
-                                    <div style="font-size: 12px; color: #86868b;">Règle ${index + 1}</div>
-                                </td>
-                                <td>
-                                    <div class="mots-cles-container">
-                                        ${regle.mots_cles.map(mot => `<span class="mot-cle-badge">${mot}</span>`).join('')}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="tooltip-custom">
-                                        <span class="pourcentage-impact">${regle.impact.toFixed(1)}%</span>
-                                        <div class="tooltip-text">${regle.nb_transactions} transactions</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="tooltip-custom">
-                                        <span class="pourcentage-collision ${getCollisionClass(regle.collision)}">${regle.collision.toFixed(1)}%</span>
-                                        <div class="tooltip-text">${regle.nb_collisions} collisions</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="compte-bancaire">${regle.banque || 'Toutes'}</span>
-                                </td>
-                                <td>
-                                    <span class="critere-montant">${formatCritereMontant(regle.critere_montant)}</span>
-                                </td>
-                                <td>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" ${regle.active ? 'checked' : ''} onchange="toggleRegleActive(${regle.id})">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </td>
-                                <td></td>
-                            </tr>
-                        `;
-                    });
-                }
-            });
-
-            tbody.innerHTML = html;
+        switch (sortConfig.field) {
+            case 'compte':
+                aVal = a.compte;
+                bVal = b.compte;
+                break;
+            case 'impact':
+                aVal = a.impact;
+                bVal = b.impact;
+                break;
+            case 'collision':
+                aVal = a.collision;
+                bVal = b.collision;
+                break;
+            case 'active':
+                aVal = a.active ? 1 : 0;
+                bVal = b.active ? 1 : 0;
+                break;
+            default:
+                return 0;
         }
+
+        if (sortConfig.direction === 'asc') {
+            return aVal > bVal ? 1 : -1;
+        } else {
+            return aVal < bVal ? 1 : -1;
+        }
+    });
+
+    let html = '';
+    reglesTries.forEach(regle => {
+        // Assurer que mots_cles est un tableau
+        const motsCles = Array.isArray(regle.mots_cles) ? regle.mots_cles : [];
+
+        html += `
+            <tr>
+                <td>
+                    <label class="checkbox-custom">
+                        <input type="checkbox" class="rule-checkbox" data-compte="${regle.compte}" onchange="toggleRuleSelection('${regle.compte}')">
+                        <span class="checkbox-mark"></span>
+                    </label>
+                </td>
+                <td>
+                    <div class="compte-number">${formatCompteNumber(regle.compte)}</div>
+                    <div style="font-size: 12px; color: #86868b; margin-top: 2px;">${regle.libelle_compte || ''}</div>
+                </td>
+                <td>
+                    <div class="mots-cles-container">
+                        ${motsCles.map(mot => `<span class="mot-cle-badge">${mot}</span>`).join('')}
+                    </div>
+                </td>
+                <td>
+                    <div class="tooltip-custom">
+                        <span class="pourcentage-impact">${regle.impact.toFixed(1)}%</span>
+                        <div class="tooltip-text">${regle.nb_transactions} transactions</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="tooltip-custom">
+                        <span class="pourcentage-collision ${getCollisionClass(regle.collision)}">${regle.collision.toFixed(1)}%</span>
+                        <div class="tooltip-text">${regle.nb_collisions || 0} collisions</div>
+                    </div>
+                </td>
+                <td>
+                    <span class="compte-bancaire">${regle.banque || 'Toutes'}</span>
+                </td>
+                <td>
+                    <span class="critere-montant">${formatCritereMontant(regle.critere_montant)}</span>
+                </td>
+                <td>
+                    <label class="toggle-switch">
+                        <input type="checkbox" ${regle.active ? 'checked' : ''} onchange="toggleRegleActive(${regle.id})">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </td>
+                <td>
+                    <button onclick="modifierRegle(${regle.id})" class="btn-icon" title="Modifier">
+                        ✏️
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
 
         function formatCompteNumber(compte) {
             if (compte.length >= 6) {
