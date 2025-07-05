@@ -994,14 +994,14 @@ body {
                 </div>
             </div>
 
-            <div class="comptes-header">
+<div class="comptes-header">
                 <div class="sortable-header" onclick="trierComptes('compte')">
                     Compte
                     <span class="sort-icon" id="sort-icon-compte"></span>
                 </div>
-                <div class="sortable-header" onclick="trierComptes('gain')">
-                    Gain potentiel
-                    <span class="sort-icon" id="sort-icon-gain"></span>
+                <div class="sortable-header" onclick="trierComptes('percentage')">
+                    % Traité
+                    <span class="sort-icon" id="sort-icon-percentage"></span>
                 </div>
             </div>
 
@@ -1018,11 +1018,19 @@ body {
         <!-- CENTRE : Panel principal des règles -->
         <div class="regles-panel">
 <!-- Header du panel -->
-            <div class="regles-header">
+<div class="regles-header">
                 <div>
                     <h3 style="margin: 0; color: #1d1d1f; font-size: 20px; font-weight: 600;">
                         Gestion des règles
                     </h3>
+                </div>
+                <div class="regles-toolbar">
+                    <button class="btn-apple" onclick="importerRegles()">
+                        📥 Importer
+                    </button>
+                    <button class="btn-apple" onclick="exporterRegles()">
+                        📤 Exporter
+                    </button>
                 </div>
             </div>
 
@@ -1064,11 +1072,10 @@ body {
                             </th>
                             <th>Banque</th>
                             <th>Montant</th>
-                            <th class="sortable" onclick="trierRegles('active')">
+<th class="sortable" onclick="trierRegles('active')">
                                 Active
                                 <span class="sort-icon">↕</span>
                             </th>
-                            <th width="50"></th>
                         </tr>
                     </thead>
                     <tbody id="regles-tbody">
@@ -1205,10 +1212,6 @@ function afficherRegles() {
                     </label>
                 </td>
                 <td>
-                    <button onclick="modifierRegle(${regle.id})" class="btn-icon" title="Modifier">
-                        ✏️
-                    </button>
-                </td>
             </tr>
         `;
     });
@@ -1661,11 +1664,11 @@ function chargerComptes() {
                     <div class="compte-number">${compteNumber}</div>
                     <div class="compte-libelle">${compte.libelle}</div>
                 </div>
-                <div class="stat-afaire"
-                     onmouseenter="showTooltip(this, 'Traité: ${formatPourcentage(compte.pourcentage_traite)} • ${compte.nb_transactions} transactions')"
+<div class="stat-afaire"
+                     onmouseenter="showTooltip(this, 'Gain potentiel: ${formatPourcentage(compte.pourcentage_a_faire)} • ${compte.nb_transactions} transactions')"
                      onmouseleave="hideTooltip(this)">
-                    ${formatPourcentage(compte.pourcentage_a_faire)}
-                    <div class="tooltip-custom">Traité: ${formatPourcentage(compte.pourcentage_traite)}% • ${compte.nb_transactions} transactions</div>
+                    ${formatPourcentage(compte.pourcentage_traite)}
+                    <div class="tooltip-custom">Gain potentiel: ${formatPourcentage(compte.pourcentage_a_faire)}% • ${compte.nb_transactions} transactions</div>
                 </div>
             </div>
         `;
