@@ -1100,8 +1100,39 @@ body {
         </div>
     </div>
 
-    <script>
-// Variables globales
+<script>
+// Variables globales depuis le backend avec fallback robuste
+let societeId = {{ societe.id if societe else 'null' }};
+const fecActifId = {{ fec_actif.id if fec_actif else 'null' }};
+
+console.log('🔍 Variables initiales:', { societeId, fecActifId });
+
+// DEBUG: Afficher tous les éléments de la page qui pourraient contenir societe_id
+console.log('🔍 DEBUG - URL actuelle:', window.location.href);
+console.log('🔍 DEBUG - Paramètres URL:', new URLSearchParams(window.location.search).toString());
+
+// Si societeId est null, forcer une récupération depuis l'URL
+if (!societeId || societeId === null) {
+    console.log('⚠️ societeId null, récupération forcée depuis URL...');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSocieteId = urlParams.get('societe_id');
+
+    if (urlSocieteId) {
+        societeId = parseInt(urlSocieteId);
+        console.log('✅ societeId récupéré depuis URL:', societeId);
+    } else {
+        console.log('❌ Aucun societe_id dans l\'URL, redirection nécessaire...');
+        // Rediriger vers dashboard pour sélectionner une société
+        alert('❌ Erreur: Aucune société spécifiée. Retour au tableau de bord.');
+        window.location.href = '/dashboard';
+        // Pas de return ici car on n'est pas dans une fonction
+    }
+}
+
+console.log('🔍 Variables globales finales:', { societeId, fecActifId });
+
+// Le reste de votre code JavaScript existant...
 let reglesData = [];
 let selectedRules = new Set();
 let sortConfig = { field: 'compte', direction: 'asc' };
@@ -1112,17 +1143,54 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function chargerRegles() {
-    // Récupérer les vraies règles depuis le template
+    // Récupérer les vraies règles depuis le template avec échappement correct
     try {
-        reglesData = JSON.parse(`{{ regles_json|safe }}`);
-        console.log('Regles chargees avec succes:', reglesData.length, 'regles');
-        console.log('Exemple de regle:', reglesData[0]);
+        const reglesJsonString = `{{ regles_json|safe }}`;
+        console.log('🔍 JSON brut reçu (premiers 200 chars):', reglesJsonString.substring(0, 200));
+
+        // Parser le JSON
+        reglesData = JSON.parse(reglesJsonString);
+        console.log('✅ Règles chargées avec succès:', reglesData.length, 'règles');
+        if (reglesData.length > 0) {
+            console.log('📋 Exemple de règle:', reglesData[0]);
+        }
     } catch (e) {
-        console.error('Erreur chargement regles:', e);
+        console.error('❌ Erreur chargement règles:', e);
+        console.error('📄 Chaîne JSON problématique:', `{{ regles_json|safe }}`.substring(0, 500));
         reglesData = [];
     }
     afficherRegles();
     mettreAJourStats();
+}
+
+// Variables pour le panneau gauche (récupérées depuis le backend)
+let compteSelectionne = null;
+let currentSort = { field: 'gain', direction: 'desc' };
+
+// Initialisation sécurisée des données backend
+let comptesStatistiques = [];
+let toutesEcritures = [];
+let journaux = [];
+
+try {
+    comptesStatistiques = {{ comptes_statistiques|safe if comptes_statistiques else '[]' }};
+} catch (e) {
+    console.error('❌ Erreur chargement comptes statistiques:', e);
+    comptesStatistiques = [];
+}
+
+try {
+    toutesEcritures = {{ ecritures_json|safe if ecritures_json else '[]' }};
+} catch (e) {
+    console.error('❌ Erreur chargement écritures:', e);
+    toutesEcritures = [];
+}
+
+try {
+    journaux = {{ journaux|safe if journaux else '[]' }};
+} catch (e) {
+    console.error('❌ Erreur chargement journaux:', e);
+    journaux = [];
 }
 
 function afficherRegles() {
@@ -1414,9 +1482,80 @@ function mettreAJourStats() {
             window.location.href = '/regles/nouvelle';
         }
 
-        function importerRegles() {
-            alert('Fonctionnalité d\'import - À implémenter');
+function importerRegles() {
+    // Vérifier que nous avons un societe_id
+    if (!societeId) {
+        alert('❌ Erreur: Aucune société active. Rechargez la page.');
+        return;
+    }
+
+    // Créer un input file caché
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.csv';
+    input.style.display = 'none';
+
+    input.onchange = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Vérifier le type de fichier
+        const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'];
+        if (!allowedTypes.includes(file.type) && !file.name.match(/\.(xlsx|csv)$/i)) {
+            alert('Format de fichier non supporté. Utilisez .xlsx ou .csv');
+            return;
         }
+
+        // Afficher un message de chargement
+        const loadingMsg = document.createElement('div');
+        loadingMsg.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
+                    <div style="margin-bottom: 15px;">📤 Import en cours...</div>
+                    <div>Traitement du fichier : <strong>${file.name}</strong></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(loadingMsg);
+
+        // Préparer les données pour l'upload
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('societe_id', societeId);
+
+        console.log('🔍 Envoi vers serveur - societe_id:', societeId);
+
+        // Envoyer le fichier au serveur
+        fetch('/regles/import', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(result => {
+            // Supprimer le message de chargement
+            document.body.removeChild(loadingMsg);
+
+            if (result.success) {
+                alert(`✅ Import réussi !\n${result.imported_count} règle(s) importée(s)`);
+                // Recharger la liste des règles
+                location.reload();
+            } else {
+                alert(`❌ Erreur d'import :\n${result.error}`);
+            }
+        })
+        .catch(error => {
+            // Supprimer le message de chargement
+            document.body.removeChild(loadingMsg);
+            alert(`❌ Erreur de communication :\n${error.message}`);
+            console.error('Erreur import:', error);
+        });
+    };
+
+    // Déclencher le sélecteur de fichier
+    document.body.appendChild(input);
+    input.click();
+    document.body.removeChild(input);
+}
 
 function exporterRegles() {
     if (reglesData.length === 0) {
@@ -1494,14 +1633,6 @@ function rafraichirRegles() {
                 supprimerSelection();
             }
         });
-
-// Variables pour le panneau gauche (récupérées depuis le backend)
-let compteSelectionne = null;
-let currentSort = { field: 'gain', direction: 'desc' };
-let comptesStatistiques = {{ comptes_statistiques|safe if comptes_statistiques else '[]' }};
-let toutesEcritures = {{ ecritures_json|safe if ecritures_json else '[]' }};
-let journaux = {{ journaux|safe if journaux else '[]' }};
-const societeId = {{ societe.id if societe else 'null' }};
 
 console.log('📊 Données chargées:', {
     nbComptes: comptesStatistiques.length,

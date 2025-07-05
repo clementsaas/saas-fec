@@ -219,6 +219,50 @@ def liste_regles():
     # Récupérer la société active depuis l'URL ou la session
     societe_id = request.args.get('societe_id')
 
+    # DEBUG: Afficher les informations de session et URL
+    print(f"🔍 DEBUG Liste règles - URL args: {dict(request.args)}")
+    print(f"🔍 DEBUG Liste règles - session organization_id: {session.get('organization_id')}")
+    print(f"🔍 DEBUG Liste règles - societe_id depuis URL: {societe_id}")
+
+    if societe_id:
+        # Société spécifiée dans l'URL
+        try:
+            societe_id = int(societe_id)
+            societe_active = Societe.query.get_or_404(societe_id)
+            if societe_active.organization_id != session['organization_id']:
+                flash('Accès non autorisé', 'error')
+                return redirect(url_for('dashboard'))
+        except (ValueError, TypeError):
+            flash('ID de société invalide', 'error')
+            return redirect(url_for('dashboard'))
+    else:
+        # Pas de société spécifiée - prendre la première société de l'organisation
+        print("🔍 DEBUG Liste règles - Aucune société spécifiée, recherche de la première...")
+        societe_active = Societe.query.filter_by(organization_id=session['organization_id']).first()
+        if not societe_active:
+            flash('Aucune société trouvée', 'error')
+            return redirect(url_for('dashboard'))
+
+        # REDIRECTION avec societe_id dans l'URL
+        print(f"🔍 DEBUG Liste règles - Redirection vers societe_id: {societe_active.id}")
+        return redirect(url_for('regles.liste_regles', societe_id=societe_active.id))
+    print(f"🔍 DEBUG Import - societe_id reçu: {societe_id}")
+    print(f"🔍 DEBUG Import - session organization_id: {session.get('organization_id')}")
+
+    if not societe_id:
+        print("❌ DEBUG Import - societe_id manquant dans le formulaire")
+        return jsonify({'success': False, 'error': 'ID de société manquant'}), 400
+
+    # Vérifier les permissions avec debug
+    societe = Societe.query.get_or_404(societe_id)
+    print(f"🔍 DEBUG Import - Société trouvée: {societe.nom} (org_id: {societe.organization_id})")
+
+    if societe.organization_id != session['organization_id']:
+        print(f"❌ DEBUG Import - Mismatch organisation: {societe.organization_id} != {session['organization_id']}")
+        return jsonify({'success': False, 'error': 'Accès non autorisé'}), 403
+
+    print(f"✅ DEBUG Import - Permissions OK, import vers société {societe.nom}")
+
     if societe_id:
         # Société spécifiée dans l'URL
         try:
@@ -570,3 +614,295 @@ def calculer_automatisation_globale(ecritures, regles_existantes):
                 ecritures_couvertes.add(match.id)
 
     return round((len(ecritures_couvertes) / len(ecritures) * 100), 1)
+
+
+@regles_bp.route('/regles/import', methods=['POST'])
+def import_regles():
+    """Endpoint pour importer des règles depuis un fichier Excel/CSV"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Non connecté'}), 401
+
+    try:
+        # Vérifier qu'un fichier a été uploadé
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'Aucun fichier fourni'}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'Aucun fichier sélectionné'}), 400
+
+        # Récupérer la société
+        # DEBUG complet des données reçues
+        print("🔍 DEBUG Import - Toutes les données reçues:")
+        print(f"   request.form: {dict(request.form)}")
+        print(f"   request.files: {dict(request.files)}")
+        print(f"   Content-Type: {request.content_type}")
+        print(f"   request.args: {dict(request.args)}")
+
+        # Récupérer la société avec fallback multiple
+        societe_id = request.form.get('societe_id')
+        print(f"🔍 DEBUG Import - societe_id depuis form: '{societe_id}' (type: {type(societe_id)})")
+
+        # Si pas dans form, essayer dans les args de l'URL
+        if not societe_id:
+            societe_id = request.args.get('societe_id')
+            print(f"🔍 DEBUG Import - societe_id depuis args: '{societe_id}'")
+
+        # Si toujours pas, essayer depuis la session (récupérer la première société de l'org)
+        if not societe_id:
+            print("🔍 DEBUG Import - Tentative récupération depuis session...")
+            from app.models.societe import Societe
+            premiere_societe = Societe.query.filter_by(organization_id=session['organization_id']).first()
+            if premiere_societe:
+                societe_id = str(premiere_societe.id)
+                print(f"🔍 DEBUG Import - societe_id depuis session: '{societe_id}'")
+
+        print(f"🔍 DEBUG Import - societe_id final: '{societe_id}' (type: {type(societe_id)})")
+
+        if not societe_id or societe_id == 'null' or societe_id.strip() == '':
+            print("❌ DEBUG Import - societe_id toujours invalide après tous les fallbacks")
+            return jsonify({'success': False, 'error': 'ID de société manquant - Aucun fallback disponible'}), 400
+
+        try:
+            societe_id = int(societe_id)
+            print(f"✅ DEBUG Import - societe_id converti en int: {societe_id}")
+        except (ValueError, TypeError):
+            print(f"❌ DEBUG Import - Impossible de convertir societe_id en int: '{societe_id}'")
+            return jsonify({'success': False, 'error': 'Format ID société invalide'}), 400
+
+        if not societe_id or societe_id == 'null' or societe_id.strip() == '':
+            print("❌ DEBUG Import - societe_id invalide ou vide")
+            # Essayer de récupérer depuis l'URL comme fallback
+            societe_id_url = request.args.get('societe_id')
+            print(f"🔍 DEBUG Import - Tentative depuis URL: {societe_id_url}")
+
+            if societe_id_url:
+                societe_id = societe_id_url
+                print(f"✅ DEBUG Import - societe_id récupéré depuis URL: {societe_id}")
+            else:
+                return jsonify({'success': False, 'error': 'ID de société manquant dans form et URL'}), 400
+
+        try:
+            societe_id = int(societe_id)
+            print(f"✅ DEBUG Import - societe_id converti en int: {societe_id}")
+        except (ValueError, TypeError):
+            print(f"❌ DEBUG Import - Impossible de convertir societe_id en int: '{societe_id}'")
+            return jsonify({'success': False, 'error': 'Format ID société invalide'}), 400
+        if not societe_id:
+            return jsonify({'success': False, 'error': 'ID de société manquant'}), 400
+
+        # Vérifier les permissions
+        societe = Societe.query.get_or_404(societe_id)
+        if societe.organization_id != session['organization_id']:
+            return jsonify({'success': False, 'error': 'Accès non autorisé'}), 403
+
+        # Traitement selon le type de fichier
+        import pandas as pd
+        from io import BytesIO
+        import re
+
+        filename = file.filename.lower()
+
+        try:
+            print(f"🔍 DEBUG Import - Lecture du fichier: {filename}")
+
+            if filename.endswith('.xlsx'):
+                # Lire le fichier Excel
+                file_content = file.read()
+                print(f"🔍 DEBUG Import - Taille fichier Excel: {len(file_content)} bytes")
+                df = pd.read_excel(BytesIO(file_content), sheet_name=0)
+            elif filename.endswith('.csv'):
+                # Lire le fichier CSV
+                file_content = file.read()
+                print(f"🔍 DEBUG Import - Taille fichier CSV: {len(file_content)} bytes")
+                df = pd.read_csv(BytesIO(file_content))
+            else:
+                return jsonify({'success': False, 'error': 'Format de fichier non supporté'}), 400
+
+            print(f"🔍 DEBUG Import - DataFrame créé: {len(df)} lignes, {len(df.columns)} colonnes")
+            print(f"🔍 DEBUG Import - Colonnes trouvées: {list(df.columns)}")
+
+            # Afficher les 3 premières lignes pour debug
+            print(f"🔍 DEBUG Import - Premières lignes:")
+            for i in range(min(3, len(df))):
+                print(f"   Ligne {i + 1}: {dict(df.iloc[i])}")
+
+            # Vérifier les colonnes minimales requises
+            required_columns = ['Nom', 'Mots-clés']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+
+            if missing_columns:
+                return jsonify({
+                    'success': False,
+                    'error': f'Colonnes manquantes: {", ".join(missing_columns)}'
+                }), 400
+
+            # Fonction pour parser les regex Pennylane
+            def parse_pennylane_regex(regex_str):
+                """Parse une regex Pennylane et extrait les mots-clés"""
+                if not regex_str or pd.isna(regex_str):
+                    return []
+
+                regex_str = str(regex_str).strip()
+                if not regex_str:
+                    return []
+
+                # Pattern pour extraire les mots-clés des regex Pennylane
+                # (?=.*(TEXTE)) ou ^(?=(TEXTE)) ou (?=.*^(TEXTE)$) etc.
+                patterns = [
+                    r'\(\?\=\.\*\(([^)]+)\)\)',  # (?=.*(TEXTE))
+                    r'\^\(\?\=\(([^)]+)\)\)',  # ^(?=(TEXTE))
+                    r'\(\?\=\.\*\^\(([^)]+)\)\$\)'  # (?=.*^(TEXTE)$)
+                ]
+
+                mots_cles = []
+                for pattern in patterns:
+                    matches = re.findall(pattern, regex_str)
+                    mots_cles.extend(matches)
+
+                # Nettoyer les mots-clés
+                mots_cles = [mot.strip().upper() for mot in mots_cles if mot.strip()]
+                return mots_cles
+
+            # Fonction pour parser les montants Pennylane
+            def parse_pennylane_montant(montant_val):
+                """Parse un critère de montant Pennylane"""
+                if pd.isna(montant_val) or not montant_val:
+                    return None
+
+                # Si c'est un nombre, c'est une égalité
+                if isinstance(montant_val, (int, float)):
+                    return {
+                        'operateur': '=',
+                        'valeur': float(montant_val)
+                    }
+
+                montant_str = str(montant_val).strip()
+                if not montant_str:
+                    return None
+
+                # Patterns pour différents opérateurs
+                patterns = [
+                    (r'^≥\s*(\d+\.?\d*)$', '>='),
+                    (r'^≤\s*(\d+\.?\d*)$', '<='),
+                    (r'^>\s*(\d+\.?\d*)$', '>'),
+                    (r'^<\s*(\d+\.?\d*)$', '<'),
+                    (r'^≠\s*(\d+\.?\d*)$', '!='),
+                    (r'^=\s*(\d+\.?\d*)$', '='),
+                    (r'^De\s*(\d+\.?\d*)\s*à\s*(\d+\.?\d*)$', 'between'),
+                ]
+
+                for pattern, operateur in patterns:
+                    match = re.match(pattern, montant_str)
+                    if match:
+                        if operateur == 'between':
+                            return {
+                                'operateur': 'between',
+                                'valeur': float(match.group(1)),
+                                'valeur_max': float(match.group(2))
+                            }
+                        else:
+                            return {
+                                'operateur': operateur,
+                                'valeur': float(match.group(1))
+                            }
+
+                return None
+
+            # Traiter chaque ligne
+            imported_count = 0
+            errors = []
+
+            for index, row in df.iterrows():
+                try:
+                    # Vérifier les champs obligatoires
+                    nom = str(row['Nom']).strip() if pd.notna(row['Nom']) else ''
+                    mots_cles_str = str(row['Mots-clés']).strip() if pd.notna(row['Mots-clés']) else ''
+
+                    if not nom or not mots_cles_str:
+                        errors.append(f"Ligne {index + 2}: Nom ou Mots-clés manquant")
+                        continue
+
+                    # Vérifier si une règle avec ce nom existe déjà
+                    existing_regle = RegleAffectation.query.filter_by(
+                        nom=nom,
+                        societe_id=societe_id
+                    ).first()
+
+                    if existing_regle:
+                        errors.append(f"Ligne {index + 2}: Règle '{nom}' existe déjà")
+                        continue
+
+                    # Parser les mots-clés depuis la regex Pennylane
+                    mots_cles = parse_pennylane_regex(mots_cles_str)
+
+                    if not mots_cles:
+                        errors.append(f"Ligne {index + 2}: Format de mots-clés non reconnu")
+                        continue
+
+                    # Récupérer les autres champs optionnels
+                    compte_destination = str(row.get('Num. de compte', '')).strip() if pd.notna(
+                        row.get('Num. de compte')) else None
+                    libelle_destination = str(row.get('Libellé du compte', '')).strip() if pd.notna(
+                        row.get('Libellé du compte')) else None
+
+                    # Parser les critères de montant si présents
+                    criteres_montant = None
+                    if 'Montant' in df.columns and pd.notna(row['Montant']):
+                        criteres_montant = parse_pennylane_montant(row['Montant'])
+
+                    # Créer la règle
+                    regle = RegleAffectation(
+                        nom=nom,
+                        mots_cles=mots_cles,
+                        criteres_montant=criteres_montant,
+                        compte_destination=compte_destination,
+                        libelle_destination=libelle_destination,
+                        nb_transactions_couvertes=0,  # Sera calculé plus tard
+                        pourcentage_couverture_total=0.0,
+                        societe_id=societe_id,
+                        is_active=True
+                    )
+
+                    db.session.add(regle)
+                    imported_count += 1
+                    print(f"✅ DEBUG Import - Règle ajoutée: {nom} (mots-clés: {mots_cles})")
+
+                except Exception as e:
+                    error_msg = f"Ligne {index + 2}: Erreur de traitement - {str(e)}"
+                    errors.append(error_msg)
+                    print(f"❌ DEBUG Import - {error_msg}")
+                    continue
+
+                print(f"🔍 DEBUG Import - Fin du traitement: {imported_count} règles à sauvegarder")
+
+                # Sauvegarder en base
+                if imported_count > 0:
+                    print("💾 DEBUG Import - Sauvegarde en base de données...")
+                    db.session.commit()
+                    print("✅ DEBUG Import - Sauvegarde réussie")
+                else:
+                    print("⚠️ DEBUG Import - Aucune règle à sauvegarder")
+
+                print(f"🎯 DEBUG Import - Résultat final: {imported_count} importées, {len(errors)} erreurs")
+
+            # Préparer la réponse
+            response_data = {
+                'success': True,
+                'imported_count': imported_count,
+                'total_rows': len(df),
+                'errors': errors[:10]  # Limiter à 10 erreurs pour l'affichage
+            }
+
+            if errors:
+                response_data['warning'] = f"{len(errors)} ligne(s) ignorée(s)"
+
+            return jsonify(response_data)
+
+        except Exception as e:
+            return jsonify({'success': False, 'error': f'Erreur de lecture du fichier: {str(e)}'}), 400
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Erreur import règles: {e}")
+        return jsonify({'success': False, 'error': 'Erreur interne du serveur'}), 500
