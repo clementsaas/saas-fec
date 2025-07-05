@@ -1057,6 +1057,10 @@ body {
                                     <span class="checkbox-mark"></span>
                                 </label>
                             </th>
+<th class="sortable" onclick="trierRegles('nom')">
+                                Nom
+                                <span class="sort-icon">↕</span>
+                            </th>
                             <th class="sortable" onclick="trierRegles('compte')">
                                 Contrepartie
                                 <span class="sort-icon">↕</span>
@@ -1137,7 +1141,11 @@ function afficherRegles() {
     const reglesTries = [...reglesData].sort((a, b) => {
         let aVal, bVal;
 
-        switch (sortConfig.field) {
+switch (sortConfig.field) {
+            case 'nom':
+                aVal = a.nom || '';
+                bVal = b.nom || '';
+                break;
             case 'compte':
                 aVal = a.compte;
                 bVal = b.compte;
@@ -1177,6 +1185,9 @@ function afficherRegles() {
                         <input type="checkbox" class="rule-checkbox" data-compte="${regle.compte}" onchange="toggleRuleSelection('${regle.compte}')">
                         <span class="checkbox-mark"></span>
                     </label>
+                </td>
+<td>
+                    <div style="font-weight: 500; color: #1d1d1f; font-size: 14px;">${regle.nom || 'Règle sans nom'}</div>
                 </td>
                 <td>
                     <div class="compte-number">${formatCompteNumber(regle.compte)}</div>
