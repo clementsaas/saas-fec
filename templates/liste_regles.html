@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Règles d'affectation - SaaS FEC</title>
 
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Inclusion des styles communs -->
     {% include 'includes/common_styles.html' %}
 
@@ -118,16 +119,25 @@ body {
             align-items: center;
         }
 
-        /* Barre d'actions bulk */
-        .bulk-actions {
-            background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
-            color: white;
-            padding: 15px 30px;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            animation: slideDown 0.3s ease;
-        }
+/* Barre d'actions bulk */
+.bulk-actions {
+    background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+    color: white;
+    padding: 15px 30px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideUp 0.3s ease;
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
 
         @keyframes slideDown {
             from { transform: translateY(-100%); }
@@ -173,20 +183,21 @@ body {
             font-size: 14px;
         }
 
-        .regles-table th {
-            background: #f9f9fb;
-            padding: 15px 20px;
-            text-align: left;
-            font-weight: 600;
-            color: #86868b;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #e5e5ea;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
+.regles-table th {
+    background: #f9f9fb !important;
+    padding: 15px 5px;
+    text-align: left;
+    font-weight: 600;
+    color: #86868b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e5e5ea;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
         .regles-table th:first-child {
             width: 50px;
@@ -213,11 +224,11 @@ body {
             opacity: 1;
         }
 
-        .regles-table td {
-            padding: 15px 20px;
-            border-bottom: 1px solid #f5f5f7;
-            vertical-align: middle;
-        }
+.regles-table td {
+    padding: 15px 5px;
+    border-bottom: 1px solid #f5f5f7;
+    vertical-align: middle;
+}
 
         .regles-table tbody tr {
             transition: all 0.2s ease;
@@ -231,31 +242,31 @@ body {
             background: #e3f2fd;
         }
 
-        /* Checkbox custom */
-        .checkbox-custom {
-            position: relative;
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-        }
+/* Checkbox custom */
+.checkbox-custom {
+    position: relative;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+}
 
-        .checkbox-custom input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+.checkbox-custom input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
 
-        .checkbox-mark {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 20px;
-            width: 20px;
-            background-color: white;
-            border: 2px solid #d2d2d7;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
+.checkbox-mark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    background-color: white;
+    border: 1.5px solid #d2d2d7;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
 
         .checkbox-custom:hover .checkbox-mark {
             border-color: #007aff;
@@ -266,30 +277,50 @@ body {
             border-color: #007aff;
         }
 
-        .checkbox-mark:after {
-            content: "";
-            position: absolute;
-            display: none;
-            left: 6px;
-            top: 2px;
-            width: 6px;
-            height: 10px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
+.checkbox-mark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+}
 
         .checkbox-custom input:checked ~ .checkbox-mark:after {
             display: block;
         }
 
-        /* Compte avec formatage */
-        .compte-number {
-            font-family: 'SF Mono', Monaco, monospace;
-            font-weight: 600;
-            color: #1d1d1f;
-            font-size: 14px;
-        }
+/* Compte avec formatage */
+.compte-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.compte-number {
+    font-size: 11px;
+    color: #86868b;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compte-libelle {
+    font-weight: 500;
+    font-size: 11px;
+    color: #1d1d1f;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+}
 
         /* Pourcentages avec couleurs */
         .pourcentage-impact {
@@ -336,51 +367,47 @@ body {
             color: #666;
         }
 
-        /* Toggle Switch */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
 
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
 
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
-        }
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 20px;
+}
 
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
 
-        .toggle-switch input:checked + .toggle-slider {
-            background-color: #007aff;
-        }
-
-        .toggle-switch input:checked + .toggle-slider:before {
-            transform: translateX(20px);
-        }
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(16px);
+}
 
         /* Flèche d'expansion */
         .expand-arrow {
@@ -886,23 +913,31 @@ body {
 }
 
 .regles-table th {
-    background: #f9f9fb;
+    background: #f9f9fb !important;
     padding: 15px 20px;
     text-align: left;
     font-weight: 600;
     color: #86868b;
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border-bottom: 1px solid #e5e5ea;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .regles-table th:first-child {
-    width: 50px;
-    text-align: center;
+    width: 40px;
+    text-align: left;
+    padding-right: 5px;
+    padding-left: 20px;
+}
+
+.regles-table th:nth-child(2) {
+    padding-left: 5px;
+    width: 150px;
 }
 
 .regles-table th.sortable {
@@ -915,18 +950,58 @@ body {
     background: #f0f0f2;
 }
 
-.regles-table td {
-    padding: 15px 20px;
-    border-bottom: 1px solid #f5f5f7;
-    vertical-align: middle;
-}
-
 .regles-table tbody tr {
     transition: all 0.2s ease;
 }
 
 .regles-table tbody tr:hover {
     background: #f9f9fb;
+}
+
+.regles-table td:first-child {
+    text-align: left;
+    padding-left: 20px;
+    padding-right: 5px;
+}
+
+.regles-table td:nth-child(2) {
+    padding-left: 5px;
+}
+
+/* Ajustements spécifiques pour les colonnes */
+.regles-table th:first-child,
+.regles-table td:first-child {
+    padding-left: 20px;
+    padding-right: 5px;
+}
+
+.regles-table th:nth-child(2),
+.regles-table td:nth-child(2) {
+    padding-left: 5px;
+    padding-right: 10px;
+    width: 140px;
+}
+
+.regles-table th:nth-child(3),
+.regles-table td:nth-child(3) {
+    padding-left: 15px;
+    padding-right: 10px;
+}
+
+.regles-table th:nth-child(4),
+.regles-table th:nth-child(5),
+.regles-table th:nth-child(6),
+.regles-table th:nth-child(7),
+.regles-table th:nth-child(8),
+.regles-table td:nth-child(4),
+.regles-table td:nth-child(5),
+.regles-table td:nth-child(6),
+.regles-table td:nth-child(7),
+.regles-table td:nth-child(8) {
+    padding-left: 12px;
+    padding-right: 12px;
+    text-align: center;
+    width: 90px;
 }
 
 /* Autres styles existants... */
@@ -966,6 +1041,58 @@ body {
         margin-bottom: 20px;
     }
 }
+
+.sort-icon {
+    font-size: 12px;
+    color: #d2d2d7;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    margin-left: 4px;
+}
+
+.sortable:hover .sort-icon {
+    opacity: 1;
+}
+
+.sort-icon.active {
+    opacity: 1;
+    color: #1d1d1f;
+}
+
+.sort-icon.asc::before {
+    content: '↑';
+}
+
+.sort-icon.desc::before {
+    content: '↓';
+}
+
+.sort-icon:not(.asc):not(.desc)::before {
+    content: '↑';
+}
+
+.regles-table-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+}
+
+.regles-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    position: relative;
+}
+
+.regles-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+
+
     </style>
 </head>
 <body>
@@ -1020,83 +1147,85 @@ body {
 <!-- Header du panel -->
 <div class="regles-header">
                 <div>
-                    <h3 style="margin: 0; color: #1d1d1f; font-size: 20px; font-weight: 600;">
-                        Gestion des règles
-                    </h3>
+<h3 style="margin: 0; color: #1d1d1f; font-size: 16px; font-weight: 600;">
+    Gestion des règles
+</h3>
                 </div>
                 <div class="regles-toolbar">
-                    <button class="btn-apple" onclick="importerRegles()">
-                        📥 Importer
-                    </button>
-                    <button class="btn-apple" onclick="exporterRegles()">
-                        📤 Exporter
-                    </button>
+<button class="btn-apple" onclick="importerRegles()">
+    <span class="material-icons" style="font-size: 16px; margin-right: 6px; vertical-align: middle;">
+        file_upload
+    </span>
+    Importer
+</button>
+<button class="btn-apple" onclick="exporterRegles()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-filetype-xlsx" viewBox="0 0 16 16" style="margin-right: 6px; vertical-align: middle;">
+        <path fill-rule="evenodd" d="M14 4.5V11h-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM7.86 14.841a1.13 1.13 0 0 0 .401.823q.195.162.479.252.284.091.665.091.507 0 .858-.158.355-.158.54-.44a1.17 1.17 0 0 0 .187-.656q0-.336-.135-.56a1 1 0 0 0-.375-.357 2 2 0 0 0-.565-.21l-.621-.144a1 1 0 0 1-.405-.176.37.37 0 0 1-.143-.299q0-.234.184-.384.188-.152.513-.152.214 0 .37.068a.6.6 0 0 1 .245.181.56.56 0 0 1 .12.258h.75a1.1 1.1 0 0 0-.199-.566 1.2 1.2 0 0 0-.5-.41 1.8 1.8 0 0 0-.78-.152q-.44 0-.777.15-.336.149-.527.421-.19.273-.19.639 0 .302.123.524t.351.367q.229.143.54.213l.618.144q.31.073.462.193a.39.39 0 0 1 .153.326.5.5 0 0 1-.085.29.56.56 0 0 1-.255.193q-.168.07-.413.07-.176 0-.32-.04a.8.8 0 0 1-.249-.115.58.58 0 0 1-.255-.384zm-3.726-2.909h.893l-1.274 2.007 1.254 1.992h-.908l-.85-1.415h-.035l-.853 1.415H1.5l1.24-2.016-1.228-1.983h.931l.832 1.438h.036zm1.923 3.325h1.697v.674H5.266v-3.999h.791zm7.636-3.325h.893l-1.274 2.007 1.254 1.992h-.908l-.85-1.415h-.035l-.853 1.415h-.861l1.24-2.016-1.228-1.983h.931l.832 1.438h.036z"/>
+    </svg>
+    Exporter
+</button>
                 </div>
             </div>
 
-            <!-- Barre d'actions bulk -->
-            <div class="bulk-actions" id="bulk-actions">
-                <div class="bulk-selected-count" id="bulk-count">
-                    0 règle sélectionnée
-                </div>
-                <div class="bulk-buttons">
-                    <button class="bulk-btn" onclick="activerSelection()">Activer</button>
-                    <button class="bulk-btn" onclick="desactiverSelection()">Désactiver</button>
-                    <button class="bulk-btn" onclick="supprimerSelection()">Supprimer</button>
-                </div>
-            </div>
+<!-- Table des règles -->
+<div class="regles-table-container">
+    <table class="regles-table" id="regles-table">
+        <thead>
+            <tr>
+                <th>
+                    <label class="checkbox-custom">
+                        <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                        <span class="checkbox-mark"></span>
+                    </label>
+                </th>
+                <th class="sortable" onclick="trierRegles('compte')">
+                    Compte
+                    <span class="sort-icon" id="sort-icon-regles-compte"></span>
+                </th>
+                <th>Mots-clés</th>
+                <th>Montant</th>
+                <th>Banque</th>
+                <th class="sortable" onclick="trierRegles('impact')">
+                    % Impact
+                    <span class="sort-icon" id="sort-icon-regles-impact"></span>
+                </th>
+                <th class="sortable" onclick="trierRegles('collision')">
+                    % Collision
+                    <span class="sort-icon" id="sort-icon-regles-collision"></span>
+                </th>
+                <th class="sortable" onclick="trierRegles('active')">
+                    Active
+                    <span class="sort-icon" id="sort-icon-regles-active"></span>
+                </th>
+            </tr>
+        </thead>
+        <tbody id="regles-tbody">
+            <!-- Les règles seront injectées ici -->
+        </tbody>
+    </table>
+</div>
 
-            <!-- Table des règles -->
-            <div class="regles-table-container">
-                <table class="regles-table" id="regles-table">
-<thead>
-                        <tr>
-                            <th>
-                                <label class="checkbox-custom">
-                                    <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
-                                    <span class="checkbox-mark"></span>
-                                </label>
-                            </th>
-<th class="sortable" onclick="trierRegles('nom')">
-                                Nom
-                                <span class="sort-icon">↕</span>
-                            </th>
-                            <th class="sortable" onclick="trierRegles('compte')">
-                                Contrepartie
-                                <span class="sort-icon">↕</span>
-                            </th>
-                            <th>Mots-clés</th>
-                            <th class="sortable" onclick="trierRegles('impact')">
-                                % Impact
-                                <span class="sort-icon">↕</span>
-                            </th>
-                            <th class="sortable" onclick="trierRegles('collision')">
-                                % Collision
-                                <span class="sort-icon">↕</span>
-                            </th>
-                            <th>Banque</th>
-                            <th>Montant</th>
-<th class="sortable" onclick="trierRegles('active')">
-                                Active
-                                <span class="sort-icon">↕</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody id="regles-tbody">
-                        <!-- Les règles seront injectées ici -->
-                    </tbody>
-                </table>
-            </div>
+<!-- État vide -->
+<div class="empty-state" id="empty-state" style="display: none;">
+    <div class="empty-state-icon">⚙️</div>
+    <h3>Aucune règle d'affectation</h3>
+    <p>Créez votre première règle pour automatiser l'affectation<br>de vos transactions bancaires.</p>
+    <button class="btn-apple success" onclick="nouvelleRegle()">
+        + Créer ma première règle
+    </button>
+</div>
 
-            <!-- État vide -->
-            <div class="empty-state" id="empty-state" style="display: none;">
-                <div class="empty-state-icon">⚙️</div>
-                <h3>Aucune règle d'affectation</h3>
-                <p>Créez votre première règle pour automatiser l'affectation<br>de vos transactions bancaires.</p>
-                <button class="btn-apple success" onclick="nouvelleRegle()">
-                    + Créer ma première règle
-                </button>
-            </div>
+<!-- Barre d'actions bulk -->
+<div class="bulk-actions" id="bulk-actions">
+    <div class="bulk-selected-count" id="bulk-count">
+        0 règle sélectionnée
+    </div>
+    <div class="bulk-buttons">
+        <button class="bulk-btn" onclick="activerSelection()">Activer</button>
+        <button class="bulk-btn" onclick="desactiverSelection()">Désactiver</button>
+        <button class="bulk-btn" onclick="supprimerSelection()">Supprimer</button>
+    </div>
+</div>
         </div>
     </div>
 
@@ -1242,25 +1371,30 @@ switch (sortConfig.field) {
         // Assurer que mots_cles est un tableau
         const motsCles = Array.isArray(regle.mots_cles) ? regle.mots_cles : [];
 
-        html += `
+html += `
             <tr>
                 <td>
                     <label class="checkbox-custom">
-                        <input type="checkbox" class="rule-checkbox" data-compte="${regle.compte}" onchange="toggleRuleSelection('${regle.compte}')">
+                        <input type="checkbox" class="rule-checkbox" data-regle-id="${regle.id}" onchange="toggleRuleSelection(${regle.id})">
                         <span class="checkbox-mark"></span>
                     </label>
                 </td>
 <td>
-                    <div style="font-weight: 500; color: #1d1d1f; font-size: 14px;">${regle.nom || 'Règle sans nom'}</div>
+                    <div class="compte-info">
+                        <div class="compte-number">${formatCompteNumber(regle.compte)}</div>
+                        <div class="compte-libelle">${regle.libelle_compte || ''}</div>
+                    </div>
                 </td>
-                <td>
-                    <div class="compte-number">${formatCompteNumber(regle.compte)}</div>
-                    <div style="font-size: 12px; color: #86868b; margin-top: 2px;">${regle.libelle_compte || ''}</div>
-                </td>
-                <td>
+<td>
                     <div class="mots-cles-container">
                         ${motsCles.map(mot => `<span class="mot-cle-badge">${mot}</span>`).join('')}
                     </div>
+                </td>
+<td>
+                    <span class="critere-montant">${regle.criteres_montant ? formatCritereMontant(regle.criteres_montant) : ''}</span>
+                </td>
+                <td>
+                    <span class="compte-bancaire">${regle.banque || 'Toutes'}</span>
                 </td>
                 <td>
                     <div class="tooltip-custom">
@@ -1275,18 +1409,11 @@ switch (sortConfig.field) {
                     </div>
                 </td>
                 <td>
-                    <span class="compte-bancaire">${regle.banque || 'Toutes'}</span>
-                </td>
-                <td>
-                    <span class="critere-montant">${formatCritereMontant(regle.critere_montant)}</span>
-                </td>
-                <td>
                     <label class="toggle-switch">
                         <input type="checkbox" ${regle.active ? 'checked' : ''} onchange="toggleRegleActive(${regle.id})">
                         <span class="toggle-slider"></span>
                     </label>
                 </td>
-                <td>
             </tr>
         `;
     });
@@ -1317,26 +1444,41 @@ function mettreAJourStats() {
             // Fonction vide - plus de stats à afficher
         }
 
-        function trierRegles(field) {
-            if (sortConfig.field === field) {
-                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortConfig.field = field;
-                sortConfig.direction = 'asc';
-            }
+function trierRegles(field) {
+    if (sortConfig.field === field) {
+        sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortConfig.field = field;
+        sortConfig.direction = 'asc';
+    }
 
-            // Mettre à jour les icônes de tri
-            document.querySelectorAll('.sort-icon').forEach(icon => {
-                icon.textContent = '↕';
-            });
+    // Mettre à jour les icônes de tri (une seule active à la fois)
+    updateReglesSortIcons(field, sortConfig.direction);
 
-            const activeIcon = event.target.querySelector('.sort-icon');
-            if (activeIcon) {
-                activeIcon.textContent = sortConfig.direction === 'asc' ? '↑' : '↓';
-            }
+    afficherRegles();
+}
 
-            afficherRegles();
-        }
+function updateReglesSortIcons(activeField, direction) {
+    const allIcons = document.querySelectorAll('.sort-icon');
+    allIcons.forEach(icon => {
+        icon.classList.remove('asc', 'desc', 'active');
+    });
+
+    const activeIcon = document.getElementById(`sort-icon-regles-${activeField}`);
+    if (activeIcon) {
+        activeIcon.classList.add('active', direction);
+    }
+}
+
+// Initialiser le tri par défaut au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    chargerRegles();
+    chargerComptes();
+
+    // Tri par défaut : compte croissant
+    sortConfig = { field: 'compte', direction: 'asc' };
+    updateReglesSortIcons('compte', 'asc');
+});
 
         function toggleCompteDetails(compte) {
             const arrow = event.target;
@@ -1351,75 +1493,90 @@ function mettreAJourStats() {
             }
         }
 
-        function toggleSelectAll() {
-            const selectAll = document.getElementById('select-all');
-            const checkboxes = document.querySelectorAll('.rule-checkbox');
-            
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = selectAll.checked;
-                const compte = checkbox.dataset.compte;
-                if (selectAll.checked) {
-                    selectedRules.add(compte);
-                    checkbox.closest('tr').classList.add('selected');
-                } else {
-                    selectedRules.delete(compte);
-                    checkbox.closest('tr').classList.remove('selected');
-                }
-            });
+function toggleSelectAll() {
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.rule-checkbox');
 
-            updateBulkActions();
+    selectedRules.clear(); // Vider la sélection d'abord
+
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+        const regleId = parseInt(checkbox.dataset.regleId);
+        if (selectAll.checked) {
+            selectedRules.add(regleId);
+            checkbox.closest('tr').classList.add('selected');
+        } else {
+            selectedRules.delete(regleId);
+            checkbox.closest('tr').classList.remove('selected');
         }
+    });
 
-        function toggleRuleSelection(compte) {
-            const checkbox = document.querySelector(`[data-compte="${compte}"]`);
-            const row = checkbox.closest('tr');
-            
-            if (checkbox.checked) {
-                selectedRules.add(compte);
-                row.classList.add('selected');
-            } else {
-                selectedRules.delete(compte);
-                row.classList.remove('selected');
-            }
+    updateBulkActions();
+}
 
-            // Gérer la sélection avec Shift
-            if (event.shiftKey && selectedRules.size > 0) {
-                handleShiftSelection(compte);
-            }
+let lastSelectedIndex = -1;
 
-            updateBulkActions();
+function toggleRuleSelection(regleId) {
+    const checkbox = event.target;
+    const row = checkbox.closest('tr');
+    const allRows = Array.from(document.querySelectorAll('#regles-tbody tr'));
+    const currentIndex = allRows.indexOf(row);
+
+    if (event.shiftKey && lastSelectedIndex !== -1) {
+        // Sélection de plage avec Shift
+        const startIndex = Math.min(lastSelectedIndex, currentIndex);
+        const endIndex = Math.max(lastSelectedIndex, currentIndex);
+
+        for (let i = startIndex; i <= endIndex; i++) {
+            const targetRow = allRows[i];
+            const targetCheckbox = targetRow.querySelector('.rule-checkbox');
+            const targetRegleId = parseInt(targetCheckbox.dataset.regleId);
+
+            targetCheckbox.checked = true;
+            selectedRules.add(targetRegleId);
+            targetRow.classList.add('selected');
         }
-
-        function handleShiftSelection(compte) {
-            // TODO: Implémenter la sélection avec Shift
-            console.log('Sélection Shift détectée pour:', compte);
+    } else {
+        // Sélection normale
+        if (checkbox.checked) {
+            selectedRules.add(regleId);
+            row.classList.add('selected');
+            lastSelectedIndex = currentIndex;
+        } else {
+            selectedRules.delete(regleId);
+            row.classList.remove('selected');
+            lastSelectedIndex = -1;
         }
+    }
 
-        function updateBulkActions() {
-            const bulkActions = document.getElementById('bulk-actions');
-            const bulkCount = document.getElementById('bulk-count');
-            const selectAll = document.getElementById('select-all');
+    updateBulkActions();
+}
 
-            if (selectedRules.size > 0) {
-                bulkActions.classList.add('show');
-                bulkCount.textContent = `${selectedRules.size} règle${selectedRules.size > 1 ? 's' : ''} sélectionnée${selectedRules.size > 1 ? 's' : ''}`;
-            } else {
-                bulkActions.classList.remove('show');
-            }
+function updateBulkActions() {
+    const bulkActions = document.getElementById('bulk-actions');
+    const bulkCount = document.getElementById('bulk-count');
+    const selectAll = document.getElementById('select-all');
 
-            // Mettre à jour l'état du checkbox "tout sélectionner"
-            const totalComptes = new Set(reglesData.map(r => r.compte)).size;
-            if (selectedRules.size === totalComptes) {
-                selectAll.checked = true;
-                selectAll.indeterminate = false;
-            } else if (selectedRules.size > 0) {
-                selectAll.checked = false;
-                selectAll.indeterminate = true;
-            } else {
-                selectAll.checked = false;
-                selectAll.indeterminate = false;
-            }
-        }
+    if (selectedRules.size > 0) {
+        bulkActions.classList.add('show');
+        bulkCount.textContent = `${selectedRules.size} règle${selectedRules.size > 1 ? 's' : ''} sélectionnée${selectedRules.size > 1 ? 's' : ''}`;
+    } else {
+        bulkActions.classList.remove('show');
+    }
+
+    // Mettre à jour l'état du checkbox "tout sélectionner"
+    const totalRegles = reglesData.length;
+    if (selectedRules.size === totalRegles && totalRegles > 0) {
+        selectAll.checked = true;
+        selectAll.indeterminate = false;
+    } else if (selectedRules.size > 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = true;
+    } else {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+    }
+}
 
         function toggleRegleActive(regleId) {
             const regle = reglesData.find(r => r.id === regleId);
@@ -1432,42 +1589,42 @@ function mettreAJourStats() {
         }
 
         // Actions bulk
-        function activerSelection() {
-            selectedRules.forEach(compte => {
-                const reglesCompte = reglesData.filter(r => r.compte === compte);
-                reglesCompte.forEach(regle => {
-                    regle.active = true;
-                });
-            });
-            
-            afficherRegles();
-            mettreAJourStats();
-            console.log('Règles activées:', Array.from(selectedRules));
+function activerSelection() {
+    selectedRules.forEach(regleId => {
+        const regle = reglesData.find(r => r.id === regleId);
+        if (regle) {
+            regle.active = true;
         }
+    });
 
-        function desactiverSelection() {
-            selectedRules.forEach(compte => {
-                const reglesCompte = reglesData.filter(r => r.compte === compte);
-                reglesCompte.forEach(regle => {
-                    regle.active = false;
-                });
-            });
-            
-            afficherRegles();
-            mettreAJourStats();
-            console.log('Règles désactivées:', Array.from(selectedRules));
-        }
+    afficherRegles();
+    mettreAJourStats();
+    console.log('Règles activées:', Array.from(selectedRules));
+}
 
-        function supprimerSelection() {
-            if (confirm(`Êtes-vous sûr de vouloir supprimer ${selectedRules.size} règle${selectedRules.size > 1 ? 's' : ''} ?`)) {
-                reglesData = reglesData.filter(regle => !selectedRules.has(regle.compte));
-                selectedRules.clear();
-                afficherRegles();
-                mettreAJourStats();
-                updateBulkActions();
-                console.log('Règles supprimées');
-            }
+function desactiverSelection() {
+    selectedRules.forEach(regleId => {
+        const regle = reglesData.find(r => r.id === regleId);
+        if (regle) {
+            regle.active = false;
         }
+    });
+
+    afficherRegles();
+    mettreAJourStats();
+    console.log('Règles désactivées:', Array.from(selectedRules));
+}
+
+function supprimerSelection() {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer ${selectedRules.size} règle${selectedRules.size > 1 ? 's' : ''} ?`)) {
+        reglesData = reglesData.filter(regle => !selectedRules.has(regle.id));
+        selectedRules.clear();
+        afficherRegles();
+        mettreAJourStats();
+        updateBulkActions();
+        console.log('Règles supprimées');
+    }
+}
 
         // Actions header
         function retourDashboard() {
@@ -1554,50 +1711,163 @@ function importerRegles() {
 }
 
 function exporterRegles() {
+    console.log('🔍 Début export, nombre de règles:', reglesData.length);
+
     if (reglesData.length === 0) {
         alert('Aucune règle à exporter');
         return;
     }
 
-    // Préparer les données CSV
-    const csvData = [];
+    try {
+        // Vérifier si XLSX est déjà chargé
+        if (typeof XLSX !== 'undefined') {
+            console.log('📦 XLSX déjà disponible, export direct');
+            exportToXlsx();
+        } else {
+            console.log('📦 Chargement de XLSX...');
+            // Importer la librairie XLSX
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+            script.onload = function() {
+                console.log('✅ XLSX chargé avec succès');
+                exportToXlsx();
+            };
+            script.onerror = function() {
+                console.error('❌ Erreur chargement XLSX');
+                alert('Erreur de chargement de la librairie XLSX');
+            };
+            document.head.appendChild(script);
+        }
+    } catch (error) {
+        console.error('❌ Erreur export:', error);
+        alert('Erreur lors de l\'export: ' + error.message);
+    }
 
-    // En-têtes
-    csvData.push(['Num. de compte', 'Libellé du compte', 'Mots-clés', 'Banque', 'Montant']);
+    function exportToXlsx() {
+        try {
+            console.log('📊 Préparation des données...');
 
-    // Données des règles
-    reglesData.forEach(regle => {
-// Reconstituer les expressions de mots-clés (joindre avec des espaces au lieu de virgules)
-const motsCles = Array.isArray(regle.mots_cles) ? regle.mots_cles.join(' ') : regle.mots_cles;
-        const banque = regle.banque || 'Toutes';
-        const montant = formatCritereMontant(regle.critere_montant);
+            // Préparer les données au format Pennylane
+            const worksheetData = [];
 
-        csvData.push([
-            regle.compte,
-            regle.libelle_compte,
-            motsCles,
-            banque,
-            montant
-        ]);
-    });
+            // En-têtes format Pennylane
+            worksheetData.push([
+                'Nom',
+                'Mots-clés',
+                'Montant',
+                'Num. de compte',
+                'Libellé du compte',
+                'Axe analytique',
+                'Catégorie/Tag',
+                'Taux de TVA',
+                'Active',
+                'Validation automatique',
+                'Metadonnées du mots-clés'
+            ]);
 
-    // Convertir en CSV
-    const csvContent = csvData.map(row =>
-        row.map(field => `"${field.toString().replace(/"/g, '""')}"`).join(';')
-    ).join('\n');
+            // Données des règles
+            reglesData.forEach((regle, index) => {
+                console.log(`🔍 Traitement règle ${index + 1}:`, regle);
 
-    // Créer et télécharger le fichier
-    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `regles_affectation_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+                // Convertir les mots-clés au format regex Pennylane avec opérateur "contient" et "ET"
+                let motsClesPennylane = '';
+                let metadonnees = [];
 
-    console.log('Export CSV effectué:', csvData.length - 1, 'règles exportées');
+                if (regle.mots_cles && regle.mots_cles.length > 0) {
+                    const motsClesArray = Array.isArray(regle.mots_cles) ? regle.mots_cles : [regle.mots_cles];
+                    const patterns = motsClesArray.map(mot => `(?=.*(${mot.toUpperCase()}))`);
+                    motsClesPennylane = patterns.join(''); // ET logique par concaténation
+
+                    // Créer les métadonnées JSON
+                    metadonnees = motsClesArray.map((mot, index) => ({
+                        pattern: mot.toUpperCase(),
+                        operator: "contain",
+                        condition: index > 0 ? "and" : undefined
+                    }));
+
+                    // Garder tous les éléments pour un seul mot-clé, ou filtrer le premier pour plusieurs
+                    if (metadonnees.length === 1) {
+                        delete metadonnees[0].condition;
+                    }
+                }
+
+                // Formater les critères de montant pour Pennylane (vide si pas de critère)
+                let montantPennylane = '';
+                if (regle.criteres_montant && regle.criteres_montant.operateur && regle.criteres_montant.valeur !== undefined) {
+                    const operateur = regle.criteres_montant.operateur;
+                    const valeur = parseFloat(regle.criteres_montant.valeur);
+
+                    switch (operateur) {
+                        case '=':
+                            montantPennylane = valeur; // Nombre pur pour égalité
+                            break;
+                        case '>':
+                            montantPennylane = `> ${valeur}`;
+                            break;
+                        case '<':
+                            montantPennylane = `< ${valeur}`;
+                            break;
+                        case '>=':
+                            montantPennylane = `≥ ${valeur}`;
+                            break;
+                        case '<=':
+                            montantPennylane = `≤ ${valeur}`;
+                            break;
+                        case '!=':
+                            montantPennylane = `≠ ${valeur}`;
+                            break;
+                        default:
+                            montantPennylane = '';
+                    }
+                }
+
+                const nomRegle = regle.nom || `Règle ${regle.compte_destination || regle.compte}`;
+
+                // Encoder les métadonnées en Base64
+                let metadonneesBase64 = '';
+                if (metadonnees.length > 0) {
+                    try {
+                        const jsonString = JSON.stringify(metadonnees);
+                        metadonneesBase64 = btoa(unescape(encodeURIComponent(jsonString)));
+                    } catch (e) {
+                        console.warn('⚠️ Erreur encodage métadonnées pour règle:', regle.nom, e);
+                    }
+                }
+
+                worksheetData.push([
+                    nomRegle,                                                    // Nom
+                    motsClesPennylane,                                          // Mots-clés (regex)
+                    montantPennylane,                                           // Montant (vide si pas de critère)
+                    regle.compte_destination || regle.compte || '',             // Num. de compte
+                    regle.libelle_destination || regle.libelle_compte || '',    // Libellé du compte
+                    null,                                                       // Axe analytique
+                    null,                                                       // Catégorie/Tag
+                    'N/A',                                                      // Taux de TVA
+                    'true',                                                     // Active
+                    'false',                                                    // Validation automatique
+                    metadonneesBase64                                           // Métadonnées du mots-clés
+                ]);
+            });
+
+            console.log('📋 Données préparées:', worksheetData.length, 'lignes');
+
+            // Créer le workbook et la worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+
+            // Ajouter la feuille avec le nom requis par Pennylane
+            XLSX.utils.book_append_sheet(wb, ws, "Règles de transaction");
+
+            // Télécharger le fichier
+            const filename = `regles_pennylane_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, filename);
+
+            console.log('✅ Export XLSX Pennylane effectué:', worksheetData.length - 1, 'règles exportées');
+        } catch (error) {
+            console.error('❌ Erreur lors de la création du fichier XLSX:', error);
+            alert('Erreur lors de la création du fichier: ' + error.message);
+        }
+    }
 }
 
 function rafraichirRegles() {
@@ -1656,6 +1926,31 @@ function filtrerComptes() {
         }
 
         compte.style.display = isVisible ? 'grid' : 'none';
+    });
+
+    // Filtrer également les règles dans le panneau droit
+    const reglesRows = document.querySelectorAll('#regles-tbody tr');
+    reglesRows.forEach(row => {
+        const compteNumber = row.querySelector('.compte-number')?.textContent || '';
+        const compteLibelle = row.cells[2]?.textContent || ''; // Colonne contrepartie
+
+        let isVisible = false;
+
+        if (!searchTerm.trim()) {
+            // Si pas de filtre, afficher toutes les règles
+            isVisible = true;
+        } else if (/^\d+$/.test(searchTerm)) {
+            // Si c'est un nombre, chercher dans les numéros de compte (enlever les espaces)
+            const numeroSansEspace = compteNumber.replace(/\s/g, '').toLowerCase();
+            isVisible = numeroSansEspace.startsWith(searchTerm);
+        } else {
+            // Sinon chercher dans les numéros de compte ET les libellés
+            const numeroMatch = compteNumber.toLowerCase().includes(searchTerm);
+            const libelleMatch = compteLibelle.toLowerCase().includes(searchTerm);
+            isVisible = numeroMatch || libelleMatch;
+        }
+
+        row.style.display = isVisible ? '' : 'none';
     });
 }
 
