@@ -1341,11 +1341,11 @@ function afficherRegles() {
 
     emptyState.style.display = 'none';
 
-    // Trier les règles
+// Trier les règles
     const reglesTries = [...reglesData].sort((a, b) => {
         let aVal, bVal;
 
-switch (sortConfig.field) {
+        switch (sortConfig.field) {
             case 'nom':
                 aVal = a.nom || '';
                 bVal = b.nom || '';
@@ -1355,12 +1355,12 @@ switch (sortConfig.field) {
                 bVal = b.compte;
                 break;
             case 'impact':
-                aVal = a.impact;
-                bVal = b.impact;
+                aVal = a.impact || 0;
+                bVal = b.impact || 0;
                 break;
             case 'collision':
-                aVal = a.collision;
-                bVal = b.collision;
+                aVal = a.collision || 0;
+                bVal = b.collision || 0;
                 break;
             case 'active':
                 aVal = a.active ? 1 : 0;
@@ -1377,12 +1377,49 @@ switch (sortConfig.field) {
         }
     });
 
-    let html = '';
+let html = '';
     reglesTries.forEach(regle => {
         // Assurer que mots_cles est un tableau
         const motsCles = Array.isArray(regle.mots_cles) ? regle.mots_cles : [];
 
-html += `
+        // CALCUL DIRECT : Calculer l'impact et la collision en temps réel
+        let impactAffiche = 0;
+        let collisionAffichee = 0;
+        let nbTransactionsAffiche = 0;
+        let nbCollisionsAffiche = 0;
+
+        if (regle.active && toutesEcritures.length > 0) {
+            // Filtrer les écritures qui matchent cette règle
+            const ecrituresMatchees = toutesEcritures.filter(ecriture => {
+                // Test des mots-clés
+                const motsClesMatch = !regle.mots_cles || regle.mots_cles.length === 0 ||
+                    regle.mots_cles.some(motCle =>
+                        ecriture.ecriture_lib.toLowerCase().includes(motCle.toLowerCase())
+                    );
+                // Test de la banque
+                const banqueMatch = !regle.banque || regle.banque === '' || regle.banque === 'Toutes' ||
+                    ecriture.journal_code === regle.banque;
+                return motsClesMatch && banqueMatch;
+            });
+
+            if (ecrituresMatchees.length > 0) {
+                // Séparer les matches par compte de contrepartie
+                const matchesCompteRegle = ecrituresMatchees.filter(e => e.compte_contrepartie === regle.compte);
+                const matchesAutresComptes = ecrituresMatchees.filter(e => e.compte_contrepartie !== regle.compte);
+
+                // Calcul de l'impact
+                const transactionsTotalesCompte = toutesEcritures.filter(e => e.compte_contrepartie === regle.compte).length;
+                impactAffiche = transactionsTotalesCompte > 0 ? (matchesCompteRegle.length / transactionsTotalesCompte * 100) : 0;
+
+                // Calcul de la collision
+                collisionAffichee = matchesCompteRegle.length > 0 ? (matchesAutresComptes.length / matchesCompteRegle.length * 100) : 0;
+
+                nbTransactionsAffiche = matchesCompteRegle.length;
+                nbCollisionsAffiche = matchesAutresComptes.length;
+            }
+        }
+
+        html += `
             <tr>
                 <td>
                     <label class="checkbox-custom">
@@ -1410,14 +1447,14 @@ html += `
                 </td>
                 <td>
                     <div class="tooltip-custom">
-                        <span class="pourcentage-impact">${regle.impact.toFixed(1)}%</span>
-                        <div class="tooltip-text">${regle.nb_transactions} transactions</div>
+                        <span class="pourcentage-impact">${impactAffiche.toFixed(1)}%</span>
+                        <div class="tooltip-text">${nbTransactionsAffiche} transactions</div>
                     </div>
                 </td>
                 <td>
                     <div class="tooltip-custom">
-                        <span class="pourcentage-collision ${getCollisionClass(regle.collision)}">${regle.collision.toFixed(1)}%</span>
-                        <div class="tooltip-text">${regle.nb_collisions || 0} collisions</div>
+                        <span class="pourcentage-collision ${getCollisionClass(collisionAffichee)}">${collisionAffichee.toFixed(1)}%</span>
+                        <div class="tooltip-text">${nbCollisionsAffiche} collisions</div>
                     </div>
                 </td>
                 <td>
@@ -1616,15 +1653,19 @@ function updateBulkActions() {
     }
 }
 
-        function toggleRegleActive(regleId) {
-            const regle = reglesData.find(r => r.id === regleId);
-            if (regle) {
-                regle.active = !regle.active;
-                console.log(`Règle ${regleId} ${regle.active ? 'activée' : 'désactivée'}`);
-                // TODO: Appel API pour sauvegarder l'état
-                mettreAJourStats();
-            }
-        }
+function toggleRegleActive(regleId) {
+    const regle = reglesData.find(r => r.id === regleId);
+    if (regle) {
+        regle.active = !regle.active;
+        console.log(`Règle ${regleId} ${regle.active ? 'activée' : 'désactivée'}`);
+
+        // FORCER le recalcul complet
+        console.log('🔄 Forcer le recalcul complet...');
+        afficherRegles();
+        chargerComptes(); // Recalculer aussi le panneau gauche
+        mettreAJourStats();
+    }
+}
 
         // Actions bulk
 function activerSelection() {
@@ -2103,10 +2144,20 @@ function chargerComptes() {
         return;
     }
 
-    // Filtrer les comptes pour exclure ceux 100% traités
-    const comptesAffichables = comptesStatistiques.filter(compte => {
-        const pourcentageAFaire = parseFloat(compte.pourcentage_a_faire);
-        return pourcentageAFaire > 0; // Ne garder que les comptes avec du travail à faire
+// Recalculer les pourcentages en temps réel et filtrer
+    const comptesAffichables = comptesStatistiques.map(compte => {
+        // Recalculer le vrai % traité en temps réel
+        const pourcentageTraiteReel = calculerPourcentageTraiteReel(compte.compte);
+        const pourcentageAFaireReel = Math.max(0, 100 - pourcentageTraiteReel);
+
+        return {
+            ...compte,
+            pourcentage_traite: pourcentageTraiteReel.toFixed(1),
+            pourcentage_a_faire: pourcentageAFaireReel.toFixed(1)
+        };
+    }).filter(compte => {
+        // Ne garder que les comptes avec du travail à faire (% traité < 100%)
+        return parseFloat(compte.pourcentage_a_faire) > 0;
     });
 
     console.log('📊 Comptes filtrés:', {
@@ -2153,11 +2204,11 @@ function chargerComptes() {
                     <div class="compte-libelle">${compte.libelle}</div>
                 </div>
 <div class="stat-afaire"
-                     onmouseenter="showTooltip(this, 'Gain potentiel: ${formatPourcentage(compte.pourcentage_a_faire)} • ${compte.nb_transactions} transactions')"
-                     onmouseleave="hideTooltip(this)">
-                    ${formatPourcentage(compte.pourcentage_traite)}
-                    <div class="tooltip-custom">Gain potentiel: ${formatPourcentage(compte.pourcentage_a_faire)}% • ${compte.nb_transactions} transactions</div>
-                </div>
+     onmouseenter="showTooltip(this, 'Gain potentiel: ${formatPourcentage(compte.pourcentage_a_faire)} • ${compte.nb_transactions} transactions')"
+     onmouseleave="hideTooltip(this)">
+    ${calculerPourcentageTraiteReel(compte.compte)}%
+    <div class="tooltip-custom">Gain potentiel: ${formatPourcentage(compte.pourcentage_a_faire)} • ${compte.nb_transactions} transactions</div>
+</div>
             </div>
         `;
     });
@@ -2170,6 +2221,117 @@ function chargerComptes() {
             applquerTriExistant();
         }, 50);
     }
+}
+
+// NOUVELLE FONCTION : Calculer l'impact et la collision d'une règle
+function calculerImpactEtCollisionRegle(regle) {
+    console.log(`🔍 calculerImpactEtCollisionRegle appelée pour:`, regle.nom);
+    console.log(`📊 Données disponibles:`, {
+        nbEcritures: toutesEcritures?.length || 0,
+        compteRegle: regle.compte,
+        motsCles: regle.mots_cles,
+        banque: regle.banque
+    });
+
+    if (!toutesEcritures || toutesEcritures.length === 0) {
+        console.log(`❌ Pas d'écritures disponibles`);
+        return { impact: 0, collision: 0, nb_transactions: 0, nb_collisions: 0 };
+    }
+
+    // Afficher un échantillon des écritures pour debug
+    if (toutesEcritures.length > 0) {
+        console.log(`📝 Échantillon écriture:`, toutesEcritures[0]);
+    }
+
+    // Filtrer les écritures qui matchent cette règle
+    const ecrituresMatchees = toutesEcritures.filter(ecriture => {
+        // Test des mots-clés (au moins un doit matcher)
+        const motsClesMatch = !regle.mots_cles || regle.mots_cles.length === 0 ||
+            regle.mots_cles.some(motCle =>
+                ecriture.ecriture_lib.toLowerCase().includes(motCle.toLowerCase())
+            );
+
+        // Test de la banque
+        const banqueMatch = !regle.banque || regle.banque === '' || regle.banque === 'Toutes' ||
+            ecriture.journal_code === regle.banque;
+
+        return motsClesMatch && banqueMatch;
+    });
+
+    console.log(`🎯 Écritures matchées:`, ecrituresMatchees.length);
+
+    if (ecrituresMatchees.length === 0) {
+        console.log(`❌ Aucune écriture matchée`);
+        return { impact: 0, collision: 0, nb_transactions: 0, nb_collisions: 0 };
+    }
+
+    // Séparer les matches par compte de contrepartie
+    const matchesCompteRegle = ecrituresMatchees.filter(e => e.compte_contrepartie === regle.compte);
+    const matchesAutresComptes = ecrituresMatchees.filter(e => e.compte_contrepartie !== regle.compte);
+
+    console.log(`📊 Répartition:`, {
+        compteRegle: matchesCompteRegle.length,
+        autresComptes: matchesAutresComptes.length
+    });
+
+    // Calcul de l'impact : % des transactions du compte de la règle qui sont matchées
+    const transactionsTotalesCompte = toutesEcritures.filter(e => e.compte_contrepartie === regle.compte).length;
+    const impact = transactionsTotalesCompte > 0 ?
+        (matchesCompteRegle.length / transactionsTotalesCompte * 100) : 0;
+
+    // Calcul de la collision : % selon la formule (autres / compte sélectionné) × 100
+    const collision = matchesCompteRegle.length > 0 ?
+        (matchesAutresComptes.length / matchesCompteRegle.length * 100) : 0;
+
+    const resultat = {
+        impact: Math.max(0, impact),
+        collision: Math.max(0, collision),
+        nb_transactions: matchesCompteRegle.length,
+        nb_collisions: matchesAutresComptes.length
+    };
+
+    console.log(`✅ Résultat final:`, resultat);
+    return resultat;
+}
+
+// NOUVELLE FONCTION : Calculer le vrai % traité en temps réel
+function calculerPourcentageTraiteReel(numeroCompte) {
+    if (!toutesEcritures || toutesEcritures.length === 0) {
+        return 0;
+    }
+
+    // Toutes les écritures de ce compte
+    const ecrituresDuCompte = toutesEcritures.filter(e => e.compte_contrepartie === numeroCompte);
+    if (ecrituresDuCompte.length === 0) {
+        return 0;
+    }
+
+    // Marquer les écritures couvertes (éviter les doublons)
+    const ecrituresCouvertesIds = new Set();
+
+    reglesData.forEach(regle => {
+        if (regle.active && regle.compte === numeroCompte) {
+            // Cette règle est active pour ce compte
+            ecrituresDuCompte.forEach(ecriture => {
+                // Test des mots-clés
+                const motsClesMatch = !regle.mots_cles || regle.mots_cles.length === 0 ||
+                    regle.mots_cles.some(motCle =>
+                        ecriture.ecriture_lib.toLowerCase().includes(motCle.toLowerCase())
+                    );
+
+                // Test de la banque
+                const banqueMatch = !regle.banque || regle.banque === '' || regle.banque === 'Toutes' ||
+                    ecriture.journal_code === regle.banque;
+
+                if (motsClesMatch && banqueMatch) {
+                    ecrituresCouvertesIds.add(ecriture.id);
+                }
+            });
+        }
+    });
+
+    const pourcentage = (ecrituresCouvertesIds.size / ecrituresDuCompte.length * 100);
+    return Math.round(pourcentage * 10) / 10; // Arrondir à 1 décimale
 }
 
 function formatCompteNumber(compte) {
@@ -2251,7 +2413,16 @@ function naviguerVers(page) {
 
     switch(page) {
         case 'dashboard':
-            window.location.href = '/dashboard';
+            // Récupérer l'ID de la société active depuis l'URL ou les variables globales
+            const urlParams = new URLSearchParams(window.location.search);
+            const societeId = urlParams.get('societe_id') || window.societeId;
+
+            if (societeId) {
+                window.location.href = `/societe/${societeId}`;
+            } else {
+                // Fallback vers la sélection de société
+                window.location.href = '/dashboard';
+            }
             break;
         case 'regles':
             // Déjà sur la page règles
@@ -2261,6 +2432,15 @@ function naviguerVers(page) {
             break;
         case 'parametres':
             console.log('Navigation vers Paramètres');
+            // Fallback temporaire vers dashboard
+            const urlParams2 = new URLSearchParams(window.location.search);
+            const societeId2 = urlParams2.get('societe_id') || window.societeId;
+
+            if (societeId2) {
+                window.location.href = `/societe/${societeId2}`;
+            } else {
+                window.location.href = '/dashboard';
+            }
             break;
     }
 }

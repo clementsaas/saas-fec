@@ -14,19 +14,19 @@
     </div>
 
     <div class="sidebar-menu">
-        <!-- Icône Dashboard -->
-        <div class="sidebar-item {{ 'active' if current_page == 'dashboard' else '' }}" title="Dashboard" onclick="naviguerVers('dashboard')">
+<!-- Icône Création de règle -->
+<div class="sidebar-item {{ 'active' if current_page == 'dashboard' else '' }}" title="Création de règle" onclick="naviguerVers('dashboard')">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-wrench" viewBox="0 0 16 16">
                 <path d="M.102 2.223A3.004 3.004 0 0 0 3.78 5.897l6.341 6.252A3.003 3.003 0 0 0 13 16a3 3 0 1 0-.851-5.878L5.897 3.781A3.004 3.004 0 0 0 2.223.1l2.141 2.142L4 4l-1.757.364zm13.37 9.019.528.026.287.445.445.287.026.529L15 13l-.242.471-.026.529-.445.287-.287.445-.529.026L13 15l-.471-.242-.529-.026-.287-.445-.445-.287-.026-.529L11 13l.242-.471.026-.529.445-.287.287-.445.529-.026L13 11z"/>
             </svg>
         </div>
 
-        <!-- Icône Règles -->
-        <div class="sidebar-item {{ 'active' if current_page == 'regles' else '' }}" title="Règles" onclick="naviguerVers('regles')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-check" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0"/>
-            </svg>
-        </div>
+<!-- Icône Liste des règles -->
+<div class="sidebar-item {{ 'active' if current_page == 'regles' else '' }}" title="Liste des règles" onclick="naviguerVers('regles')">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-check" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0"/>
+    </svg>
+</div>
 
         <!-- Icône Import -->
         <div class="sidebar-item" title="Import FEC" onclick="naviguerVers('import')">
@@ -58,23 +58,46 @@ function naviguerVers(page) {
     // Ajouter l'état actif à l'item cliqué
     event.target.closest('.sidebar-item').classList.add('active');
 
-    switch(page) {
-        case 'dashboard':
+switch(page) {
+    case 'dashboard':
+        // Récupérer l'ID de la société active
+        const urlParams = new URLSearchParams(window.location.search);
+        const societeId = urlParams.get('societe_id');
+
+        if (societeId) {
+            window.location.href = `/societe/${societeId}`;
+        } else {
+            // Fallback vers la sélection de société
             window.location.href = '/dashboard';
-            break;
-        case 'regles':
+        }
+        break;
+    case 'regles':
+        // Vérifier si nous avons une société active dans l'URL
+        const urlParams2 = new URLSearchParams(window.location.search);
+        const societeId2 = urlParams2.get('societe_id');
+
+        if (societeId2) {
+            window.location.href = `/regles/liste?societe_id=${societeId2}`;
+        } else {
+            // Fallback vers la liste des règles sans ID (Flask fera la redirection)
             window.location.href = '/regles/liste';
-            break;
+        }
+        break;
         case 'import':
             // Déclencher l'upload de FEC depuis n'importe quelle page
             if (typeof nouveauFEC === 'function') {
                 nouveauFEC();
+            } else if (typeof nouvelleRegle === 'function') {
+                nouvelleRegle();
             } else {
+                // Fallback vers le dashboard
                 window.location.href = '/dashboard';
             }
             break;
         case 'parametres':
             console.log('Navigation vers Paramètres (à implémenter)');
+            // Fallback temporaire vers dashboard
+            window.location.href = '/dashboard';
             break;
     }
 }

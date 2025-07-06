@@ -132,7 +132,20 @@ function filterCompaniesAI() {
 function selectCompanyAI(societeId) {
     console.log('🏢 Changement de société:', societeId);
     document.getElementById('companyDropdown').style.display = 'none';
-    window.location.href = `/societe/${societeId}`;
+
+    // Déterminer vers quelle page rediriger en gardant la même page mais avec la nouvelle société
+    const currentPath = window.location.pathname;
+
+    if (currentPath.includes('/regles/liste')) {
+        // Si on est sur la page des règles, rester sur les règles avec la nouvelle société
+        window.location.href = `/regles/liste?societe_id=${societeId}`;
+    } else if (currentPath.includes('/regles/nouvelle')) {
+        // Si on est sur la création de règle, aller au dashboard de la nouvelle société
+        window.location.href = `/societe/${societeId}`;
+    } else {
+        // Pour toutes les autres pages (dashboard société, etc.), aller au dashboard de la société
+        window.location.href = `/societe/${societeId}`;
+    }
 }
 
 // Variables pour la navigation clavier
