@@ -13,7 +13,7 @@
         /* Styles spécifiques à la page liste_regles */
 /* Styles spécifiques à liste_regles qui surchargent common_styles */
 body {
-    overflow-y: auto !important;
+    overflow-y: hidden;
 }
 
 .main-container {
@@ -527,7 +527,7 @@ body {
 
 /* Styles spécifiques à la page liste_regles */
 body {
-    overflow-y: auto !important;
+    overflow-y: hidden;
 }
 
 .main-container {
@@ -538,7 +538,7 @@ body {
     display: grid !important;
     grid-template-columns: 400px 1fr !important;
     gap: 20px;
-    height: calc(100vh - 65px);
+    height: calc(100vh - 85px);
 }
 
 /* EXACT COPY from societe_dashboard.html */
@@ -709,12 +709,12 @@ body {
     display: grid;
     grid-template-columns: 1fr 85px;
     gap: 8px;
-    padding: 10px 20px 10px 15px;
+    padding: 8px 16px 8px 12px;
     border-bottom: 1px solid #f5f5f7;
     cursor: pointer;
     transition: all 0.25s ease;
     align-items: center;
-    height: 60px;
+    height: 44px;
     position: relative;
     border-radius: 0;
 }
@@ -1091,6 +1091,17 @@ body {
     z-index: 1000;
 }
 
+.regles-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    position: relative;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 
 
     </style>
@@ -1375,7 +1386,8 @@ html += `
             <tr>
                 <td>
                     <label class="checkbox-custom">
-                        <input type="checkbox" class="rule-checkbox" data-regle-id="${regle.id}" onchange="toggleRuleSelection(${regle.id})">
+<input type="checkbox" class="rule-checkbox" data-regle-id="${regle.id}" onchange="toggleRuleSelection(${regle.id}, event)">
+
                         <span class="checkbox-mark"></span>
                     </label>
                 </td>
@@ -1516,37 +1528,63 @@ function toggleSelectAll() {
 
 let lastSelectedIndex = -1;
 
-function toggleRuleSelection(regleId) {
+function toggleRuleSelection(regleId, event) {
     const checkbox = event.target;
     const row = checkbox.closest('tr');
     const allRows = Array.from(document.querySelectorAll('#regles-tbody tr'));
     const currentIndex = allRows.indexOf(row);
+
+    // Empêcher la sélection de texte lors du shift+click
+    if (event.shiftKey) {
+        event.preventDefault();
+        document.getSelection().removeAllRanges();
+    }
 
     if (event.shiftKey && lastSelectedIndex !== -1) {
         // Sélection de plage avec Shift
         const startIndex = Math.min(lastSelectedIndex, currentIndex);
         const endIndex = Math.max(lastSelectedIndex, currentIndex);
 
+        // Déterminer l'état cible : si on shift+clique, on veut cocher
+        const targetState = true;
+
+        // Debug
+        console.log(`Sélection de plage: ${startIndex} à ${endIndex} (${endIndex - startIndex + 1} éléments)`);
+
+        // Appliquer l'état à toute la plage
         for (let i = startIndex; i <= endIndex; i++) {
             const targetRow = allRows[i];
             const targetCheckbox = targetRow.querySelector('.rule-checkbox');
-            const targetRegleId = parseInt(targetCheckbox.dataset.regleId);
 
-            targetCheckbox.checked = true;
-            selectedRules.add(targetRegleId);
-            targetRow.classList.add('selected');
+            if (targetCheckbox) {
+                const targetRegleId = parseInt(targetCheckbox.dataset.regleId);
+
+                targetCheckbox.checked = targetState;
+
+                if (targetState) {
+                    selectedRules.add(targetRegleId);
+                    targetRow.classList.add('selected');
+                } else {
+                    selectedRules.delete(targetRegleId);
+                    targetRow.classList.remove('selected');
+                }
+
+                console.log(`Ligne ${i}: règle ${targetRegleId} ${targetState ? 'cochée' : 'décochée'}`);
+            }
         }
     } else {
         // Sélection normale
         if (checkbox.checked) {
             selectedRules.add(regleId);
             row.classList.add('selected');
-            lastSelectedIndex = currentIndex;
         } else {
             selectedRules.delete(regleId);
             row.classList.remove('selected');
-            lastSelectedIndex = -1;
         }
+
+        // Mettre à jour lastSelectedIndex seulement pour les clics normaux
+        lastSelectedIndex = currentIndex;
+        console.log(`Nouveau lastSelectedIndex: ${lastSelectedIndex}`);
     }
 
     updateBulkActions();
@@ -1598,6 +1636,7 @@ function activerSelection() {
     });
 
     afficherRegles();
+    restoreSelection(); // Restaurer la sélection après régénération
     mettreAJourStats();
     console.log('Règles activées:', Array.from(selectedRules));
 }
@@ -1611,8 +1650,24 @@ function desactiverSelection() {
     });
 
     afficherRegles();
+    restoreSelection(); // Restaurer la sélection après régénération
     mettreAJourStats();
     console.log('Règles désactivées:', Array.from(selectedRules));
+}
+
+function restoreSelection() {
+    // Restaurer l'état des checkboxes après régénération du HTML
+    selectedRules.forEach(regleId => {
+        const checkbox = document.querySelector(`.rule-checkbox[data-regle-id="${regleId}"]`);
+        const row = checkbox?.closest('tr');
+
+        if (checkbox && row) {
+            checkbox.checked = true;
+            row.classList.add('selected');
+        }
+    });
+
+    updateBulkActions();
 }
 
 function supprimerSelection() {
