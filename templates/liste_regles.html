@@ -1861,12 +1861,60 @@ function restoreSelection() {
 
 function supprimerSelection() {
     if (confirm(`Êtes-vous sûr de vouloir supprimer ${selectedRules.size} règle${selectedRules.size > 1 ? 's' : ''} ?`)) {
-        reglesData = reglesData.filter(regle => !selectedRules.has(regle.id));
-        selectedRules.clear();
-        afficherRegles();
-        mettreAJourStats();
-        updateBulkActions();
-        console.log('Règles supprimées');
+        // Convertir le Set en Array pour l'itération
+        const reglesToDelete = Array.from(selectedRules);
+        let deletedCount = 0;
+
+        console.log('🗑️ Suppression en cours de', reglesToDelete.length, 'règles...');
+
+        // Supprimer chaque règle via API
+        const deletePromises = reglesToDelete.map(regleId => {
+            return fetch(`/regles/${regleId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    deletedCount++;
+                    console.log(`✅ Règle ${regleId} supprimée avec succès`);
+                    return { regleId, success: true };
+                } else {
+                    console.error(`❌ Erreur suppression règle ${regleId}:`, result.error);
+                    return { regleId, success: false, error: result.error };
+                }
+            })
+            .catch(error => {
+                console.error(`❌ Erreur réseau suppression règle ${regleId}:`, error);
+                return { regleId, success: false, error: 'Erreur réseau' };
+            });
+        });
+
+        // Attendre que toutes les suppressions soient terminées
+        Promise.all(deletePromises).then(results => {
+            // Supprimer les règles réussies du tableau local
+            const successfullyDeleted = results.filter(r => r.success).map(r => r.regleId);
+            reglesData = reglesData.filter(regle => !successfullyDeleted.includes(regle.id));
+
+            // Vider la sélection
+            selectedRules.clear();
+
+            // Rafraîchir l'affichage
+            afficherRegles();
+            mettreAJourStats();
+            updateBulkActions();
+
+            // Afficher un message de confirmation
+            if (deletedCount === reglesToDelete.length) {
+                console.log(`✅ ${deletedCount} règle${deletedCount > 1 ? 's' : ''} supprimée${deletedCount > 1 ? 's' : ''} avec succès`);
+            } else {
+                const failedCount = reglesToDelete.length - deletedCount;
+                console.warn(`⚠️ ${deletedCount} règle${deletedCount > 1 ? 's' : ''} supprimée${deletedCount > 1 ? 's' : ''}, ${failedCount} échec${failedCount > 1 ? 's' : ''}`);
+                alert(`Attention: ${failedCount} règle${failedCount > 1 ? 's' : ''} n'${failedCount > 1 ? 'ont' : 'a'} pas pu être supprimée${failedCount > 1 ? 's' : ''}. Actualisez la page.`);
+            }
+        });
     }
 }
 
