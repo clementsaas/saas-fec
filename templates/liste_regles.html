@@ -1803,16 +1803,54 @@ function updateBulkActions() {
 
 function toggleRegleActive(regleId) {
     const regle = reglesData.find(r => r.id === regleId);
-    if (regle) {
-        regle.active = !regle.active;
-        console.log(`Règle ${regleId} ${regle.active ? 'activée' : 'désactivée'}`);
+    if (!regle) return;
 
-        // FORCER le recalcul complet
-        console.log('🔄 Forcer le recalcul complet...');
+    // Optimistic update : changer l'état local immédiatement
+    const nouvelEtat = !regle.active;
+    regle.active = nouvelEtat;
+
+    // Mettre à jour l'affichage immédiatement
+    console.log(`Règle ${regleId} ${nouvelEtat ? 'activée' : 'désactivée'}`);
+    afficherRegles();
+
+    // Appel API pour persister en base de données
+    fetch(`/regles/${regleId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log(`✅ Règle ${regleId} persistée en base: ${data.is_active ? 'active' : 'inactive'}`);
+
+            // Synchroniser l'état local avec la réponse serveur (au cas où)
+            regle.active = data.is_active;
+
+            // Recalculer les statistiques après persistance
+            chargerComptes();
+            mettreAJourStats();
+        } else {
+            console.error('❌ Erreur lors de la persistance:', data.error);
+
+            // Rollback en cas d'erreur
+            regle.active = !nouvelEtat;
+            afficherRegles();
+
+            alert('Erreur lors de la sauvegarde: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Erreur réseau:', error);
+
+        // Rollback en cas d'erreur réseau
+        regle.active = !nouvelEtat;
         afficherRegles();
-        chargerComptes(); // Recalculer aussi le panneau gauche
-        mettreAJourStats();
-    }
+
+        alert('Erreur de connexion. Veuillez réessayer.');
+    });
 }
 
         // Actions bulk
@@ -2209,22 +2247,24 @@ function filtrerComptes() {
 
         let isVisible = false;
 
+        // Si le terme de recherche est numérique, chercher UNIQUEMENT dans les numéros de compte
         if (/^\d+$/.test(searchTerm)) {
             isVisible = numeroCompte.startsWith(searchTerm);
         } else {
+            // Si le terme contient des lettres, chercher dans les deux avec "commence par"
             const numeroMatch = numeroCompte.startsWith(searchTerm);
-            const libelleMatch = libelleCompte.includes(searchTerm);
+            const libelleMatch = libelleCompte.startsWith(searchTerm);
             isVisible = numeroMatch || libelleMatch;
         }
 
         compte.style.display = isVisible ? 'grid' : 'none';
     });
 
-    // Filtrer également les règles dans le panneau droit
+    // Filtrer également les règles dans le panneau droit avec la même logique
     const reglesRows = document.querySelectorAll('#regles-tbody tr');
     reglesRows.forEach(row => {
         const compteNumber = row.querySelector('.compte-number')?.textContent || '';
-        const compteLibelle = row.cells[2]?.textContent || ''; // Colonne contrepartie
+        const compteLibelle = row.querySelector('.compte-libelle')?.textContent || '';
 
         let isVisible = false;
 
@@ -2236,9 +2276,10 @@ function filtrerComptes() {
             const numeroSansEspace = compteNumber.replace(/\s/g, '').toLowerCase();
             isVisible = numeroSansEspace.startsWith(searchTerm);
         } else {
-            // Sinon chercher dans les numéros de compte ET les libellés
-            const numeroMatch = compteNumber.toLowerCase().includes(searchTerm);
-            const libelleMatch = compteLibelle.toLowerCase().includes(searchTerm);
+            // Sinon chercher dans les numéros de compte ET les libellés avec "commence par"
+            const numeroSansEspace = compteNumber.replace(/\s/g, '').toLowerCase();
+            const numeroMatch = numeroSansEspace.startsWith(searchTerm);
+            const libelleMatch = compteLibelle.toLowerCase().startsWith(searchTerm);
             isVisible = numeroMatch || libelleMatch;
         }
 

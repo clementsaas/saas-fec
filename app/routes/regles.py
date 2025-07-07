@@ -937,69 +937,29 @@ def import_regles():
             return jsonify({'success': False, 'error': 'Aucun fichier sélectionné'}), 400
 
         # Récupérer la société
-        # DEBUG complet des données reçues
-        print("🔍 DEBUG Import - Toutes les données reçues:")
-        print(f"   request.form: {dict(request.form)}")
-        print(f"   request.files: {dict(request.files)}")
-        print(f"   Content-Type: {request.content_type}")
-        print(f"   request.args: {dict(request.args)}")
-
-        # Récupérer la société avec fallback multiple
         societe_id = request.form.get('societe_id')
-        print(f"🔍 DEBUG Import - societe_id depuis form: '{societe_id}' (type: {type(societe_id)})")
+        print(f"🔍 DEBUG Import - societe_id reçu: '{societe_id}'")
 
-        # Si pas dans form, essayer dans les args de l'URL
         if not societe_id:
-            societe_id = request.args.get('societe_id')
-            print(f"🔍 DEBUG Import - societe_id depuis args: '{societe_id}'")
-
-        # Si toujours pas, essayer depuis la session (récupérer la première société de l'org)
-        if not societe_id:
-            print("🔍 DEBUG Import - Tentative récupération depuis session...")
-            from app.models.societe import Societe
+            # Fallback: récupérer la première société de l'organisation
             premiere_societe = Societe.query.filter_by(organization_id=session['organization_id']).first()
             if premiere_societe:
                 societe_id = str(premiere_societe.id)
-                print(f"🔍 DEBUG Import - societe_id depuis session: '{societe_id}'")
-
-        print(f"🔍 DEBUG Import - societe_id final: '{societe_id}' (type: {type(societe_id)})")
-
-        if not societe_id or societe_id == 'null' or societe_id.strip() == '':
-            print("❌ DEBUG Import - societe_id toujours invalide après tous les fallbacks")
-            return jsonify({'success': False, 'error': 'ID de société manquant - Aucun fallback disponible'}), 400
-
-        try:
-            societe_id = int(societe_id)
-            print(f"✅ DEBUG Import - societe_id converti en int: {societe_id}")
-        except (ValueError, TypeError):
-            print(f"❌ DEBUG Import - Impossible de convertir societe_id en int: '{societe_id}'")
-            return jsonify({'success': False, 'error': 'Format ID société invalide'}), 400
-
-        if not societe_id or societe_id == 'null' or societe_id.strip() == '':
-            print("❌ DEBUG Import - societe_id invalide ou vide")
-            # Essayer de récupérer depuis l'URL comme fallback
-            societe_id_url = request.args.get('societe_id')
-            print(f"🔍 DEBUG Import - Tentative depuis URL: {societe_id_url}")
-
-            if societe_id_url:
-                societe_id = societe_id_url
-                print(f"✅ DEBUG Import - societe_id récupéré depuis URL: {societe_id}")
+                print(f"🔍 DEBUG Import - Utilisation fallback: {societe_id}")
             else:
-                return jsonify({'success': False, 'error': 'ID de société manquant dans form et URL'}), 400
+                return jsonify({'success': False, 'error': 'Aucune société disponible'}), 400
 
         try:
             societe_id = int(societe_id)
-            print(f"✅ DEBUG Import - societe_id converti en int: {societe_id}")
         except (ValueError, TypeError):
-            print(f"❌ DEBUG Import - Impossible de convertir societe_id en int: '{societe_id}'")
             return jsonify({'success': False, 'error': 'Format ID société invalide'}), 400
-        if not societe_id:
-            return jsonify({'success': False, 'error': 'ID de société manquant'}), 400
 
         # Vérifier les permissions
         societe = Societe.query.get_or_404(societe_id)
         if societe.organization_id != session['organization_id']:
             return jsonify({'success': False, 'error': 'Accès non autorisé'}), 403
+
+        print(f"✅ DEBUG Import - Société validée: {societe.nom}")
 
         # Traitement selon le type de fichier
         import pandas as pd
@@ -1172,7 +1132,6 @@ def import_regles():
                     db.session.add(regle)
                     imported_count += 1
                     print(f"✅ DEBUG Import - Règle ajoutée: {nom} (mots-clés: {mots_cles})")
-
                 except Exception as e:
                     error_msg = f"Ligne {index + 2}: Erreur de traitement - {str(e)}"
                     errors.append(error_msg)
@@ -1191,18 +1150,18 @@ def import_regles():
 
                 print(f"🎯 DEBUG Import - Résultat final: {imported_count} importées, {len(errors)} erreurs")
 
-            # Préparer la réponse
-            response_data = {
-                'success': True,
-                'imported_count': imported_count,
-                'total_rows': len(df),
-                'errors': errors[:10]  # Limiter à 10 erreurs pour l'affichage
-            }
+                # Préparer la réponse
+                response_data = {
+                    'success': True,
+                    'imported_count': imported_count,
+                    'total_rows': len(df),
+                    'errors': errors[:10]  # Limiter à 10 erreurs pour l'affichage
+                }
 
-            if errors:
-                response_data['warning'] = f"{len(errors)} ligne(s) ignorée(s)"
+                if errors:
+                    response_data['warning'] = f"{len(errors)} ligne(s) ignorée(s)"
 
-            return jsonify(response_data)
+                return jsonify(response_data)
 
         except Exception as e:
             return jsonify({'success': False, 'error': f'Erreur de lecture du fichier: {str(e)}'}), 400
