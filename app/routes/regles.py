@@ -372,27 +372,139 @@ def liste_regles():
                 'couverte_par_regle': ecriture.id in ecritures_couvertes
             })
 
-    # Préparer les données JSON pour JavaScript
-    regles_json = []
-    for regle in regles:
-        # Récupérer le libellé du compte depuis la table societes
-        societe = Societe.query.get(regle.societe_id)
+        # CALCULS RÉELS : Impact et Collision pour chaque règle
+        regles_json = []
 
-        regles_json.append({
-            'id': regle.id,
-            'nom': regle.nom,
-            'compte': regle.compte_destination,
-            'libelle_compte': regle.libelle_destination,
-            'mots_cles': regle.mots_cles or [],
-            'banque': regle.journal_code or '',
-            'critere_montant': regle.criteres_montant or {},
-            'impact': float(regle.pourcentage_couverture_total or 0),
-            'collision': 0.0,
-            'nb_transactions': regle.nb_transactions_couvertes or 0,
-            'nb_collisions': 0,
-            'active': bool(regle.is_active),
-            'created_at': regle.created_at.isoformat() if regle.created_at else ''
-        })
+        # Import du tester une seule fois
+        from app.services.regle_tester import RegleTester
+        tester = RegleTester()
+
+        for regle in regles:
+            print(f"🔍 Calcul pour règle: {regle.nom}")
+
+            # Assurer que mots_cles est toujours une liste
+            mots_cles_list = []
+            if regle.mots_cles:
+                if isinstance(regle.mots_cles, str):
+                    try:
+                        import json as json_module
+                        mots_cles_list = json_module.loads(regle.mots_cles)
+                        if not isinstance(mots_cles_list, list):
+                            mots_cles_list = [mots_cles_list] if mots_cles_list else []
+                    except json_module.JSONDecodeError:
+                        mots_cles_list = [mot.strip() for mot in regle.mots_cles.split(',') if mot.strip()]
+                elif isinstance(regle.mots_cles, list):
+                    mots_cles_list = regle.mots_cles
+                else:
+                    try:
+                        if hasattr(regle.mots_cles, '__iter__'):
+                            mots_cles_list = list(regle.mots_cles)
+                    except:
+                        mots_cles_list = []
+
+            # CALCUL RÉEL DE L'IMPACT ET DE LA COLLISION
+            impact_reel = 0.0
+            collision_reelle = 0.0
+            nb_transactions_reel = 0
+            nb_collisions_reel = 0
+
+            if ecritures and len(ecritures) > 0:
+                try:
+                    # Tester la règle contre toutes les écritures
+                    ecritures_matchees = tester.test_regle_object(regle, ecritures)
+                    print(f"   Écritures matchées total: {len(ecritures_matchees)}")
+
+                    if len(ecritures_matchees) > 0:
+                        # Séparer les matches par compte de contrepartie
+                        matches_compte_regle = []
+                        matches_autres_comptes = []
+
+                        for ecriture in ecritures_matchees:
+                            # Déterminer le compte de contrepartie
+                            if hasattr(ecriture, 'compte_contrepartie') and ecriture.compte_contrepartie:
+                                compte_contrepartie = ecriture.compte_contrepartie
+                            elif not ecriture.compte_final.startswith('512'):
+                                compte_contrepartie = ecriture.compte_final
+                            else:
+                                # Logique pour trouver la contrepartie
+                                autres_ecritures = EcritureBancaire.query.filter_by(
+                                    fec_file_id=fec_file.id,
+                                    ecriture_num=ecriture.ecriture_num
+                                ).filter(~EcritureBancaire.compte_num.startswith('512')).first()
+
+                                if autres_ecritures:
+                                    compte_contrepartie = autres_ecritures.compte_final
+                                else:
+                                    compte_contrepartie = "AUTRE"
+
+                            # Classer l'écriture
+                            if compte_contrepartie == regle.compte_destination:
+                                matches_compte_regle.append(ecriture)
+                            else:
+                                matches_autres_comptes.append(ecriture)
+
+                        print(f"   Matches compte règle: {len(matches_compte_regle)}")
+                        print(f"   Matches autres comptes: {len(matches_autres_comptes)}")
+
+                        # CALCUL DE L'IMPACT
+                        # Impact = (matches dans le compte / total transactions du compte) × 100
+                        total_transactions_compte = len([e for e in ecritures
+                                                         if (hasattr(e,
+                                                                     'compte_contrepartie') and e.compte_contrepartie == regle.compte_destination)
+                                                         or (not e.compte_final.startswith(
+                                '512') and e.compte_final == regle.compte_destination)])
+
+                        if total_transactions_compte > 0:
+                            impact_reel = (len(matches_compte_regle) / total_transactions_compte) * 100
+
+                        # CALCUL DE LA COLLISION
+                        # Collision = (matches autres comptes / matches compte règle) × 100
+                        if len(matches_compte_regle) > 0:
+                            collision_reelle = (len(matches_autres_comptes) / len(matches_compte_regle)) * 100
+
+                        nb_transactions_reel = len(matches_compte_regle)
+                        nb_collisions_reel = len(matches_autres_comptes)
+
+                        print(f"   Impact calculé: {impact_reel:.1f}%")
+                        print(f"   Collision calculée: {collision_reelle:.1f}%")
+
+                except Exception as e:
+                    print(f"❌ Erreur calcul règle {regle.nom}: {e}")
+                    # Garder les valeurs par défaut (0)
+
+            # Parser les critères de montant
+            criteres_montant = None
+            if regle.criteres_montant:
+                try:
+                    import json as json_module
+                    if isinstance(regle.criteres_montant, str):
+                        criteres_montant = json_module.loads(regle.criteres_montant)
+                    else:
+                        criteres_montant = regle.criteres_montant
+                except (json_module.JSONDecodeError, TypeError):
+                    criteres_montant = None
+
+            # Construire l'objet règle avec les VRAIS calculs
+            regle_data = {
+                'id': regle.id,
+                'nom': regle.nom or f"Règle {regle.compte_destination}",
+                'compte': regle.compte_destination,
+                'libelle_compte': regle.libelle_destination or '',
+                'mots_cles': mots_cles_list,
+                'banque': regle.journal_code or '',
+                'criteres_montant': criteres_montant,
+                'impact': round(impact_reel, 1),  # VRAI calcul
+                'collision': round(collision_reelle, 1),  # VRAI calcul
+                'nb_transactions': nb_transactions_reel,  # VRAI nombre
+                'nb_collisions': nb_collisions_reel,  # VRAI nombre
+                'active': bool(regle.is_active),
+                'created_at': regle.created_at.isoformat() if regle.created_at else ''
+            }
+
+            regles_json.append(regle_data)
+            print(f"✅ Règle {regle.nom}: Impact={impact_reel:.1f}%, Collision={collision_reelle:.1f}%")
+
+        print(f"📊 {len(regles_json)} règles calculées avec impact/collision réels")
 
     # Ligne supprimée - pas de remplacement
     # Assurer que regles_json est bien défini même si vide
@@ -444,29 +556,208 @@ def liste_regles():
                            automatisation_globale=automatisation_globale,
                            current_page='regles')
 
-@regles_bp.route('/regles/<int:regle_id>/delete', methods=['POST'])
+
+@regles_bp.route('/regles/<int:regle_id>/delete', methods=['POST', 'DELETE'])
 def delete_regle(regle_id):
-    """Supprimer une règle"""
+    """Supprimer une règle avec vérification stricte"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Non connecté'}), 401
 
     try:
-        regle = RegleAffectation.query.get_or_404(regle_id)
+        # Récupérer la règle avec vérification d'existence
+        regle = RegleAffectation.query.get(regle_id)
+        if not regle:
+            return jsonify({'success': False, 'error': 'Règle introuvable'}), 404
 
-        # Vérifier les permissions
+        # Vérifier les permissions strictement
         societe = Societe.query.get(regle.societe_id)
-        if societe.organization_id != session['organization_id']:
-            return jsonify({'success': False, 'error': 'Accès non autorisé'})
+        if not societe or societe.organization_id != session['organization_id']:
+            return jsonify({'success': False, 'error': 'Accès non autorisé'}), 403
 
+        # Log pour debug
+        print(f"🗑️ DEBUG Suppression - Règle ID {regle_id}: {regle.nom}")
+        print(f"🗑️ DEBUG Suppression - Société: {societe.nom} (ID: {societe.id})")
+
+        # Suppression effective
         db.session.delete(regle)
         db.session.commit()
 
-        return jsonify({'success': True})
+        print(f"✅ DEBUG Suppression - Règle {regle_id} supprimée avec succès")
+        return jsonify({'success': True, 'message': 'Règle supprimée avec succès'})
 
     except Exception as e:
         db.session.rollback()
-        print(f"Erreur suppression règle: {e}")
-        return jsonify({'success': False, 'error': 'Erreur interne du serveur'})
+        print(f"❌ Erreur suppression règle {regle_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': 'Erreur interne du serveur'}), 500
+
+
+# NOUVELLE ROUTE : API pour mettre à jour le statut d'une règle
+@regles_bp.route('/regles/<int:regle_id>/toggle', methods=['POST'])
+def toggle_regle_active(regle_id):
+    """Activer/désactiver une règle"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Non connecté'}), 401
+
+    try:
+        regle = RegleAffectation.query.get(regle_id)
+        if not regle:
+            return jsonify({'success': False, 'error': 'Règle introuvable'}), 404
+
+        # Vérifier les permissions
+        societe = Societe.query.get(regle.societe_id)
+        if not societe or societe.organization_id != session['organization_id']:
+            return jsonify({'success': False, 'error': 'Accès non autorisé'}), 403
+
+        # Inverser le statut
+        regle.is_active = not regle.is_active
+        db.session.commit()
+
+        print(f"🔄 Règle {regle_id} {'activée' if regle.is_active else 'désactivée'}")
+
+        return jsonify({
+            'success': True,
+            'is_active': regle.is_active,
+            'message': f"Règle {'activée' if regle.is_active else 'désactivée'}"
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Erreur toggle règle {regle_id}: {e}")
+        return jsonify({'success': False, 'error': 'Erreur interne du serveur'}), 500
+
+
+# CORRECTION MAJEURE : Fonction de calcul des statistiques comptes
+def calculer_statistiques_comptes(ecritures, regles_existantes):
+    """Calcule les statistiques par compte de contrepartie - VERSION CORRIGÉE"""
+    from collections import defaultdict
+    from app.services.regle_tester import RegleTester
+
+    print(f"📊 DEBUG Stats - Début calcul avec {len(ecritures)} écritures et {len(regles_existantes)} règles")
+
+    tester = RegleTester()
+
+    # Grouper par compte de contrepartie
+    comptes_stats = defaultdict(lambda: {
+        'compte': '',
+        'libelle': '',
+        'nb_transactions': 0,
+        'transactions': [],
+        'pourcentage_total': 0,
+        'pourcentage_traite': 0,
+        'pourcentage_a_faire': 0
+    })
+
+    total_ecritures = len(ecritures)
+    if total_ecritures == 0:
+        return []
+
+    # Identifier TOUTES les écritures couvertes par TOUTES les règles actives
+    ecritures_couvertes_globales = set()
+    for regle in regles_existantes:
+        if regle.is_active:
+            try:
+                matches = tester.test_regle_object(regle, ecritures)
+                for match in matches:
+                    ecritures_couvertes_globales.add(match.id)
+                print(f"📋 Règle '{regle.nom}' couvre {len(matches)} écritures")
+            except Exception as e:
+                print(f"❌ Erreur test règle {regle.nom}: {e}")
+
+    print(f"🎯 Total écritures couvertes: {len(ecritures_couvertes_globales)}/{total_ecritures}")
+
+    # Analyser chaque écriture
+    for ecriture in ecritures:
+        # Utiliser les champs compte_contrepartie et libelle_contrepartie
+        if hasattr(ecriture, 'compte_contrepartie') and ecriture.compte_contrepartie:
+            compte_contrepartie = ecriture.compte_contrepartie
+            libelle_contrepartie = ecriture.libelle_contrepartie or "Libellé non défini"
+        else:
+            # Fallback vers l'ancienne logique
+            if not ecriture.compte_final.startswith('512'):
+                compte_contrepartie = ecriture.compte_final
+                libelle_contrepartie = ecriture.libelle_final
+            else:
+                continue  # Ignorer les comptes 512
+
+        comptes_stats[compte_contrepartie]['compte'] = compte_contrepartie
+        comptes_stats[compte_contrepartie]['libelle'] = libelle_contrepartie
+        comptes_stats[compte_contrepartie]['nb_transactions'] += 1
+        comptes_stats[compte_contrepartie]['transactions'].append(ecriture)
+
+    # Fonction pour formater les pourcentages avec précision adaptative
+    def format_pourcentage_precis(valeur):
+        if valeur == 0:
+            return 0
+        elif valeur < 0.1:
+            return round(valeur, 2)
+        else:
+            return round(valeur, 1)
+
+    # Calculer les pourcentages POUR CHAQUE COMPTE
+    result = []
+    for compte, stats in comptes_stats.items():
+        nb_transactions = stats['nb_transactions']
+
+        # % total = part de ce compte dans toutes les écritures
+        pourcentage_total_brut = (nb_transactions / total_ecritures * 100) if total_ecritures > 0 else 0
+
+        # % traité = écritures de ce compte qui sont couvertes par des règles
+        ecritures_compte_couvertes = [t for t in stats['transactions'] if t.id in ecritures_couvertes_globales]
+        nb_couvertes = len(ecritures_compte_couvertes)
+        pourcentage_traite_brut = (nb_couvertes / nb_transactions * 100) if nb_transactions > 0 else 0
+
+        # % à faire = 100% - % traité pour ce compte spécifiquement
+        pourcentage_a_faire_brut = 100 - pourcentage_traite_brut
+
+        # Appliquer le formatage précis
+        pourcentage_total = format_pourcentage_precis(pourcentage_total_brut)
+        pourcentage_traite = format_pourcentage_precis(pourcentage_traite_brut)
+        pourcentage_a_faire = format_pourcentage_precis(max(0, pourcentage_a_faire_brut))
+
+        result.append({
+            'compte': compte,
+            'libelle': stats['libelle'],
+            'nb_transactions': nb_transactions,
+            'pourcentage_total': pourcentage_total,
+            'pourcentage_traite': pourcentage_traite,
+            'pourcentage_a_faire': pourcentage_a_faire,
+            'pourcentage_impact': 0  # Sera calculé en temps réel côté client
+        })
+
+        print(
+            f"📊 Compte {compte}: {nb_transactions} trans, {pourcentage_traite}% traité, {pourcentage_a_faire}% à faire")
+
+    # Trier par nombre de transactions décroissant
+    result_sorted = sorted(result, key=lambda x: x['nb_transactions'], reverse=True)
+    print(f"✅ Statistiques calculées pour {len(result_sorted)} comptes")
+
+    return result_sorted
+
+
+def calculer_automatisation_globale(ecritures, regles_existantes):
+    """Calcule le pourcentage global d'automatisation - VERSION CORRIGÉE"""
+    if not ecritures:
+        return 0
+
+    from app.services.regle_tester import RegleTester
+    tester = RegleTester()
+
+    ecritures_couvertes = set()
+    for regle in regles_existantes:
+        if regle.is_active:  # Seulement les règles ACTIVES
+            try:
+                matches = tester.test_regle_object(regle, ecritures)
+                for match in matches:
+                    ecritures_couvertes.add(match.id)
+            except Exception as e:
+                print(f"❌ Erreur calcul automatisation pour règle {regle.nom}: {e}")
+
+    automatisation = round((len(ecritures_couvertes) / len(ecritures) * 100), 1)
+    print(f"🎯 Automatisation globale: {automatisation}% ({len(ecritures_couvertes)}/{len(ecritures)})")
+
+    return automatisation
 
 
 @regles_bp.route('/regles/test-collision', methods=['POST'])

@@ -818,7 +818,48 @@ body {
     justify-content: center;
 }
 
-.tooltip-custom {
+/* Tooltips du tableau des règles */
+.regles-table .tooltip-custom {
+    position: relative;
+    cursor: help;
+}
+
+.regles-table .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #1d1d1f;
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1000;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+}
+
+.regles-table .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1d1d1f transparent transparent transparent;
+}
+
+.regles-table .tooltip-custom:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Tooltips du panneau gauche (restaurer l'ancien style) */
+.panel .tooltip-custom {
     position: absolute;
     background: #1d1d1f;
     color: white;
@@ -834,6 +875,69 @@ body {
     left: 50%;
     transform: translateX(-50%);
     margin-top: 5px;
+}
+
+.panel .tooltip-custom::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-bottom-color: #1d1d1f;
+}
+
+/* Forcer l'affichage des pourcentages dans le tableau */
+.regles-table .pourcentage-impact,
+.regles-table .pourcentage-collision {
+    display: inline-block !important;
+    opacity: 1 !important;
+    color: #1d1d1f !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #1d1d1f;
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1000;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+}
+
+.tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1d1d1f transparent transparent transparent;
+}
+
+.tooltip-custom:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Forcer l'affichage des pourcentages */
+.pourcentage-impact, .pourcentage-collision {
+    display: inline-block !important;
+    opacity: 1 !important;
+    color: #1d1d1f !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
 }
 
 .tooltip-custom::after {
@@ -1001,8 +1105,26 @@ body {
     padding-left: 12px;
     padding-right: 12px;
     text-align: center;
-    width: 90px;
+    width: 120px;
+    min-width: 100px;
 }
+
+/* Forcer l'affichage des pourcentages */
+.pourcentage-impact,
+.pourcentage-collision {
+    display: inline-block !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+}
+
+.pourcentage-impact {
+    color: #007aff !important;
+}
+
+.pourcentage-collision.low { color: #28c840 !important; }
+.pourcentage-collision.medium { color: #ff9500 !important; }
+.pourcentage-collision.high { color: #ff3b30 !important; }
 
 /* Autres styles existants... */
 .btn-apple {
@@ -1329,6 +1451,39 @@ try {
     journaux = [];
 }
 
+// Fonction utilitaire pour tester les critères de montant
+function testCritereMontant(montantEcriture, critereMontant) {
+    if (!critereMontant) return true;
+
+    try {
+        const critere = JSON.parse(critereMontant);
+        const montant = parseFloat(montantEcriture);
+        const valeur = parseFloat(critere.valeur);
+
+        if (isNaN(montant) || isNaN(valeur)) return true;
+
+        switch (critere.operateur) {
+            case '=': return Math.abs(montant - valeur) < 0.01;
+            case '!=': return Math.abs(montant - valeur) >= 0.01;
+            case '<': return montant < valeur;
+            case '>': return montant > valeur;
+            case '<=': return montant <= valeur;
+            case '>=': return montant >= valeur;
+            case 'entre':
+                const valeur2 = parseFloat(critere.valeur2);
+                if (isNaN(valeur2)) return true;
+                const min = Math.min(valeur, valeur2);
+                const max = Math.max(valeur, valeur2);
+                return montant >= min && montant <= max;
+            default:
+                return true;
+        }
+    } catch (e) {
+        console.warn('Erreur parsing critère montant:', critereMontant, e);
+        return true;
+    }
+}
+
 function afficherRegles() {
     const tbody = document.getElementById('regles-tbody');
     const emptyState = document.getElementById('empty-state');
@@ -1382,43 +1537,6 @@ let html = '';
         // Assurer que mots_cles est un tableau
         const motsCles = Array.isArray(regle.mots_cles) ? regle.mots_cles : [];
 
-        // CALCUL DIRECT : Calculer l'impact et la collision en temps réel
-        let impactAffiche = 0;
-        let collisionAffichee = 0;
-        let nbTransactionsAffiche = 0;
-        let nbCollisionsAffiche = 0;
-
-        if (regle.active && toutesEcritures.length > 0) {
-            // Filtrer les écritures qui matchent cette règle
-            const ecrituresMatchees = toutesEcritures.filter(ecriture => {
-                // Test des mots-clés
-                const motsClesMatch = !regle.mots_cles || regle.mots_cles.length === 0 ||
-                    regle.mots_cles.some(motCle =>
-                        ecriture.ecriture_lib.toLowerCase().includes(motCle.toLowerCase())
-                    );
-                // Test de la banque
-                const banqueMatch = !regle.banque || regle.banque === '' || regle.banque === 'Toutes' ||
-                    ecriture.journal_code === regle.banque;
-                return motsClesMatch && banqueMatch;
-            });
-
-            if (ecrituresMatchees.length > 0) {
-                // Séparer les matches par compte de contrepartie
-                const matchesCompteRegle = ecrituresMatchees.filter(e => e.compte_contrepartie === regle.compte);
-                const matchesAutresComptes = ecrituresMatchees.filter(e => e.compte_contrepartie !== regle.compte);
-
-                // Calcul de l'impact
-                const transactionsTotalesCompte = toutesEcritures.filter(e => e.compte_contrepartie === regle.compte).length;
-                impactAffiche = transactionsTotalesCompte > 0 ? (matchesCompteRegle.length / transactionsTotalesCompte * 100) : 0;
-
-                // Calcul de la collision
-                collisionAffichee = matchesCompteRegle.length > 0 ? (matchesAutresComptes.length / matchesCompteRegle.length * 100) : 0;
-
-                nbTransactionsAffiche = matchesCompteRegle.length;
-                nbCollisionsAffiche = matchesAutresComptes.length;
-            }
-        }
-
         html += `
             <tr>
                 <td>
@@ -1445,16 +1563,16 @@ let html = '';
                 <td>
                     <span class="compte-bancaire">${regle.banque || 'Toutes'}</span>
                 </td>
-                <td>
+<td>
                     <div class="tooltip-custom">
-                        <span class="pourcentage-impact">${impactAffiche.toFixed(1)}%</span>
-                        <div class="tooltip-text">${nbTransactionsAffiche} transactions</div>
+                        <span class="pourcentage-impact">${(regle.impact || 0).toFixed(1)}%</span>
+                        <div class="tooltip-text">${regle.nb_transactions || 0} transactions</div>
                     </div>
                 </td>
                 <td>
                     <div class="tooltip-custom">
-                        <span class="pourcentage-collision ${getCollisionClass(collisionAffichee)}">${collisionAffichee.toFixed(1)}%</span>
-                        <div class="tooltip-text">${nbCollisionsAffiche} collisions</div>
+                        <span class="pourcentage-collision ${getCollisionClass(regle.collision || 0)}">${(regle.collision || 0).toFixed(1)}%</span>
+                        <div class="tooltip-text">${regle.nb_collisions || 0} collisions</div>
                     </div>
                 </td>
                 <td>
@@ -1468,6 +1586,26 @@ let html = '';
     });
 
     tbody.innerHTML = html;
+
+tbody.innerHTML = html;
+
+    // TEST TEMPORAIRE : Vérifier l'affichage après injection
+    setTimeout(() => {
+        const impactCells = document.querySelectorAll('.pourcentage-impact');
+        const collisionCells = document.querySelectorAll('.pourcentage-collision');
+
+        console.log('🔍 Cellules Impact trouvées:', impactCells.length);
+        console.log('🔍 Cellules Collision trouvées:', collisionCells.length);
+
+        impactCells.forEach((cell, index) => {
+            console.log(`🔍 Impact ${index}: "${cell.textContent}"`);
+        });
+
+        collisionCells.forEach((cell, index) => {
+            console.log(`🔍 Collision ${index}: "${cell.textContent}"`);
+        });
+    }, 100);
+
 }
 
         function formatCompteNumber(compte) {
@@ -1484,9 +1622,19 @@ let html = '';
             return 'high';
         }
 
-        function formatCritereMontant(critere) {
-            if (!critere) return 'Tous';
-            return `${critere.operateur} ${critere.valeur}€`;
+function formatCritereMontant(critere) {
+            if (!critere) return '';
+            if (typeof critere === 'string') {
+                try {
+                    critere = JSON.parse(critere);
+                } catch (e) {
+                    return critere;
+                }
+            }
+            if (critere.operateur && critere.valeur !== undefined) {
+                return `${critere.operateur} ${critere.valeur}€`;
+            }
+            return '';
         }
 
 function mettreAJourStats() {
@@ -2309,26 +2457,29 @@ function calculerPourcentageTraiteReel(numeroCompte) {
     // Marquer les écritures couvertes (éviter les doublons)
     const ecrituresCouvertesIds = new Set();
 
-    reglesData.forEach(regle => {
-        if (regle.active && regle.compte === numeroCompte) {
-            // Cette règle est active pour ce compte
-            ecrituresDuCompte.forEach(ecriture => {
-                // Test des mots-clés
-                const motsClesMatch = !regle.mots_cles || regle.mots_cles.length === 0 ||
-                    regle.mots_cles.some(motCle =>
-                        ecriture.ecriture_lib.toLowerCase().includes(motCle.toLowerCase())
-                    );
+    // CORRECTION : Vérifier que reglesData existe et est bien un tableau
+    if (reglesData && Array.isArray(reglesData) && reglesData.length > 0) {
+        reglesData.forEach(regle => {
+            if (regle && regle.active && regle.compte === numeroCompte) {
+                // Cette règle est active pour ce compte
+                ecrituresDuCompte.forEach(ecriture => {
+                    // Test des mots-clés
+                    const motsClesMatch = !regle.mots_cles || regle.mots_cles.length === 0 ||
+                        regle.mots_cles.some(motCle =>
+                            ecriture.ecriture_lib.toLowerCase().includes(motCle.toLowerCase())
+                        );
 
-                // Test de la banque
-                const banqueMatch = !regle.banque || regle.banque === '' || regle.banque === 'Toutes' ||
-                    ecriture.journal_code === regle.banque;
+                    // Test de la banque
+                    const banqueMatch = !regle.banque || regle.banque === '' || regle.banque === 'Toutes' ||
+                        ecriture.journal_code === regle.banque;
 
-                if (motsClesMatch && banqueMatch) {
-                    ecrituresCouvertesIds.add(ecriture.id);
-                }
-            });
-        }
-    });
+                    if (motsClesMatch && banqueMatch) {
+                        ecrituresCouvertesIds.add(ecriture.id);
+                    }
+                });
+            }
+        });
+    }
 
     const pourcentage = (ecrituresCouvertesIds.size / ecrituresDuCompte.length * 100);
     return Math.round(pourcentage * 10) / 10; // Arrondir à 1 décimale
