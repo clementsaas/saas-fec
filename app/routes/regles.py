@@ -968,6 +968,13 @@ def import_regles():
 
         filename = file.filename.lower()
 
+        # Traitement selon le type de fichier
+        import pandas as pd
+        from io import BytesIO
+        import re
+
+        filename = file.filename.lower()
+
         try:
             print(f"🔍 DEBUG Import - Lecture du fichier: {filename}")
 
@@ -1013,7 +1020,6 @@ def import_regles():
                     return []
 
                 # Pattern pour extraire les mots-clés des regex Pennylane
-                # (?=.*(TEXTE)) ou ^(?=(TEXTE)) ou (?=.*^(TEXTE)$) etc.
                 patterns = [
                     r'\(\?\=\.\*\(([^)]+)\)\)',  # (?=.*(TEXTE))
                     r'\^\(\?\=\(([^)]+)\)\)',  # ^(?=(TEXTE))
@@ -1080,6 +1086,8 @@ def import_regles():
 
             for index, row in df.iterrows():
                 try:
+                    print(f"🔍 DEBUG Import - Traitement ligne {index + 2}")
+
                     # Vérifier les champs obligatoires
                     nom = str(row['Nom']).strip() if pd.notna(row['Nom']) else ''
                     mots_cles_str = str(row['Mots-clés']).strip() if pd.notna(row['Mots-clés']) else ''
@@ -1132,41 +1140,47 @@ def import_regles():
                     db.session.add(regle)
                     imported_count += 1
                     print(f"✅ DEBUG Import - Règle ajoutée: {nom} (mots-clés: {mots_cles})")
+
                 except Exception as e:
                     error_msg = f"Ligne {index + 2}: Erreur de traitement - {str(e)}"
                     errors.append(error_msg)
                     print(f"❌ DEBUG Import - {error_msg}")
                     continue
 
-                print(f"🔍 DEBUG Import - Fin du traitement: {imported_count} règles à sauvegarder")
+            # FIN DE LA BOUCLE - Traitement après avoir parcouru TOUTES les lignes
+            print(f"🔍 DEBUG Import - Fin du traitement: {imported_count} règles à sauvegarder")
 
-                # Sauvegarder en base
-                if imported_count > 0:
-                    print("💾 DEBUG Import - Sauvegarde en base de données...")
-                    db.session.commit()
-                    print("✅ DEBUG Import - Sauvegarde réussie")
-                else:
-                    print("⚠️ DEBUG Import - Aucune règle à sauvegarder")
+            # Sauvegarder en base
+            if imported_count > 0:
+                print("💾 DEBUG Import - Sauvegarde en base de données...")
+                db.session.commit()
+                print("✅ DEBUG Import - Sauvegarde réussie")
+            else:
+                print("⚠️ DEBUG Import - Aucune règle à sauvegarder")
 
-                print(f"🎯 DEBUG Import - Résultat final: {imported_count} importées, {len(errors)} erreurs")
+            print(f"🎯 DEBUG Import - Résultat final: {imported_count} importées, {len(errors)} erreurs")
 
-                # Préparer la réponse
-                response_data = {
-                    'success': True,
-                    'imported_count': imported_count,
-                    'total_rows': len(df),
-                    'errors': errors[:10]  # Limiter à 10 erreurs pour l'affichage
-                }
+            # Préparer la réponse
+            response_data = {
+                'success': True,
+                'imported_count': imported_count,
+                'total_rows': len(df),
+                'errors': errors[:10]  # Limiter à 10 erreurs pour l'affichage
+            }
 
-                if errors:
-                    response_data['warning'] = f"{len(errors)} ligne(s) ignorée(s)"
+            if errors:
+                response_data['warning'] = f"{len(errors)} ligne(s) ignorée(s)"
 
-                return jsonify(response_data)
+            return jsonify(response_data)
 
         except Exception as e:
+            db.session.rollback()
+            print(f"❌ Erreur lecture fichier: {e}")
             return jsonify({'success': False, 'error': f'Erreur de lecture du fichier: {str(e)}'}), 400
 
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Erreur import règles: {e}")
+        print(f"❌ Erreur générale import: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': 'Erreur interne du serveur'}), 500
