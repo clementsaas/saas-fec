@@ -3227,8 +3227,9 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
                 </div>
                 <div class="pagination-controls">
                     <span>Afficher:</span>
-                    <select class="pagination-select" id="pagination-select" onchange="changePagination()">
-                        <option value="50">50</option>
+<select class="pagination-select" id="pagination-select" onchange="changePagination()">
+<option value="50">50</option>
+<option value="100" selected>100</option>
                         <option value="100">100</option>
                         <option value="300">300</option>
                         <option value="all">∞</option>
@@ -3593,7 +3594,8 @@ function toggleFiltersAI() {
     <script>
 
 // Variables globales dynamiques
-        let compteSelectionne = null;
+let compteSelectionne = null;
+let paginationLimit = 100; // Limite par défaut de 100 transactions
         let currentSort = { field: 'gain', direction: 'desc' };
         let transactionSort = { field: 'libelle', direction: 'asc' };
         const societeId = {{ societe.id if societe else 'null' }};
@@ -4383,8 +4385,14 @@ if (compteSelectionne && groupeSelectionne === null) {
                 return;
             }
 
-            let html = '';
-            ecrituresFiltered.forEach(ecriture => {
+// Appliquer la pagination
+let ecrituresAffichees = ecrituresFiltered;
+if (paginationLimit !== null && paginationLimit > 0) {
+    ecrituresAffichees = ecrituresFiltered.slice(0, paginationLimit);
+}
+
+let html = '';
+ecrituresAffichees.forEach(ecriture => {
                 const montantClass = ecriture.montant >= 0 ? 'montant-positif' : 'montant-negatif';
                 const montantFormate = Math.abs(ecriture.montant).toFixed(2).replace('.', ',');
                 const signe = ecriture.montant >= 0 ? '' : '-';
@@ -4608,11 +4616,23 @@ console.log('Matches dans le compte:', nbMatchesCompte, '/', totalCompte);
 console.log('Détails collisions stockés:', collisionDetails);
 }
 
-        function changePagination() {
-            const value = document.getElementById('pagination-select').value;
-            console.log('📄 Pagination changée:', value);
-            // TODO: Implémenter la pagination
-        }
+function changePagination() {
+    const value = document.getElementById('pagination-select').value;
+    console.log('📄 Pagination changée:', value);
+
+    // Stocker la nouvelle limite
+    paginationLimit = value === 'all' ? null : parseInt(value);
+
+    // Ré-afficher les transactions avec la nouvelle limite
+    afficherTransactions();
+
+    // Réappliquer le tri en cours après le changement de pagination
+    if (transactionSort.field) {
+        setTimeout(() => {
+            applquerTriExistant();
+        }, 50);
+    }
+}
 
 function viderFiltres() {
     document.getElementById('filter-banque').value = '';
