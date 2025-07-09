@@ -3461,6 +3461,17 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.15);
 }
 
+/* Masquer les flèches des inputs number dans les filtres avancés */
+.filter-input-ai[type=number]::-webkit-outer-spin-button,
+.filter-input-ai[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.filter-input-ai[type=number] {
+    -moz-appearance: textfield;
+}
+
 .filter-input-small-ai {
     flex: 0 0 60px;
 }
@@ -3592,6 +3603,23 @@ function toggleFiltersAI() {
     </div>
 
     <script>
+
+// 🚨 AJOUT DEBUG - Capturer toutes les erreurs JavaScript
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    console.error('🚨 ERREUR JS DÉTECTÉE:', {
+        message: msg,
+        source: url,
+        line: lineNo,
+        column: columnNo,
+        error: error,
+        stack: error ? error.stack : 'Pas de stack'
+    });
+    return false;
+};
+
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('🚨 PROMESSE REJETÉE:', event.reason);
+});
 
 // Variables globales dynamiques
 let compteSelectionne = null;
@@ -4186,11 +4214,13 @@ function highlightKeywordsInAllTransactions(keywords1, keywords2) {
             compteSelectionne = compte;
             console.log('🏦 Compte sélectionné:', compte);
 
-            // Réinitialiser les filtres
-            document.getElementById('filter-banque').value = '';
-            document.getElementById('search-keywords').value = '';
-            document.getElementById('montant-operateur').value = '=';
-            document.getElementById('montant-valeur').value = '';
+// Réinitialiser les filtres
+document.getElementById('filter-banque').value = '';
+document.getElementById('search-keywords').value = '';
+document.getElementById('search-keywords-2').value = '';
+document.getElementById('search-keywords-2').style.display = 'none';
+document.getElementById('montant-operateur').value = '=';
+document.getElementById('montant-valeur').value = '';
 
 // Recharger les journaux avec l'état mis à jour
     chargerJournaux();
@@ -5076,10 +5106,30 @@ function updateDropdownSelection() {
     }
 }
 
-        function selectCompany(societeId) {
-            console.log('🏢 Changement de société:', societeId);
-            window.location.href = `/societe/${societeId}`;
-        }
+function selectCompany(societeId) {
+    try {
+        console.log('🔄 DÉBUT changement société:', {
+            nouvelleSociete: societeId,
+            societeActuelle: window.societeId,
+            compteSelectionne: compteSelectionne,
+            timestamp: new Date().toISOString()
+        });
+
+        // Nettoyer l'état avant changement
+        compteSelectionne = null;
+
+        console.log('🔄 Redirection vers:', `/societe/${societeId}`);
+        window.location.href = `/societe/${societeId}`;
+
+    } catch (error) {
+        console.error('🚨 CRASH dans selectCompany:', {
+            error: error.message,
+            stack: error.stack,
+            societeId: societeId
+        });
+        alert(`Erreur lors du changement de société: ${error.message}`);
+    }
+}
 
         // Gestion de l'upload FEC
         const uploadZone = document.getElementById('uploadZone');
@@ -5732,7 +5782,7 @@ function selectionnerGroupe(index) {
     const groupe = groupementsIntelligents.filter(item => (item.type === 'group' || item.type === 'rule_suggestion'))[index];
 
     if (groupe) {
-        console.log('📊 Groupe sélectionné:', groupe.pattern);
+        console.log('📊 Groupe sélectionné avec rule_data:', groupe);
 
         // Si c'est une suggestion de règle avec mots-clés séparés
         if (groupe.suggested_keywords && groupe.suggested_keywords.length > 0) {
@@ -5756,12 +5806,49 @@ function selectionnerGroupe(index) {
             searchInput.value = groupe.pattern;
         }
 
-        // Vider les autres filtres pour se concentrer sur ce groupe
-        document.getElementById('filter-banque').value = '';
-        document.getElementById('montant-operateur').value = '=';
-        document.getElementById('montant-valeur').value = '';
+        // 🎯 APPLIQUER les critères automatiques depuis rule_data
+        if (groupe.rule_data) {
+            console.log('📋 Données règle disponibles:', groupe.rule_data);
 
-        // Filtrer les transactions
+            // Critère journal automatique
+            if (groupe.rule_data.journal) {
+                document.getElementById('filter-banque').value = groupe.rule_data.journal;
+                console.log('✅ Journal automatique appliqué:', groupe.rule_data.journal);
+            } else {
+                document.getElementById('filter-banque').value = '';
+            }
+
+            // Critère montant automatique
+            if (groupe.rule_data.montant) {
+                const montantCriterion = groupe.rule_data.montant;
+                console.log('✅ Montant automatique détecté:', montantCriterion);
+
+                if (montantCriterion === '> 0') {
+                    document.getElementById('montant-operateur').value = '>';
+                    document.getElementById('montant-valeur').value = '0';
+                } else if (montantCriterion === '< 0') {
+                    document.getElementById('montant-operateur').value = '<';
+                    document.getElementById('montant-valeur').value = '0';
+                } else if (montantCriterion.startsWith('= ')) {
+                    document.getElementById('montant-operateur').value = '=';
+                    document.getElementById('montant-valeur').value = montantCriterion.substring(2);
+                } else {
+                    document.getElementById('montant-operateur').value = '=';
+                    document.getElementById('montant-valeur').value = '';
+                }
+            } else {
+                document.getElementById('montant-operateur').value = '=';
+                document.getElementById('montant-valeur').value = '';
+            }
+        } else {
+            // Pas de rule_data - vider les filtres (comportement par défaut)
+            console.log('⚠️ Aucune rule_data disponible pour ce groupe');
+            document.getElementById('filter-banque').value = '';
+            document.getElementById('montant-operateur').value = '=';
+            document.getElementById('montant-valeur').value = '';
+        }
+
+        // Filtrer les transactions avec les nouveaux critères
         filtrerTransactions();
 
         // Effet visuel

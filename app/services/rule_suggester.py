@@ -119,33 +119,68 @@ class RuleSuggester:
 
     def find_account_specific_patterns(self, compte: str, transactions: List[Dict],
                                        all_transactions: List[Dict] = None) -> List[Dict]:
-        """Trouve les motifs spécifiques selon le type de compte"""
+        """Trouve les motifs spécifiques selon le type de compte avec critères automatiques"""
         if self.debug:
             print(f"🔍 AFFECTIA : Analyse spécifique pour le compte {compte}")
-        # Comptes 164 (Emprunts)
+
+        # 🎯 Pré-calculer les critères automatiques pour toutes les transactions du compte
+        auto_criteria = self._detect_automatic_criteria(transactions)
+
+        # Analyser selon le type de compte
+        rules = []
         if compte.startswith('164'):
-            return self._analyze_emprunt_account(compte, transactions)
-            # Comptes 401/411 (Fournisseurs/Clients)
+            rules = self._analyze_emprunt_account(compte, transactions)
         elif compte.startswith('401') or compte.startswith('411'):
-            return self._analyze_tiers_account(compte, transactions, all_transactions)
-        # Comptes 421/42 (Personnel et assimilés)
+            rules = self._analyze_tiers_account(compte, transactions, all_transactions)
         elif compte.startswith('421') or compte.startswith('42'):
-            return self._analyze_personnel_account(compte, transactions)
-        # Compte 431 (URSSAF)
+            rules = self._analyze_personnel_account(compte, transactions)
         elif compte.startswith('431'):
-            return self._analyze_urssaf_account(compte, transactions)
-        # Compte 4421 (Prélèvement à la source)
+            rules = self._analyze_urssaf_account(compte, transactions)
         elif compte.startswith('4421'):
-            return self._analyze_pas_account(compte, transactions)
-        # Comptes 44551 / 4455* (TVA)
+            rules = self._analyze_pas_account(compte, transactions)
         elif compte.startswith('44551') or compte.startswith('4455'):
-            return self._analyze_tva_account(compte, transactions)
-        # Compte 63511 (Impôts locaux)
+            rules = self._analyze_tva_account(compte, transactions)
         elif compte.startswith('63511'):
-            return self._analyze_impots_locaux_account(compte, transactions)
-        # Cas général (autres comptes)
+            rules = self._analyze_impots_locaux_account(compte, transactions)
         else:
-            return self._analyze_general_account(compte, transactions)
+            rules = self._analyze_general_account(compte, transactions)
+
+        # 🎯 Appliquer les critères automatiques à TOUTES les règles générées
+        return self._apply_automatic_criteria(rules, auto_criteria)
+
+    def _detect_automatic_criteria(self, transactions: List[Dict]) -> Dict:
+        """Détecte les critères automatiques applicables à toutes les transactions"""
+        if not transactions:
+            return {}
+
+        auto_criteria = {}
+
+        # 1. Critère journal unique
+        journals = {t['journal_code'] for t in transactions}
+        if len(journals) == 1:
+            auto_criteria['journal'] = list(journals)[0]
+            if self.debug:
+                print(f"🎯 AFFECTIA : Journal unique détecté - {list(journals)[0]}")
+
+        # 2. Critère montant pattern
+        montants = [t['montant'] for t in transactions]
+        montant_criterion = self._analyze_montant_pattern(montants)
+        if montant_criterion:
+            auto_criteria['montant'] = montant_criterion
+            if self.debug:
+                print(f"🎯 AFFECTIA : Pattern montant détecté - {montant_criterion}")
+
+        return auto_criteria
+
+    def _apply_automatic_criteria(self, rules: List[Dict], auto_criteria: Dict) -> List[Dict]:
+        """Applique les critères automatiques à toutes les règles pour réduire les collisions"""
+        for rule in rules:
+            for key, value in auto_criteria.items():
+                if key not in rule:  # Ne pas écraser les critères déjà définis par les analyses spécifiques
+                    rule[key] = value
+                    if self.debug:
+                        print(f"🎯 AFFECTIA : Critère automatique {key}={value} ajouté à la règle '{rule['mot_cle_1']}'")
+        return rules
 
     def _analyze_emprunt_account(self, compte: str, transactions: List[Dict]) -> List[Dict]:
         """Analyse spécifique pour les comptes d'emprunt (164)"""
