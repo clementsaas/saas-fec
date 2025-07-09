@@ -134,9 +134,6 @@ class RuleSuggester:
         # Compte 431 (URSSAF)
         elif compte.startswith('431'):
             return self._analyze_urssaf_account(compte, transactions)
-        # Comptes 43 (Organismes sociaux, hors 431)
-        elif compte.startswith('43'):
-            return self._analyze_social_account(compte, transactions)
         # Compte 4421 (Prélèvement à la source)
         elif compte.startswith('4421'):
             return self._analyze_pas_account(compte, transactions)
