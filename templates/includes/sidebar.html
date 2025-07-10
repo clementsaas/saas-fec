@@ -1,104 +1,457 @@
-<!-- Barre latérale -->
-<div class="sidebar">
-    <div class="sidebar-logo">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="moonGradientSidebar" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.8" />
-                </linearGradient>
-            </defs>
-            <path d="M50 10 C70 10, 85 25, 85 45 C85 65, 70 80, 50 80 C35 80, 25 70, 25 50 C25 35, 35 20, 50 10 Z"
-                  fill="url(#moonGradientSidebar)" />
-        </svg>
+<!-- Sidebar Affectia - Intelligence Douce -->
+<div class="affectia-sidebar" id="affectiaSidebar">
+    <!-- En-tête avec toggle -->
+    <div class="sidebar-header">
+<button class="sidebar-toggle-btn" id="sidebarToggle" title="Fermer la barre latérale">
+    <img src="/static/images/logo_affectia_vector.svg"
+         alt="Affectia Logo"
+         class="affectia-logo-toggle"
+         width="24"
+         height="24">
+</button>
     </div>
 
-    <div class="sidebar-menu">
-<!-- Icône Création de règle -->
-<div class="sidebar-item {{ 'active' if current_page == 'dashboard' else '' }}" title="Création de règle" onclick="naviguerVers('dashboard')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-wrench" viewBox="0 0 16 16">
-                <path d="M.102 2.223A3.004 3.004 0 0 0 3.78 5.897l6.341 6.252A3.003 3.003 0 0 0 13 16a3 3 0 1 0-.851-5.878L5.897 3.781A3.004 3.004 0 0 0 2.223.1l2.141 2.142L4 4l-1.757.364zm13.37 9.019.528.026.287.445.445.287.026.529L15 13l-.242.471-.026.529-.445.287-.287.445-.529.026L13 15l-.471-.242-.529-.026-.287-.445-.445-.287-.026-.529L11 13l.242-.471.026-.529.445-.287.287-.445.529-.026L13 11z"/>
-            </svg>
+    <!-- Navigation principale -->
+    <div class="sidebar-nav">
+        <!-- Tableau de bord -->
+        <div class="nav-item {{ 'active' if current_page == 'dashboard' else '' }}"
+             onclick="navigateToPage('dashboard')"
+             title="Tableau de bord">
+            <div class="nav-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
+                    <path fill-rule="evenodd" d="M0 10a8 8 0 1 1 15.547 2.661c-.442 1.253-1.845 1.602-2.932 1.25C11.309 13.488 9.475 13 8 13c-1.474 0-3.31.488-4.615.911-1.087.352-2.49.003-2.932-1.25A7.988 7.988 0 0 1 0 10zm8-7a7 7 0 0 0-6.603 9.329c.203.575.923.876 1.68.63C4.397 12.533 6.358 12 8 12s3.604.532 4.923.96c.757.245 1.477-.056 1.68-.631A7 7 0 0 0 8 3z"/>
+                </svg>
+            </div>
+            <span class="nav-text">Tableau de bord</span>
         </div>
 
-<!-- Icône Liste des règles -->
-<div class="sidebar-item {{ 'active' if current_page == 'regles' else '' }}" title="Liste des règles" onclick="naviguerVers('regles')">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-check" viewBox="0 0 16 16">
-        <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0"/>
-    </svg>
+        <!-- Import / Export -->
+        <div class="nav-item {{ 'active' if current_page == 'import' else '' }}"
+             onclick="navigateToPage('import')"
+             title="Import / Export">
+            <div class="nav-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                </svg>
+            </div>
+            <span class="nav-text">Import / Export</span>
+        </div>
+
+        <!-- Créer des règles -->
+        <div class="nav-item {{ 'active' if current_page == 'create_rule' else '' }}"
+             onclick="navigateToPage('create_rule')"
+             title="Créer des règles">
+            <div class="nav-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+            </div>
+            <span class="nav-text">Créer des règles</span>
+        </div>
+
+        <!-- Liste des règles -->
+        <div class="nav-item {{ 'active' if current_page == 'regles' else '' }}"
+             onclick="navigateToPage('regles')"
+             title="Liste des règles">
+            <div class="nav-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                </svg>
+            </div>
+            <span class="nav-text">Liste des règles</span>
+        </div>
+    </div>
+
+    <!-- Séparateur -->
+    <hr class="nav-divider">
+
+    <!-- Section Paramètres -->
+    <div class="sidebar-nav">
+        <!-- Paramètres -->
+        <div class="nav-item {{ 'active' if current_page == 'parametres' else '' }}"
+             onclick="navigateToPage('parametres')"
+             title="Paramètres">
+            <div class="nav-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+                    <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+                </svg>
+            </div>
+            <span class="nav-text">Paramètres</span>
+        </div>
+    </div>
 </div>
 
-        <!-- Icône Import -->
-        <div class="sidebar-item" title="Import FEC" onclick="naviguerVers('import')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
-                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
-                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
-            </svg>
-        </div>
-    </div>
+<style>
+/* Base Sidebar - Intelligence Douce Style */
+.affectia-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 225px;
+    height: 100vh;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(248, 250, 251, 0.9) 100%);
+    backdrop-filter: blur(20px) saturate(150%);
+    border-right: 1px solid rgba(255, 255, 255, 0.4);
+    z-index: 1003;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    box-shadow:
+        2px 0 20px rgba(0, 0, 0, 0.08),
+        inset -1px 0 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
 
-    <!-- Icône Paramètres tout en bas -->
-    <div style="margin-top: auto; padding-bottom: 20px;">
-        <div class="sidebar-item" title="Paramètres" onclick="naviguerVers('parametres')">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11.03L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11.03L19.5,12L19.43,12.97L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.03 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"/>
-            </svg>
-        </div>
-    </div>
-</div>
+.affectia-sidebar.collapsed {
+    width: 53px;
+}
+
+/* En-tête */
+.sidebar-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 8px 4px;
+    margin-bottom: 16px;
+}
+
+.sidebar-toggle-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: ew-resize;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+}
+
+.sidebar-toggle-btn:hover {
+    background: rgba(100, 116, 139, 0.1);
+}
+
+.affectia-logo-toggle {
+    transition: all 0.3s ease;
+    filter: brightness(0) saturate(100%) invert(42%) sepia(8%) saturate(1168%) hue-rotate(180deg) brightness(95%) contrast(88%);
+}
+
+.sidebar-toggle-btn:hover .affectia-logo-toggle {
+    transform: scale(1.1);
+    filter: brightness(0) saturate(100%) invert(37%) sepia(96%) saturate(6870%) hue-rotate(221deg) brightness(97%) contrast(94%);
+}
+
+.affectia-sidebar.collapsed .affectia-logo-toggle {
+    animation: logoRotate 2s ease-in-out infinite;
+    filter: brightness(0) saturate(100%) invert(37%) sepia(96%) saturate(6870%) hue-rotate(221deg) brightness(97%) contrast(94%);
+}
+
+@keyframes logoRotate {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(15deg) scale(1.05); }
+}
+
+/* Navigation */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 4px;
+    margin-bottom: 16px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #64748b;
+    position: relative;
+}
+
+.nav-item:hover {
+    background: rgba(100, 116, 139, 0.1);
+    color: #334155;
+}
+
+.nav-item.active {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.nav-text {
+    font-size: 14px;
+    font-weight: 400;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+/* Séparateur */
+.nav-divider {
+    border: none;
+    height: 1px;
+    background: rgba(148, 163, 184, 0.2);
+    margin: 8px 16px;
+    transition: all 0.3s ease;
+}
+
+/* État collapsed */
+.affectia-sidebar.collapsed .nav-text {
+    display: none;
+}
+
+.affectia-sidebar.collapsed .nav-divider {
+    opacity: 0;
+}
+
+.affectia-sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 8px;
+}
+
+.affectia-sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 12px 8px;
+}
+
+.affectia-sidebar.collapsed .sidebar-toggle-btn {
+    display: none;
+}
+
+/* Curseur pour ouvrir quand collapsed */
+.affectia-sidebar.collapsed {
+    cursor: ew-resize;
+}
+
+/* Layout adjustments - Sidebar pousse le contenu avec espacement */
+body {
+    margin-left: 245px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+body.sidebar-collapsed {
+    margin-left: 73px;
+}
+
+/* Header bar s'ajuste */
+.header-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Main container s'ajuste automatiquement avec body */
+.main-container {
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Panel gauche s'ajuste */
+.panel:first-child,
+.left-panel {
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Tous les containers s'ajustent automatiquement */
+.container,
+.container-fluid {
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Grid containers s'ajustent */
+.row {
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Panels de la page s'ajustent */
+.panel {
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Company section s'ajuste */
+.company-section {
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Logo container s'ajuste */
+.logo-container,
+.logo-company-container {
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Fix pour les containers existants */
+.container,
+.container-fluid {
+    margin-left: 0 !important;
+    padding-left: 15px !important;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .affectia-sidebar {
+        width: 53px;
+    }
+
+    .affectia-sidebar .nav-text {
+        display: none;
+    }
+
+    .affectia-sidebar .nav-divider {
+        opacity: 0;
+    }
+
+    .affectia-sidebar .sidebar-header {
+        justify-content: center;
+        padding: 8px;
+    }
+
+    .affectia-sidebar .nav-item {
+        justify-content: center;
+        padding: 12px 8px;
+    }
+
+body {
+    margin-left: 73px;
+}
+
+</style>
 
 <script>
-// Fonction de navigation commune
-function naviguerVers(page) {
-    // Retirer l'état actif de tous les items
-    document.querySelectorAll('.sidebar-item').forEach(item => {
+// Variables globales
+let sidebarToggleBtn, sidebar, body, headerBar, mainContainer;
+
+// Initialize sidebar functionality
+function initSidebar() {
+    sidebarToggleBtn = document.getElementById('sidebarToggle');
+    sidebar = document.getElementById('affectiaSidebar');
+    body = document.body;
+    headerBar = document.querySelector('.header-bar');
+    mainContainer = document.querySelector('.main-container');
+
+    // Event listeners
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleSidebar();
+        });
+    }
+
+    // Clic sur sidebar quand collapsed
+    if (sidebar) {
+        sidebar.addEventListener('click', function(e) {
+            if (sidebar.classList.contains('collapsed') && !e.target.closest('.nav-item')) {
+                e.stopPropagation();
+                toggleSidebar();
+            }
+        });
+    }
+}
+
+// Toggle sidebar functionality
+function toggleSidebar() {
+    if (!sidebar) return;
+
+    sidebar.classList.toggle('collapsed');
+    body.classList.toggle('sidebar-collapsed');
+
+    if (headerBar) {
+        headerBar.classList.toggle('sidebar-collapsed');
+    }
+
+    if (mainContainer) {
+        mainContainer.classList.toggle('sidebar-collapsed');
+    }
+
+    // Change tooltip
+    if (sidebarToggleBtn) {
+        if (sidebar.classList.contains('collapsed')) {
+            sidebarToggleBtn.title = 'Ouvrir la barre latérale';
+        } else {
+            sidebarToggleBtn.title = 'Fermer la barre latérale';
+        }
+    }
+}
+
+// Navigation function
+function navigateToPage(page) {
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
 
-    // Ajouter l'état actif à l'item cliqué
-    event.target.closest('.sidebar-item').classList.add('active');
+    // Add active class to clicked item
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
 
-switch(page) {
-    case 'dashboard':
-        // Récupérer l'ID de la société active
-        const urlParams = new URLSearchParams(window.location.search);
-        const societeId = urlParams.get('societe_id');
-
-        if (societeId) {
-            window.location.href = `/societe/${societeId}`;
-        } else {
-            // Fallback vers la sélection de société
-            window.location.href = '/dashboard';
-        }
-        break;
-    case 'regles':
-        // Vérifier si nous avons une société active dans l'URL
-        const urlParams2 = new URLSearchParams(window.location.search);
-        const societeId2 = urlParams2.get('societe_id');
-
-        if (societeId2) {
-            window.location.href = `/regles/liste?societe_id=${societeId2}`;
-        } else {
-            // Fallback vers la liste des règles sans ID (Flask fera la redirection)
-            window.location.href = '/regles/liste';
-        }
-        break;
+    // Navigate based on page
+    switch(page) {
+case 'dashboard':
+    window.location.href = '/dashboard';
+    break;
         case 'import':
-            // Déclencher l'upload de FEC depuis n'importe quelle page
             if (typeof nouveauFEC === 'function') {
                 nouveauFEC();
-            } else if (typeof nouvelleRegle === 'function') {
-                nouvelleRegle();
             } else {
-                // Fallback vers le dashboard
                 window.location.href = '/dashboard';
             }
             break;
+case 'create_rule':
+    const urlParams3 = new URLSearchParams(window.location.search);
+    const societeId3 = urlParams3.get('societe_id');
+    if (societeId3) {
+        window.location.href = `/societe/${societeId3}`;
+    } else {
+        window.location.href = '/dashboard';
+    }
+    break;
+        case 'regles':
+            const urlParams2 = new URLSearchParams(window.location.search);
+            const societeId2 = urlParams2.get('societe_id');
+            if (societeId2) {
+                window.location.href = `/regles/liste?societe_id=${societeId2}`;
+            } else {
+                window.location.href = '/regles/liste';
+            }
+            break;
         case 'parametres':
-            console.log('Navigation vers Paramètres (à implémenter)');
-            // Fallback temporaire vers dashboard
-            window.location.href = '/dashboard';
+            window.location.href = '/parametres';
             break;
     }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initSidebar);
+
+// Initialize immediately if DOM is already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebar);
+} else {
+    initSidebar();
 }
 </script>
