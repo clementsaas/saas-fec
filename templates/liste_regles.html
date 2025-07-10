@@ -13,17 +13,22 @@
         /* Styles spécifiques à la page liste_regles */
 /* Styles spécifiques à liste_regles qui surchargent common_styles */
 body {
-    overflow-y: hidden;
+    overflow: hidden;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
 }
 
 .main-container {
-    padding: 20px;
-    margin-left: -70px;
-    padding-left: 90px;
-    min-height: calc(100vh - 80px);
-    display: grid !important;
-    grid-template-columns: 400px 1fr !important;
+    display: grid;
+    grid-template-columns: 400px 1fr;
     gap: 20px;
+    padding: 20px 20px 5px 20px;
+    height: calc(100vh - 0px);
+    margin-left: -280px;
+    padding-left: 300px;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-sizing: border-box;
 }
 
         .header-section {
@@ -530,17 +535,6 @@ body {
     overflow-y: hidden;
 }
 
-.main-container {
-    padding: 20px;
-    margin-left: -70px;
-    padding-left: 90px;
-    min-height: calc(100vh - 80px);
-    display: grid !important;
-    grid-template-columns: 400px 1fr !important;
-    gap: 20px;
-    height: calc(100vh - 85px);
-}
-
 /* EXACT COPY from societe_dashboard.html */
 .panel {
     background: white;
@@ -549,6 +543,17 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    height: calc(100vh - 30px);
+}
+
+.regles-panel {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 30px);
 }
 
 .panel-header {
@@ -564,6 +569,7 @@ body {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    min-height: 0;
 }
 
 .search-container {

@@ -1,7 +1,7 @@
 <!-- Sidebar Affectia - Intelligence Douce -->
 <div class="affectia-sidebar" id="affectiaSidebar">
-    <!-- En-tête avec toggle -->
-    <div class="sidebar-header">
+<!-- En-tête avec toggle -->
+<div class="sidebar-header">
 <button class="sidebar-toggle-btn" id="sidebarToggle" title="Fermer la barre latérale">
     <img src="/static/images/logo_affectia_vector.svg"
          alt="Affectia Logo"
@@ -9,10 +9,87 @@
          width="24"
          height="24">
 </button>
+</div>
+
+<!-- Section société intégrée dans la sidebar -->
+<div class="sidebar-company-section">
+<div class="company-section-sidebar" onclick="toggleCompanyDropdownSidebar()">
+        <div class="company-layout-sidebar">
+            <div class="company-name-section-sidebar">
+                <h2 id="current-company-name-sidebar">{{ societe.nom if societe else 'Chargement...' }}</h2>
+            </div>
+            <div class="automation-score-section-sidebar" id="automation-score-sidebar">
+                <div class="automation-glass-background-sidebar">
+                    <div class="automation-specular-highlight-sidebar"></div>
+                    <div class="automation-content-sidebar">
+                        <span class="percentage-sidebar" id="automation-percentage-sidebar">{{ automatisation_globale if automatisation_globale else '0' }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Navigation principale -->
-    <div class="sidebar-nav">
+    <!-- Dropdown Apple Intelligence dans la sidebar -->
+    <div class="apple-intelligence-dropdown-sidebar" id="companyDropdownSidebar">
+        <div class="ai-dropdown-content-sidebar">
+            <!-- Barre de recherche avec effet Liquid Glass -->
+            <div class="ai-search-container-sidebar">
+                <div class="ai-search-wrapper-sidebar">
+                    <input type="text" class="ai-search-input-sidebar" id="companySearchSidebar"
+                           placeholder="Rechercher une société..."
+                           autocomplete="off"
+                           onclick="event.stopPropagation()"
+                           oninput="filterCompaniesAISidebar()">
+                    <div class="ai-search-icon-sidebar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des sociétés avec style Apple Intelligence -->
+            <div class="ai-companies-list-sidebar" id="companyListSidebar">
+                {% if societes %}
+                    {% for soc in societes %}
+                    {% if loop.index0 < 5 %}
+                    <div class="ai-company-item-sidebar {% if soc.id == societe.id %}selected{% endif %}"
+                         onclick="selectCompanyAISidebar({{ soc.id }})"
+                         data-nom="{{ soc.nom|lower }}"
+                         data-index="{{ loop.index0 }}">
+                        <div class="ai-company-content-sidebar">
+                            <div class="ai-company-main-sidebar">
+                                <div class="ai-company-name-sidebar">{{ soc.nom }}</div>
+                                {% if soc.siret %}
+                                <div class="ai-company-siret-sidebar">SIRET: {{ soc.siret }}</div>
+                                {% endif %}
+                            </div>
+                            {% if soc.id == societe.id %}
+                            <div class="ai-current-indicator-sidebar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z"/>
+                                </svg>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="ai-no-companies-sidebar">
+                        <div style="text-align: center; padding: 20px; color: #86868b;">
+                            <div style="font-size: 24px; margin-bottom: 8px;">🏢</div>
+                            <div style="font-size: 14px;">Aucune société disponible</div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation principale -->
+<div class="sidebar-nav">
         <!-- Tableau de bord -->
         <div class="nav-item {{ 'active' if current_page == 'dashboard' else '' }}"
              onclick="navigateToPage('dashboard')"
@@ -339,6 +416,415 @@ body {
     margin-left: 73px;
 }
 
+}
+
+/* Section société dans la sidebar */
+.sidebar-company-section {
+    padding: 8px 4px 16px 4px;
+    position: relative;
+}
+
+.company-section-sidebar {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.company-section-sidebar:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.company-layout-sidebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+}
+
+.company-name-section-sidebar {
+    flex: 1;
+    min-width: 0;
+}
+
+.company-name-section-sidebar h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.automation-score-section-sidebar {
+    flex-shrink: 0;
+}
+
+.automation-glass-background-sidebar {
+    background: linear-gradient(135deg,
+        rgba(59, 130, 246, 0.1) 0%,
+        rgba(147, 51, 234, 0.08) 100%);
+    backdrop-filter: blur(8px) saturate(150%);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 6px;
+    padding: 3px 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.automation-specular-highlight-sidebar {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%);
+    animation: automationSidebarShine 3s ease-in-out infinite;
+}
+
+@keyframes automationSidebarShine {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: 100%; }
+}
+
+.automation-content-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+}
+
+.percentage-sidebar {
+    font-size: 11px;
+    font-weight: 600;
+    color: #3b82f6;
+}
+
+/* Styles pour sidebar collapsed */
+.affectia-sidebar.collapsed .sidebar-company-section {
+    padding: 8px 8px 16px 8px;
+}
+
+.affectia-sidebar.collapsed .company-section-sidebar {
+    justify-content: center;
+    padding: 8px;
+}
+
+.affectia-sidebar.collapsed .company-name-section-sidebar {
+    display: none;
+}
+
+.affectia-sidebar.collapsed .automation-glass-background-sidebar {
+    padding: 4px 6px;
+}
+
+.affectia-sidebar.collapsed .percentage-sidebar {
+    font-size: 10px;
+}
+
+/* Dropdown Apple Intelligence dans la sidebar */
+.apple-intelligence-dropdown-sidebar {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 8px;
+    right: 8px;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(247, 250, 252, 0.92) 30%,
+        rgba(255, 255, 255, 0.90) 100%);
+    backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.15),
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    display: none;
+    z-index: 10000;
+    overflow: hidden;
+    max-height: 300px;
+}
+
+.ai-dropdown-content-sidebar {
+    padding: 6px;
+}
+
+.ai-search-container-sidebar {
+    padding: 6px 0 8px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    margin-bottom: 6px;
+}
+
+.ai-search-wrapper-sidebar {
+    position: relative;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.ai-search-input-sidebar {
+    width: 100%;
+    padding: 6px 30px 6px 10px;
+    border: none;
+    background: transparent;
+    font-size: 12px;
+    color: #1d1d1f;
+    outline: none;
+}
+
+.ai-search-icon-sidebar {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #86868b;
+    pointer-events: none;
+}
+
+.ai-companies-list-sidebar {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.ai-company-item-sidebar {
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 2px;
+}
+
+.ai-company-item-sidebar:hover {
+    background: rgba(0, 122, 255, 0.08);
+}
+
+.ai-company-item-sidebar.selected {
+    background: rgba(0, 122, 255, 0.12);
+}
+
+.ai-company-content-sidebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-company-main-sidebar {
+    flex: 1;
+    min-width: 0;
+}
+
+.ai-company-name-sidebar {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ai-company-siret-sidebar {
+    font-size: 10px;
+    color: #86868b;
+}
+
+.ai-current-indicator-sidebar {
+    color: #007aff;
+    margin-left: 8px;
+    opacity: 0.8;
+}
+
+/* Styles manquants pour les effets visuels de la section société */
+
+/* Animation specular pour la section société */
+.company-section-sidebar::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 60%
+    );
+    animation: companySpecularMoveSidebar 8s ease-in-out infinite;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+@keyframes companySpecularMoveSidebar {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    50% { transform: translateX(50%) translateY(50%) rotate(45deg); }
+    100% { transform: translateX(200%) translateY(200%) rotate(45deg); }
+}
+
+/* Focus states pour la barre de recherche */
+.ai-search-wrapper-sidebar:focus-within {
+    border-color: rgba(0, 122, 255, 0.3);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.ai-search-input-sidebar::placeholder {
+    color: #86868b;
+    font-style: italic;
+}
+
+/* Animation d'apparition du dropdown */
+@keyframes aiDropdownAppearSidebar {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.apple-intelligence-dropdown-sidebar {
+    animation: aiDropdownAppearSidebar 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* États hover et active pour les éléments de la liste */
+.ai-company-item-sidebar:hover {
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.08) 0%,
+        rgba(88, 86, 214, 0.05) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.1);
+}
+
+.ai-company-item-sidebar.selected {
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.12) 0%,
+        rgba(88, 86, 214, 0.08) 100%);
+    border: 1px solid rgba(0, 122, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+}
+
+/* État sélectionné avec navigation clavier */
+.ai-company-item-sidebar.keyboard-selected {
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.15) 0%,
+        rgba(88, 86, 214, 0.10) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.18);
+    border: 1px solid rgba(0, 122, 255, 0.3);
+}
+
+/* Scrollbar customisée pour la liste des sociétés */
+.ai-companies-list-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.ai-companies-list-sidebar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 2px;
+}
+
+.ai-companies-list-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0, 122, 255, 0.3);
+    border-radius: 2px;
+}
+
+.ai-companies-list-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 122, 255, 0.5);
+}
+
+/* Amélioration de l'état no-companies */
+.ai-no-companies-sidebar {
+    opacity: 0.7;
+    font-style: italic;
+}
+
+/* Effet de transition pour l'indicateur current */
+.ai-current-indicator-sidebar svg {
+    transition: all 0.2s ease;
+}
+
+.ai-company-item-sidebar:hover .ai-current-indicator-sidebar svg {
+    transform: scale(1.1);
+}
+
+/* Responsive pour les textes dans la sidebar */
+@media (max-width: 1024px) {
+    .company-name-section-sidebar h2 {
+        font-size: 12px;
+    }
+
+    .percentage-sidebar {
+        font-size: 10px;
+    }
+
+    .ai-company-name-sidebar {
+        font-size: 11px;
+    }
+
+    .ai-company-siret-sidebar {
+        font-size: 9px;
+    }
+}
+
+/* Animation pour l'apparition de la section société */
+.sidebar-company-section {
+    animation: sidebarCompanyAppear 0.5s ease-out;
+}
+
+@keyframes sidebarCompanyAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Effet glass background plus prononcé */
+.automation-glass-background-sidebar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 100%);
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+/* Z-index pour s'assurer que le contenu est au-dessus */
+.automation-content-sidebar {
+    position: relative;
+    z-index: 3;
+}
+
 </style>
 
 <script>
@@ -444,6 +930,131 @@ case 'create_rule':
             break;
     }
 }
+
+// Fonctions pour la section société dans la sidebar
+function toggleCompanyDropdownSidebar() {
+    const dropdown = document.getElementById('companyDropdownSidebar');
+    const searchInput = document.getElementById('companySearchSidebar');
+
+    if (dropdown && dropdown.style.display === 'block') {
+        dropdown.style.display = 'none';
+    } else if (dropdown) {
+        dropdown.style.display = 'block';
+        setTimeout(() => {
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }, 100);
+
+        // Réinitialiser la sélection clavier
+        currentDropdownSelection = -1;
+        updateDropdownSelectionSidebar();
+    }
+}
+
+// Fonction pour l'ancien dropdown de la header (si elle existe encore)
+function toggleCompanyDropdown() {
+    // Cette fonction peut rester vide ou rediriger vers la sidebar
+    toggleCompanyDropdownSidebar();
+}
+
+function filterCompaniesAISidebar() {
+    const searchTerm = document.getElementById('companySearchSidebar').value.toLowerCase();
+    const companies = document.querySelectorAll('.ai-company-item-sidebar');
+
+    console.log('🔍 Recherche sidebar:', searchTerm, 'dans', companies.length, 'sociétés');
+
+    companies.forEach((company, index) => {
+        const companyName = company.dataset.nom;
+        const isVisible = companyName.includes(searchTerm);
+        company.style.display = isVisible ? 'block' : 'none';
+        company.dataset.filteredIndex = isVisible ? index : -1;
+
+        console.log('Société:', companyName, 'visible:', isVisible);
+    });
+
+    // Réinitialiser la sélection après filtrage
+    currentDropdownSelection = -1;
+    updateDropdownSelectionSidebar();
+}
+
+function selectCompanyAISidebar(societeId) {
+    console.log('🏢 Changement de société sidebar:', societeId);
+    document.getElementById('companyDropdownSidebar').style.display = 'none';
+
+    // Déterminer vers quelle page rediriger en gardant la même page mais avec la nouvelle société
+    const currentPath = window.location.pathname;
+
+    if (currentPath.includes('/regles/liste')) {
+        // Si on est sur la page des règles, rester sur les règles avec la nouvelle société
+        window.location.href = `/regles/liste?societe_id=${societeId}`;
+    } else if (currentPath.includes('/regles/nouvelle')) {
+        // Si on est sur la création de règle, aller au dashboard de la nouvelle société
+        window.location.href = `/societe/${societeId}`;
+    } else {
+        // Pour toutes les autres pages (dashboard société, etc.), aller au dashboard de la société
+        window.location.href = `/societe/${societeId}`;
+    }
+}
+
+function updateDropdownSelectionSidebar() {
+    const visibleCompanies = Array.from(document.querySelectorAll('.ai-company-item-sidebar'))
+        .filter(item => item.style.display !== 'none');
+
+    // Retirer la sélection précédente
+    document.querySelectorAll('.ai-company-item-sidebar').forEach(item => {
+        item.classList.remove('keyboard-selected');
+    });
+
+    // Appliquer la nouvelle sélection
+    if (currentDropdownSelection >= 0 && visibleCompanies[currentDropdownSelection]) {
+        visibleCompanies[currentDropdownSelection].classList.add('keyboard-selected');
+        visibleCompanies[currentDropdownSelection].scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest'
+        });
+    }
+}
+
+// Variables pour la navigation clavier
+let currentDropdownSelection = -1;
+
+// Fermer les dropdowns en cliquant ailleurs
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.company-section-sidebar') && !event.target.closest('.apple-intelligence-dropdown-sidebar')) {
+        const companyDropdownSidebar = document.getElementById('companyDropdownSidebar');
+        if (companyDropdownSidebar && companyDropdownSidebar.style.display === 'block') {
+            companyDropdownSidebar.style.display = 'none';
+        }
+    }
+});
+
+// Navigation clavier dans le dropdown sidebar
+document.addEventListener('keydown', function(e) {
+    const dropdown = document.getElementById('companyDropdownSidebar');
+    if (dropdown.style.display !== 'block') return;
+
+    const visibleCompanies = Array.from(document.querySelectorAll('.ai-company-item-sidebar'))
+        .filter(item => item.style.display !== 'none');
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        currentDropdownSelection = Math.min(currentDropdownSelection + 1, visibleCompanies.length - 1);
+        updateDropdownSelectionSidebar();
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        currentDropdownSelection = Math.max(currentDropdownSelection - 1, -1);
+        updateDropdownSelectionSidebar();
+    } else if (e.key === 'Enter' && currentDropdownSelection >= 0) {
+        e.preventDefault();
+        const selectedCompany = visibleCompanies[currentDropdownSelection];
+        if (selectedCompany) {
+            selectedCompany.click();
+        }
+    } else if (e.key === 'Escape') {
+        dropdown.style.display = 'none';
+    }
+});
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initSidebar);
