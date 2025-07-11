@@ -5,12 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="68dee4e5-c719-4968-ad38-a3da6f1f517d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/templates/ancienne headerbar.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/affectia_debug.log" beforeDir="false" afterPath="$PROJECT_DIR$/affectia_debug.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/includes/header_bar.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/includes/header_bar.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/includes/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/includes/sidebar.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/liste_regles.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/liste_regles.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/societe_dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/societe_dashboard.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,22 +42,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Python.__init__.executor": "Run",
-    "Python.run.executor": "Run",
-    "Python.test_complet.executor": "Run",
-    "Python.test_connexion.executor": "Run",
-    "Python.test_table.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/cleme/PycharmProjects/PythonProject/static/images",
-    "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "configurable.group.language"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_complet.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_connexion.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_table.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/cleme/PycharmProjects/PythonProject/static/images&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.language&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\cleme\PycharmProjects\PythonProject\static\images" />
