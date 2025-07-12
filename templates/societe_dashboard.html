@@ -3970,61 +3970,486 @@ if (compteSelectionne && groupeSelectionne === null) {
 
         }
 
-// Service de tri intelligent pour faciliter la détection de motifs
+// ========================================
+// TRI INTELLIGENT UNIVERSEL - CHAÎNES COMMUNES FRÉQUENTES
+// ========================================
+
 function appliquerTriIntelligent(transactions) {
     if (!transactions || transactions.length === 0) return transactions;
 
-    console.log('🧠 Application du tri intelligent sur', transactions.length, 'transactions');
+    console.log('🧠 Tri intelligent universel - analyse des chaînes communes sur', transactions.length, 'transactions');
 
-    // 1. Extraire les n-grams fréquents
-    const topNgrams = extraireTopNgrams(transactions);
-    console.log('🔍 Top n-grams détectés:', topNgrams);
+    // ÉTAPE 1 : Extraire les n-grams les plus fréquents des libellés originaux
+    const ngramsFréquents = extraireNgramsFrequents(transactions);
+    console.log('🔍 N-grams fréquents extraits:', ngramsFréquents.length);
 
-    // 2. Assigner une clef_n_gram à chaque transaction et préparer le tri
-const transactionsAvecClef = transactions.map(trans => ({
+    // Debug : afficher les top n-grams
+    console.log('🏆 Top 10 n-grams les plus fréquents:');
+    ngramsFréquents.slice(0, 10).forEach((ngram, i) => {
+        console.log(`   ${i+1}. "${ngram.texte}" (${ngram.frequence} transactions, ${ngram.longueur} mots)`);
+    });
+
+    // ÉTAPE 2 : Associer chaque transaction au meilleur n-gram
+    const transactionsAvecNgram = transactions.map(trans => ({
         ...trans,
-        _clef_ngram: determinerClefNgram(trans, topNgrams),
+        _meilleur_ngram: trouverMeilleurNgram(trans.ecriture_lib, ngramsFréquents),
         _signe_montant: determinerSigneMontant(trans.montant)
     }));
 
-    // 3. Trier selon l'heuristique métier
-    const transactionsTriees = transactionsAvecClef.sort((a, b) => {
-// Critère 1: clef_n_gram (motifs récurrents) - PRIORITÉ ABSOLUE
-        if (a._clef_ngram !== b._clef_ngram) {
-            return a._clef_ngram.localeCompare(b._clef_ngram);
+    // Debug : montrer quelques associations
+    console.log('🔗 Échantillon d\'associations transaction → n-gram:');
+    transactionsAvecNgram.slice(0, 6).forEach((t, i) => {
+        console.log(`   ${i+1}. "${t.ecriture_lib.substring(0, 50)}..." → "${t._meilleur_ngram}"`);
+    });
+
+    // ÉTAPE 3 : Trier par n-gram (clé de regroupement) puis critères secondaires
+    const transactionsTriees = transactionsAvecNgram.sort((a, b) => {
+        // Critère 1: n-gram fréquent - SEULE CLÉ DE REGROUPEMENT
+        if (a._meilleur_ngram !== b._meilleur_ngram) {
+            return a._meilleur_ngram.localeCompare(b._meilleur_ngram);
         }
 
-        // Critère 2: libellé brut (priorité absolue dans le même groupe)
-        const libelleComparison = a.ecriture_lib.localeCompare(b.ecriture_lib);
-
-        // Si les libellés sont très différents (pas de variantes mineures), on s'arrête ici
-        if (Math.abs(libelleComparison) > 0) {
-            const similarite = calculerSimilariteLibelles(a.ecriture_lib, b.ecriture_lib);
-            if (similarite < 0.85) { // Seuil de 85% : si moins similaire, on trie par libellé
-                return libelleComparison;
-            }
-        }
-
-        // Critères secondaires UNIQUEMENT pour de toutes petites variations de libellé
-        // Critère 3: journal bancaire (seulement si libellés très similaires)
-        if (a.journal_code !== b.journal_code) {
-            return a.journal_code.localeCompare(b.journal_code);
-        }
-
-// Critère 4: signe du montant (séparer crédits/débits)
+        // Critères secondaires pour ordre dans le même groupe
+        // Critère 2: signe du montant
         if (a._signe_montant !== b._signe_montant) {
             return a._signe_montant.localeCompare(b._signe_montant);
         }
 
-        // SUPPRIMÉ: le tri par montant absolu qui dispersait les transactions
+        // Critère 3: journal bancaire
+        if (a.journal_code !== b.journal_code) {
+            return a.journal_code.localeCompare(b.journal_code);
+        }
 
-        // Critère final: libellé exact pour stabilité absolue
-        return libelleComparison;
-    }); Supprimer les champs temporaires
-return transactionsTriees.map(({_clef_ngram, _signe_montant, ...trans}) => trans);
+        // Critère 4: libellé exact (stabilité)
+        return a.ecriture_lib.localeCompare(b.ecriture_lib);
+    });
+
+    // ÉTAPE 4 : Statistiques de regroupement
+    const ngramsUtilises = new Set(transactionsTriees.map(t => t._meilleur_ngram));
+    const ratioCompression = ((1 - ngramsUtilises.size / transactions.length) * 100).toFixed(1);
+
+    console.log('📊 Résultat du regroupement par n-grams:');
+    console.log(`   • Transactions: ${transactions.length}`);
+    console.log(`   • Groupes (n-grams uniques): ${ngramsUtilises.size}`);
+    console.log(`   • Compression: ${ratioCompression}%`);
+
+    // Debug : afficher la répartition des groupes
+    const repartitionGroupes = {};
+    transactionsTriees.forEach(t => {
+        repartitionGroupes[t._meilleur_ngram] = (repartitionGroupes[t._meilleur_ngram] || 0) + 1;
+    });
+
+    const topGroupes = Object.entries(repartitionGroupes)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
+
+    console.log('🎯 Top 8 groupes les plus importants:');
+    topGroupes.forEach(([ngram, count]) => {
+        console.log(`   • "${ngram}" (${count} transactions)`);
+    });
+
+    // Supprimer les champs temporaires
+    return transactionsTriees.map(({_meilleur_ngram, _signe_montant, ...trans}) => trans);
 }
 
-    // 4.
+// ========================================
+// EXTRACTION DES N-GRAMS FRÉQUENTS
+// ========================================
+
+function extraireNgramsFrequents(transactions, seuilMinFrequence = 3, tailleMaxNgram = 5) {
+    console.log('🔍 Extraction des n-grams fréquents...');
+
+    // Compteur de n-grams
+    const compteurNgrams = new Map();
+
+    // Parcourir toutes les transactions
+    transactions.forEach(trans => {
+        const libelle = trans.ecriture_lib;
+        if (!libelle) return;
+
+        // Normaliser légèrement pour l'extraction (garder structure originale)
+        const libelleNormalise = normaliserPourExtraction(libelle);
+
+        // Extraire tous les n-grams de 2 à tailleMaxNgram mots
+        for (let n = 2; n <= tailleMaxNgram; n++) {
+            const ngramsDeN = extraireNgramsDeTailleN(libelleNormalise, n);
+
+            ngramsDeN.forEach(ngram => {
+                if (estNgramValide(ngram)) {
+                    compteurNgrams.set(ngram, (compteurNgrams.get(ngram) || 0) + 1);
+                }
+            });
+        }
+    });
+
+    // Filtrer par fréquence et trier
+    const ngramsFrequents = Array.from(compteurNgrams.entries())
+        .filter(([ngram, freq]) => freq >= seuilMinFrequence)
+        .map(([ngram, freq]) => ({
+            texte: ngram,
+            frequence: freq,
+            longueur: ngram.split(' ').length
+        }))
+        .sort((a, b) => {
+            // Prioriser : 1) fréquence, 2) longueur, 3) alphabétique
+            if (a.frequence !== b.frequence) {
+                return b.frequence - a.frequence; // Plus fréquent d'abord
+            }
+            if (a.longueur !== b.longueur) {
+                return b.longueur - a.longueur; // Plus long d'abord
+            }
+            return a.texte.localeCompare(b.texte); // Alphabétique
+        });
+
+    console.log(`   • N-grams extraits: ${compteurNgrams.size}`);
+    console.log(`   • N-grams fréquents (≥${seuilMinFrequence}): ${ngramsFrequents.length}`);
+
+    return ngramsFrequents;
+}
+
+// ========================================
+// NORMALISATION LÉGÈRE POUR EXTRACTION
+// ========================================
+
+function normaliserPourExtraction(libelle) {
+    return libelle
+        .toUpperCase()
+        .replace(/[ÀÁÂÃÄÅ]/g, 'A')
+        .replace(/[ÈÉÊË]/g, 'E')
+        .replace(/[ÌÍÎÏ]/g, 'I')
+        .replace(/[ÒÓÔÕÖ]/g, 'O')
+        .replace(/[ÙÚÛÜ]/g, 'U')
+        .replace(/Ç/g, 'C')
+        .replace(/[^\w\s]/g, ' ')           // Ponctuation → espaces
+        .replace(/\s+/g, ' ')              // Espaces multiples
+        .trim();
+}
+
+// ========================================
+// EXTRACTION DE N-GRAMS DE TAILLE N
+// ========================================
+
+function extraireNgramsDeTailleN(texte, n) {
+    const mots = texte.split(' ').filter(mot => mot.length > 0);
+    const ngrams = [];
+
+    for (let i = 0; i <= mots.length - n; i++) {
+        const ngram = mots.slice(i, i + n).join(' ');
+        ngrams.push(ngram);
+    }
+
+    return ngrams;
+}
+
+// ========================================
+// VALIDATION DES N-GRAMS
+// ========================================
+
+function estNgramValide(ngram) {
+    // Mots à exclure des n-grams (trop génériques ou variables)
+    const motsAExclure = new Set([
+        // Dates et temps
+        'JANVIER', 'FEVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN',
+        'JUILLET', 'AOUT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DECEMBRE',
+        'JAN', 'FEV', 'MAR', 'AVR', 'JUN', 'JUL', 'AOU', 'SEP', 'OCT', 'NOV', 'DEC',
+        'LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE',
+
+        // Mots génériques bancaires
+        'OPERATION', 'TRANSACTION', 'PAIEMENT', 'FACTURE', 'NUMERO', 'REFERENCE',
+
+        // Mots très courts
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        'LE', 'LA', 'LES', 'UN', 'UNE', 'DU', 'DE', 'DES', 'AU', 'AUX', 'ET', 'OU'
+    ]);
+
+    const mots = ngram.split(' ');
+
+    // Rejeter si contient des mots à exclure
+    if (mots.some(mot => motsAExclure.has(mot))) {
+        return false;
+    }
+
+    // Rejeter si trop de chiffres (plus de 30% de chiffres)
+    const nbCaracteres = ngram.replace(/\s/g, '').length;
+    const nbChiffres = (ngram.match(/\d/g) || []).length;
+    if (nbCaracteres > 0 && nbChiffres / nbCaracteres > 0.3) {
+        return false;
+    }
+
+    // Rejeter si contient des séquences trop variables (dates)
+    if (/\b\d{1,2}\/\d{1,2}\b/.test(ngram) || /\b\d{4,}\b/.test(ngram)) {
+        return false;
+    }
+
+    // Rejeter si trop court au total
+    if (ngram.length < 6) {
+        return false;
+    }
+
+    return true;
+}
+
+// ========================================
+// ASSOCIATION TRANSACTION → MEILLEUR N-GRAM
+// ========================================
+
+function trouverMeilleurNgram(libelle, ngramsFréquents) {
+    if (!libelle) return 'AUTRE';
+
+    const libelleNormalise = normaliserPourExtraction(libelle);
+
+    // Chercher le n-gram le plus long et le plus fréquent qui matche
+    for (const ngram of ngramsFréquents) {
+        if (libelleNormalise.includes(ngram.texte)) {
+            return ngram.texte;
+        }
+    }
+
+    // Aucun n-gram fréquent trouvé → fallback
+    return 'AUTRE';
+}
+
+// ========================================
+// FONCTION UTILITAIRE
+// ========================================
+
+function determinerSigneMontant(montant) {
+    const val = parseFloat(montant);
+    if (val > 0.01) return 'A_POSITIF';
+    if (val < -0.01) return 'B_NEGATIF';
+    return 'C_ZERO';
+}
+
+// ========================================
+// FONCTION DE TEST (À SUPPRIMER EN PRODUCTION)
+// ========================================
+
+function testerExtractionNgrams() {
+    console.log('🧪 TEST EXTRACTION N-GRAMS');
+    console.log('===========================');
+
+    const exemples = [
+        { ecriture_lib: 'CB PHARMACIE CENTRALE 14H30 248,00EUR' },
+        { ecriture_lib: 'CB PHARMACIE CENTRALE 16H45 12,50EUR' },
+        { ecriture_lib: 'CB BOULANGERIE PAUL 10H15 5,60EUR' },
+        { ecriture_lib: 'VIR EMIS SALAIRE MARTIN JANVIER' },
+        { ecriture_lib: 'VIR EMIS SALAIRE MARTIN FEVRIER' },
+        { ecriture_lib: 'VIR EMIS SALAIRE DUPONT MARS' },
+        { ecriture_lib: 'REMISE CB /01/03 R12345 COMMERCE' },
+        { ecriture_lib: 'REMISE CB /15/03 R67890 COMMERCE' },
+        { ecriture_lib: 'PRLV SEPA EDF FACT N°123' },
+        { ecriture_lib: 'PRLV SEPA EDF FACT N°456' },
+        { ecriture_lib: 'PRLV SEPA GAZ FACT N°789' }
+    ];
+
+    const ngrams = extraireNgramsFrequents(exemples, 2, 4);
+
+    console.log('\n🔗 Test associations:');
+    exemples.forEach((trans, i) => {
+        const meilleurNgram = trouverMeilleurNgram(trans.ecriture_lib, ngrams);
+        console.log(`${i+1}. "${trans.ecriture_lib}" → "${meilleurNgram}"`);
+    });
+}
+
+// Décommenter pour tester en développement
+// testerExtractionNgrams();
+
+// Algorithme de clustering robuste avec fusion itérative
+function construireClustersRobustes(transactions) {
+    if (!transactions || transactions.length === 0) return [];
+
+    console.log('🔗 Construction clusters robustes...');
+
+    // 1. Initialiser : chaque transaction = 1 cluster
+    let clusters = transactions.map((trans, index) => ({
+        id: `cluster_${index}`,
+        libelle_representatif: normaliserLibellePourCluster(trans.ecriture_lib),
+        libelles_bruts: [trans.ecriture_lib],
+        transactions: [trans],
+        motifs_cles: extraireMotifsCles(trans.ecriture_lib)
+    }));
+
+    console.log('🎯 Clusters initiaux:', clusters.length);
+
+    // 2. Fusion itérative basée sur la similarité
+    let fusionsEffectuees = true;
+    let iteration = 0;
+    const maxIterations = 10; // Limite de sécurité
+
+    while (fusionsEffectuees && iteration < maxIterations) {
+        fusionsEffectuees = false;
+        iteration++;
+
+        console.log(`🔄 Itération fusion ${iteration}...`);
+
+        // Comparer tous les pairs de clusters
+        for (let i = 0; i < clusters.length - 1; i++) {
+            for (let j = i + 1; j < clusters.length; j++) {
+                const cluster1 = clusters[i];
+                const cluster2 = clusters[j];
+
+                // Calculer la similarité entre clusters
+                const similarite = calculerSimilariteClusters(cluster1, cluster2);
+
+                // Seuil de fusion adaptatif
+                const seuilFusion = 0.75; // 75% de similarité minimum
+
+                if (similarite >= seuilFusion) {
+                    console.log(`🔗 Fusion clusters: "${cluster1.libelle_representatif}" + "${cluster2.libelle_representatif}" (similarité: ${(similarite * 100).toFixed(1)}%)`);
+
+                    // Fusionner cluster2 dans cluster1
+                    cluster1.libelles_bruts.push(...cluster2.libelles_bruts);
+                    cluster1.transactions.push(...cluster2.transactions);
+                    cluster1.motifs_cles = [...new Set([...cluster1.motifs_cles, ...cluster2.motifs_cles])];
+
+                    // Recalculer le libellé représentatif
+                    cluster1.libelle_representatif = calculerLibelleRepresentatif(cluster1.libelles_bruts);
+
+                    // Supprimer cluster2
+                    clusters.splice(j, 1);
+                    fusionsEffectuees = true;
+                    break;
+                }
+            }
+            if (fusionsEffectuees) break; // Recommencer depuis le début après une fusion
+        }
+
+        console.log(`📊 Fin itération ${iteration}: ${clusters.length} clusters`);
+    }
+
+    // 3. Post-traitement : nommer les clusters de façon stable
+    clusters = clusters.map((cluster, index) => ({
+        ...cluster,
+        id: `cluster_${String(index).padStart(3, '0')}_${cluster.libelle_representatif.substring(0, 20).replace(/\s+/g, '_').toLowerCase()}`
+    }));
+
+    console.log('✅ Clustering terminé:', {
+        clusters_finaux: clusters.length,
+        iterations: iteration,
+        reduction: `${transactions.length} → ${clusters.length} (${((1 - clusters.length / transactions.length) * 100).toFixed(1)}% réduction)`
+    });
+
+    return clusters;
+}
+
+// Calculer la similarité entre deux clusters
+function calculerSimilariteClusters(cluster1, cluster2) {
+    // 1. Similarité des libellés représentatifs (poids 40%)
+    const simLibelle = calculerSimilariteLibelles(cluster1.libelle_representatif, cluster2.libelle_representatif);
+
+    // 2. Intersection des motifs clés (poids 40%)
+    const motifs1 = new Set(cluster1.motifs_cles);
+    const motifs2 = new Set(cluster2.motifs_cles);
+    const intersection = new Set([...motifs1].filter(x => motifs2.has(x)));
+    const union = new Set([...motifs1, ...motifs2]);
+    const simMotifs = union.size > 0 ? intersection.size / union.size : 0;
+
+    // 3. Similarité croisée des libellés bruts (poids 20%)
+    let simCroisee = 0;
+    let comparaisons = 0;
+
+    for (const lib1 of cluster1.libelles_bruts.slice(0, 3)) { // Limiter pour performance
+        for (const lib2 of cluster2.libelles_bruts.slice(0, 3)) {
+            simCroisee += calculerSimilariteLibelles(lib1, lib2);
+            comparaisons++;
+        }
+    }
+    simCroisee = comparaisons > 0 ? simCroisee / comparaisons : 0;
+
+    // Score composite pondéré
+    const similariteComposite = (simLibelle * 0.4) + (simMotifs * 0.4) + (simCroisee * 0.2);
+
+    return similariteComposite;
+}
+
+// Obtenir l'ID de cluster stable pour une transaction
+function obtenirClusterStable(transaction, clusters) {
+    const libelleNorm = normaliserLibellePourCluster(transaction.ecriture_lib);
+
+    // Chercher le cluster qui contient cette transaction
+    for (const cluster of clusters) {
+        // Vérifier si la transaction fait partie de ce cluster
+        const appartientAuCluster = cluster.transactions.some(t =>
+            t.ecriture_lib === transaction.ecriture_lib &&
+            t.journal_code === transaction.journal_code &&
+            Math.abs(t.montant - transaction.montant) < 0.01
+        );
+
+        if (appartientAuCluster) {
+            return cluster.id;
+        }
+    }
+
+    // Fallback : chercher le cluster le plus similaire
+    let meilleurCluster = clusters[0];
+    let meilleureSimilarite = 0;
+
+    for (const cluster of clusters) {
+        const similarite = calculerSimilariteLibelles(libelleNorm, cluster.libelle_representatif);
+        if (similarite > meilleureSimilarite) {
+            meilleureSimilarite = similarite;
+            meilleurCluster = cluster;
+        }
+    }
+
+    return meilleurCluster ? meilleurCluster.id : 'cluster_000_autre';
+}
+
+// Calculer le libellé représentatif d'un cluster
+function calculerLibelleRepresentatif(libelles) {
+    if (!libelles || libelles.length === 0) return 'libelle_vide';
+    if (libelles.length === 1) return normaliserLibellePourCluster(libelles[0]);
+
+    // Trouver le libellé le plus "central" (qui a la similarité moyenne la plus élevée avec les autres)
+    let meilleurLibelle = libelles[0];
+    let meilleurScore = 0;
+
+    for (const libelle of libelles) {
+        let scoreTotal = 0;
+        for (const autreLibelle of libelles) {
+            if (libelle !== autreLibelle) {
+                scoreTotal += calculerSimilariteLibelles(libelle, autreLibelle);
+            }
+        }
+        const scoreMoyen = scoreTotal / (libelles.length - 1);
+
+        if (scoreMoyen > meilleurScore) {
+            meilleurScore = scoreMoyen;
+            meilleurLibelle = libelle;
+        }
+    }
+
+    return normaliserLibellePourCluster(meilleurLibelle);
+}
+
+// Normaliser un libellé pour le clustering
+function normaliserLibellePourCluster(libelle) {
+    if (!libelle) return 'libelle_vide';
+
+    return libelle.toUpperCase()
+        .replace(/[ÀÁÂÃÄÅ]/g, 'A')
+        .replace(/[ÈÉÊË]/g, 'E')
+        .replace(/[ÌÍÎÏ]/g, 'I')
+        .replace(/[ÒÓÔÕÖ]/g, 'O')
+        .replace(/[ÙÚÛÜ]/g, 'U')
+        .replace(/Ç/g, 'C')
+        .replace(/\b\d{2}\/\d{2}\/\d{4}\b/g, '') // dates complètes
+        .replace(/\b\d{2}\/\d{2}\b/g, '')        // dates courtes
+        .replace(/\b\d{4,}\b/g, '')             // numéros longs
+        .replace(/[^\w\s]/g, ' ')               // ponctuation
+        .replace(/\s+/g, ' ')                   // espaces multiples
+        .trim();
+}
+
+// Extraire les motifs clés d'un libellé
+function extraireMotifsCles(libelle) {
+    const libelleNorm = normaliserLibellePourCluster(libelle);
+    const mots = libelleNorm.split(' ').filter(mot => mot.length >= 3);
+
+    const stopWords = new Set(['VIR', 'VIREMENT', 'PRLV', 'PRELEVEMENT', 'CARTE', 'FACTURE', 'PAIEMENT']);
+
+    return mots.filter(mot => !stopWords.has(mot) && !/^\d+$/.test(mot));
+}
 
 function calculerSimilariteLibelles(libelle1, libelle2) {
     // Normaliser les libellés pour comparaison
