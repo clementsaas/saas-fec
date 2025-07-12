@@ -895,38 +895,65 @@ function navigateToPage(page) {
         event.currentTarget.classList.add('active');
     }
 
+    // Get current societe_id from multiple sources
+    const urlParams = new URLSearchParams(window.location.search);
+    let societeId = urlParams.get('societe_id');
+
+    // Try to get from global variables if not in URL
+    if (!societeId && typeof window.societeId !== 'undefined' && window.societeId) {
+        societeId = window.societeId;
+    }
+
+    // Try to get from path if URL contains /societe/ID
+    if (!societeId) {
+        const pathMatch = window.location.pathname.match(/\/societe\/(\d+)/);
+        if (pathMatch) {
+            societeId = pathMatch[1];
+        }
+    }
+
+    console.log('🔍 Navigation - societeId trouvé:', societeId, 'pour page:', page);
+
     // Navigate based on page
     switch(page) {
-case 'dashboard':
-    window.location.href = '/dashboard';
-    break;
-        case 'import':
-            if (typeof nouveauFEC === 'function') {
-                nouveauFEC();
+        case 'dashboard':
+            if (societeId) {
+                window.location.href = `/societe/${societeId}`;
             } else {
                 window.location.href = '/dashboard';
             }
             break;
-case 'create_rule':
-    const urlParams3 = new URLSearchParams(window.location.search);
-    const societeId3 = urlParams3.get('societe_id');
-    if (societeId3) {
-        window.location.href = `/societe/${societeId3}`;
-    } else {
-        window.location.href = '/dashboard';
-    }
-    break;
+        case 'import':
+            if (typeof nouveauFEC === 'function') {
+                nouveauFEC();
+            } else {
+                if (societeId) {
+                    window.location.href = `/societe/${societeId}`;
+                } else {
+                    window.location.href = '/dashboard';
+                }
+            }
+            break;
+        case 'create_rule':
+            if (societeId) {
+                window.location.href = `/societe/${societeId}`;
+            } else {
+                window.location.href = '/dashboard';
+            }
+            break;
         case 'regles':
-            const urlParams2 = new URLSearchParams(window.location.search);
-            const societeId2 = urlParams2.get('societe_id');
-            if (societeId2) {
-                window.location.href = `/regles/liste?societe_id=${societeId2}`;
+            if (societeId) {
+                window.location.href = `/regles/liste?societe_id=${societeId}`;
             } else {
                 window.location.href = '/regles/liste';
             }
             break;
         case 'parametres':
-            window.location.href = '/parametres';
+            if (societeId) {
+                window.location.href = `/societe/${societeId}/parametres`;
+            } else {
+                window.location.href = '/parametres';
+            }
             break;
     }
 }

@@ -26,14 +26,14 @@ body.sidebar-collapsed {
 
 .main-container {
     display: grid;
-    grid-template-columns: 400px 1fr 350px;
+    grid-template-columns: 320px 1fr;
     gap: 20px;
-    padding: 20px;
-    height: calc(100vh - 5px);
+    padding: 20px 20px 5px 20px;
+    height: calc(100vh - 0px);
+    margin-left: -280px;
+    padding-left: 300px;
     transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
     box-sizing: border-box;
-    margin-left: 0 !important;
-    padding-left: 20px !important;
 }
 
 .main-container.sidebar-collapsed {
@@ -3208,7 +3208,7 @@ window.addEventListener('unhandledrejection', function(event) {
 let compteSelectionne = null;
 let paginationLimit = 100; // Limite par défaut de 100 transactions
         let currentSort = { field: 'gain', direction: 'desc' };
-        let transactionSort = { field: 'libelle', direction: 'asc' };
+let transactionSort = { field: null, direction: 'asc' };
         const societeId = {{ societe.id if societe else 'null' }};
 
         // Fonction pour récupérer le libellé d'un compte
@@ -3359,12 +3359,8 @@ html += `
 
 container.innerHTML = html;
 
-// Appliquer le tri par défaut (libellé croissant) si c'est la première fois
-if (transactionSort.field === 'libelle') {
-    setTimeout(() => {
-        applquerTriExistant();
-    }, 50);
-}
+// Plus de tri automatique par libellé - laisser le tri intelligent s'appliquer
+// Commenté : if (transactionSort.field === 'libelle') { ... }
         }
 
 function chargerJournaux() {
@@ -3974,34 +3970,310 @@ if (compteSelectionne && groupeSelectionne === null) {
 
         }
 
-        function afficherTransactions() {
-            const container = document.getElementById('transactions-container');
-            const emptyState = document.getElementById('transactions-empty');
+// Service de tri intelligent pour faciliter la détection de motifs
+function appliquerTriIntelligent(transactions) {
+    if (!transactions || transactions.length === 0) return transactions;
 
-            if (ecrituresFiltered.length === 0) {
-                if (!compteSelectionne) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div>💳</div>
-                            <p>Sélectionnez un compte pour voir les transactions</p>
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <div>🔍</div>
-                            <p>Aucune transaction ne correspond aux critères</p>
-                            <small>Modifiez les filtres pour voir plus de résultats</small>
-                        </div>
-                    `;
-                }
-                return;
+    console.log('🧠 Application du tri intelligent sur', transactions.length, 'transactions');
+
+    // 1. Extraire les n-grams fréquents
+    const topNgrams = extraireTopNgrams(transactions);
+    console.log('🔍 Top n-grams détectés:', topNgrams);
+
+    // 2. Assigner une clef_n_gram à chaque transaction et préparer le tri
+const transactionsAvecClef = transactions.map(trans => ({
+        ...trans,
+        _clef_ngram: determinerClefNgram(trans, topNgrams),
+        _signe_montant: determinerSigneMontant(trans.montant)
+    }));
+
+    // 3. Trier selon l'heuristique métier
+    const transactionsTriees = transactionsAvecClef.sort((a, b) => {
+// Critère 1: clef_n_gram (motifs récurrents) - PRIORITÉ ABSOLUE
+        if (a._clef_ngram !== b._clef_ngram) {
+            return a._clef_ngram.localeCompare(b._clef_ngram);
+        }
+
+        // Critère 2: libellé brut (priorité absolue dans le même groupe)
+        const libelleComparison = a.ecriture_lib.localeCompare(b.ecriture_lib);
+
+        // Si les libellés sont très différents (pas de variantes mineures), on s'arrête ici
+        if (Math.abs(libelleComparison) > 0) {
+            const similarite = calculerSimilariteLibelles(a.ecriture_lib, b.ecriture_lib);
+            if (similarite < 0.85) { // Seuil de 85% : si moins similaire, on trie par libellé
+                return libelleComparison;
+            }
+        }
+
+        // Critères secondaires UNIQUEMENT pour de toutes petites variations de libellé
+        // Critère 3: journal bancaire (seulement si libellés très similaires)
+        if (a.journal_code !== b.journal_code) {
+            return a.journal_code.localeCompare(b.journal_code);
+        }
+
+// Critère 4: signe du montant (séparer crédits/débits)
+        if (a._signe_montant !== b._signe_montant) {
+            return a._signe_montant.localeCompare(b._signe_montant);
+        }
+
+        // SUPPRIMÉ: le tri par montant absolu qui dispersait les transactions
+
+        // Critère final: libellé exact pour stabilité absolue
+        return libelleComparison;
+    }); Supprimer les champs temporaires
+return transactionsTriees.map(({_clef_ngram, _signe_montant, ...trans}) => trans);
+}
+
+    // 4.
+
+function calculerSimilariteLibelles(libelle1, libelle2) {
+    // Normaliser les libellés pour comparaison
+    const norm1 = normaliserLibelle(libelle1);
+    const norm2 = normaliserLibelle(libelle2);
+
+    if (norm1 === norm2) return 1.0;
+
+    // Diviser en mots
+    const mots1 = norm1.split(' ').filter(mot => mot.length > 2);
+    const mots2 = norm2.split(' ').filter(mot => mot.length > 2);
+
+    if (mots1.length === 0 && mots2.length === 0) return 1.0;
+    if (mots1.length === 0 || mots2.length === 0) return 0.0;
+
+    // Calculer le coefficient de Jaccard sur les mots
+    const set1 = new Set(mots1);
+    const set2 = new Set(mots2);
+
+    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const union = new Set([...set1, ...set2]);
+
+    const similariteBase = intersection.size / union.size;
+
+    // Bonus si les premiers mots sont identiques (même entité principale)
+    let bonusPremierMot = 0;
+    if (mots1.length > 0 && mots2.length > 0 && mots1[0] === mots2[0]) {
+        bonusPremierMot = 0.2;
+    }
+
+    // Bonus si même longueur approximative (variantes mineures)
+    let bonusLongueur = 0;
+    const ratioLongueur = Math.min(norm1.length, norm2.length) / Math.max(norm1.length, norm2.length);
+    if (ratioLongueur > 0.8) {
+        bonusLongueur = 0.1;
+    }
+
+    return Math.min(1.0, similariteBase + bonusPremierMot + bonusLongueur);
+}
+
+function extraireTopNgrams(transactions, topN = 10) {
+    const ngramCounter = new Map();
+    const stopWords = new Set(['de', 'du', 'des', 'le', 'la', 'les', 'un', 'une', 'et', 'ou', 'pour', 'par', 'sur', 'avec', 'sans', 'au', 'aux', 'carte', 'cb', 'vir', 'virement', 'paiement', 'retrait', 'facture', 'fact', 'fac', 'operation', 'oper', 'transaction', 'trans', 'prelevement', 'prlv', 'echeance', 'ech']);
+
+    transactions.forEach(trans => {
+        const libelle = normaliserLibelle(trans.ecriture_lib);
+        const ngrams = extraireNgrams(libelle, stopWords);
+
+        ngrams.forEach(ngram => {
+            ngramCounter.set(ngram, (ngramCounter.get(ngram) || 0) + 1);
+        });
+    });
+
+    // Garder les n-grams avec au moins 2 occurrences et trier par fréquence puis longueur
+    const ngramsFrequents = Array.from(ngramCounter.entries())
+        .filter(([ngram, count]) => count >= 2)
+        .sort(([a, countA], [b, countB]) => {
+            if (countA !== countB) return countB - countA; // Plus fréquent d'abord
+            return b.length - a.length; // Plus long d'abord si même fréquence
+        })
+        .slice(0, topN)
+        .map(([ngram]) => ngram);
+
+    return ngramsFrequents;
+}
+
+function normaliserLibelle(libelle) {
+    if (!libelle) return "";
+
+    // Majuscules et suppression des accents
+    let normalise = libelle.toUpperCase()
+        .replace(/[ÀÁÂÃÄÅ]/g, 'A')
+        .replace(/[ÈÉÊË]/g, 'E')
+        .replace(/[ÌÍÎÏ]/g, 'I')
+        .replace(/[ÒÓÔÕÖ]/g, 'O')
+        .replace(/[ÙÚÛÜ]/g, 'U')
+        .replace(/Ç/g, 'C')
+        .replace(/Ñ/g, 'N');
+
+    // Supprimer les éléments variables
+    normalise = normalise
+        .replace(/\b\d{2}\/\d{2}\/\d{4}\b/g, '') // dates complètes
+        .replace(/\b\d{2}\/\d{2}\b/g, '')        // dates courtes
+        .replace(/\b\d{4,}\b/g, '');             // numéros longs
+
+    return normalise.trim();
+}
+
+function extraireNgrams(libelle, stopWords, maxLength = 4) {
+    const mots = libelle.split(/\s+/).filter(mot => mot.length > 0);
+    const ngrams = [];
+
+    for (let n = 2; n <= Math.min(mots.length, maxLength); n++) {
+        for (let i = 0; i <= mots.length - n; i++) {
+            const ngramMots = mots.slice(i, i + n);
+
+            // Filtrer les n-grams trop génériques ou courts
+            if (ngramMots.some(mot => stopWords.has(mot.toLowerCase()) || mot.length < 3 || /^\d+$/.test(mot))) {
+                continue;
             }
 
+            // NOUVEAU : Filtrer les n-grams trop riches en chiffres (bruit)
+            const ngram = ngramMots.join(' ');
+            const pourcentageChiffres = calculerPourcentageChiffres(ngram);
+            if (pourcentageChiffres > 40) { // Plus de 40% de chiffres = bruit
+                continue;
+            }
+
+            ngrams.push(ngram);
+        }
+    }
+
+    return ngrams;
+}
+
+function calculerPourcentageChiffres(texte) {
+    const totalCaracteres = texte.replace(/\s/g, '').length; // Sans espaces
+    const chiffres = texte.match(/\d/g) || [];
+    return totalCaracteres > 0 ? (chiffres.length / totalCaracteres) * 100 : 0;
+}
+
+function determinerClefNgram(transaction, topNgrams) {
+    const libelle = normaliserLibelle(transaction.ecriture_lib);
+
+    // Chercher le premier n-gram présent dans le libellé
+    for (const ngram of topNgrams) {
+        if (libelle.includes(ngram)) {
+            return ngram;
+        }
+    }
+
+    // NOUVEAU : Fallback sur motif plus large pour éviter la fragmentation
+    // Si aucun n-gram spécifique trouvé, essayer de regrouper par motifs plus larges
+    const motifLarge = determinerMotifLarge(libelle);
+    if (motifLarge !== "autre") {
+        return motifLarge;
+    }
+
+    // Aucun motif trouvé -> clef neutre (triée en bas)
+    return "zzzz_autre";
+}
+
+function determinerMotifLarge(libelle) {
+    // Motifs de regroupement large pour éviter la fragmentation
+
+    // 1. Virements (VIR, VIREMENT)
+    if (/\b(VIR|VIREMENT)\b/.test(libelle)) {
+        return "a_virements";
+    }
+
+    // 2. Prélèvements (PRLV, PRELEVEMENT)
+    if (/\b(PRLV|PRELEVEMENT)\b/.test(libelle)) {
+        return "b_prelevements";
+    }
+
+    // 3. Cartes bancaires (CB, CARTE)
+    if (/\b(CB|CARTE)\b/.test(libelle)) {
+        return "c_cartes";
+    }
+
+    // 4. Chèques (CHQ, CHEQUE)
+    if (/\b(CHQ|CHEQUE)\b/.test(libelle)) {
+        return "d_cheques";
+    }
+
+    // 5. Factures (FACT, FACTURE, FAC)
+    if (/\b(FACT|FACTURE|FAC)\b/.test(libelle)) {
+        return "e_factures";
+    }
+
+    // 6. Salaires (SALAIRE, SAL, PAIE)
+    if (/\b(SALAIRE|SAL|PAIE)\b/.test(libelle)) {
+        return "f_salaires";
+    }
+
+    // 7. Remboursements (REMB, REMBOURSEMENT)
+    if (/\b(REMB|REMBOURSEMENT)\b/.test(libelle)) {
+        return "g_remboursements";
+    }
+
+    // 8. Frais bancaires (FRAIS, COMMISSION, AGIOS)
+    if (/\b(FRAIS|COMMISSION|AGIOS)\b/.test(libelle)) {
+        return "h_frais_bancaires";
+    }
+
+    // 9. Cotisations sociales (URSSAF, MSA, CPAM)
+    if (/\b(URSSAF|MSA|CPAM|COTISATION)\b/.test(libelle)) {
+        return "i_cotisations";
+    }
+
+    // 10. Impôts et taxes (IMPOT, TAXE, TRESOR, DGI)
+    if (/\b(IMPOT|TAXE|TRESOR|DGI)\b/.test(libelle)) {
+        return "j_impots_taxes";
+    }
+
+    // 11. Fournisseurs avec noms propres (mots de 3+ lettres consécutifs)
+    const motsLongs = libelle.match(/\b[A-Z]{3,}\b/g);
+    if (motsLongs && motsLongs.length >= 2) {
+        // Regrouper par première lettre du premier mot long
+        return `k_fournisseur_${motsLongs[0].charAt(0).toLowerCase()}`;
+    }
+
+    // 12. Transactions avec montants récurrents (même journal + montant similaire)
+    // Note: Ceci nécessiterait une analyse plus complexe dans un vrai contexte
+
+    return "autre";
+}
+
+function determinerSigneMontant(montant) {
+    const val = parseFloat(montant);
+    if (val > 0) return "A_positif";
+    if (val < 0) return "B_negatif";
+    return "C_zero";
+}
+
+function afficherTransactions() {
+    const container = document.getElementById('transactions-container');
+    const emptyState = document.getElementById('transactions-empty');
+
+    if (ecrituresFiltered.length === 0) {
+        if (!compteSelectionne) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div>💳</div>
+                    <p>Sélectionnez un compte pour voir les transactions</p>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div>🔍</div>
+                    <p>Aucune transaction ne correspond aux critères</p>
+                    <small>Modifiez les filtres pour voir plus de résultats</small>
+                </div>
+            `;
+        }
+        return;
+    }
+
+// NOUVEAU : Appliquer le tri intelligent par défaut si aucun tri manuel n'est actif
+let ecrituresATrierEtAfficher = [...ecrituresFiltered];
+if (!transactionSort.field) {
+    ecrituresATrierEtAfficher = appliquerTriIntelligent(ecrituresATrierEtAfficher);
+}
+
 // Appliquer la pagination
-let ecrituresAffichees = ecrituresFiltered;
+let ecrituresAffichees = ecrituresATrierEtAfficher;
 if (paginationLimit !== null && paginationLimit > 0) {
-    ecrituresAffichees = ecrituresFiltered.slice(0, paginationLimit);
+    ecrituresAffichees = ecrituresATrierEtAfficher.slice(0, paginationLimit);
 }
 
 let html = '';
