@@ -1405,6 +1405,12 @@ let reglesData = [];
 let selectedRules = new Set();
 let sortConfig = { field: 'compte', direction: 'asc' };
 
+// Fonction utilitaire pour notifier les changements de règles
+function notifierChangementRegles() {
+    console.log('📡 Notification changement de règles...');
+    localStorage.setItem('regles_modifiees', Date.now().toString());
+}
+
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
     chargerRegles();
@@ -1828,26 +1834,29 @@ function toggleRegleActive(regleId) {
         }
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log(`✅ Règle ${regleId} persistée en base: ${data.is_active ? 'active' : 'inactive'}`);
+.then(data => {
+    if (data.success) {
+        console.log(`✅ Règle ${regleId} persistée en base: ${data.is_active ? 'active' : 'inactive'}`);
 
-            // Synchroniser l'état local avec la réponse serveur (au cas où)
-            regle.active = data.is_active;
+        // Synchroniser l'état local avec la réponse serveur (au cas où)
+        regle.active = data.is_active;
 
-            // Recalculer les statistiques après persistance
-            chargerComptes();
-            mettreAJourStats();
-        } else {
-            console.error('❌ Erreur lors de la persistance:', data.error);
+        // Recalculer les statistiques après persistance
+        chargerComptes();
+        mettreAJourStats();
 
-            // Rollback en cas d'erreur
-            regle.active = !nouvelEtat;
-            afficherRegles();
+        // Notifier le changement pour mise à jour page entreprises
+        notifierChangementRegles();
+    } else {
+        console.error('❌ Erreur lors de la persistance:', data.error);
 
-            alert('Erreur lors de la sauvegarde: ' + data.error);
-        }
-    })
+        // Rollback en cas d'erreur
+        regle.active = !nouvelEtat;
+        afficherRegles();
+
+        alert('Erreur lors de la sauvegarde: ' + data.error);
+    }
+})
     .catch(error => {
         console.error('❌ Erreur réseau:', error);
 
@@ -1937,28 +1946,33 @@ function supprimerSelection() {
         });
 
         // Attendre que toutes les suppressions soient terminées
-        Promise.all(deletePromises).then(results => {
-            // Supprimer les règles réussies du tableau local
-            const successfullyDeleted = results.filter(r => r.success).map(r => r.regleId);
-            reglesData = reglesData.filter(regle => !successfullyDeleted.includes(regle.id));
+Promise.all(deletePromises).then(results => {
+    // Supprimer les règles réussies du tableau local
+    const successfullyDeleted = results.filter(r => r.success).map(r => r.regleId);
+    reglesData = reglesData.filter(regle => !successfullyDeleted.includes(regle.id));
 
-            // Vider la sélection
-            selectedRules.clear();
+    // Vider la sélection
+    selectedRules.clear();
 
-            // Rafraîchir l'affichage
-            afficherRegles();
-            mettreAJourStats();
-            updateBulkActions();
+    // Rafraîchir l'affichage
+    afficherRegles();
+    mettreAJourStats();
+    updateBulkActions();
 
-            // Afficher un message de confirmation
-            if (deletedCount === reglesToDelete.length) {
-                console.log(`✅ ${deletedCount} règle${deletedCount > 1 ? 's' : ''} supprimée${deletedCount > 1 ? 's' : ''} avec succès`);
-            } else {
-                const failedCount = reglesToDelete.length - deletedCount;
-                console.warn(`⚠️ ${deletedCount} règle${deletedCount > 1 ? 's' : ''} supprimée${deletedCount > 1 ? 's' : ''}, ${failedCount} échec${failedCount > 1 ? 's' : ''}`);
-                alert(`Attention: ${failedCount} règle${failedCount > 1 ? 's' : ''} n'${failedCount > 1 ? 'ont' : 'a'} pas pu être supprimée${failedCount > 1 ? 's' : ''}. Actualisez la page.`);
-            }
-        });
+    // Notifier le changement si des règles ont été supprimées
+    if (successfullyDeleted.length > 0) {
+        notifierChangementRegles();
+    }
+
+    // Afficher un message de confirmation
+    if (deletedCount === reglesToDelete.length) {
+        console.log(`✅ ${deletedCount} règle${deletedCount > 1 ? 's' : ''} supprimée${deletedCount > 1 ? 's' : ''} avec succès`);
+    } else {
+        const failedCount = reglesToDelete.length - deletedCount;
+        console.warn(`⚠️ ${deletedCount} règle${deletedCount > 1 ? 's' : ''} supprimée${deletedCount > 1 ? 's' : ''}, ${failedCount} échec${failedCount > 1 ? 's' : ''}`);
+        alert(`Attention: ${failedCount} règle${failedCount > 1 ? 's' : ''} n'${failedCount > 1 ? 'ont' : 'a'} pas pu être supprimée${failedCount > 1 ? 's' : ''}. Actualisez la page.`);
+    }
+});
     }
 }
 

@@ -1566,8 +1566,8 @@ body.sidebar-collapsed {
             font-size: 13px;
         }
 
-.montant-positif { color: #00ac56; }
-.montant-negatif { color: #d40000; }
+.montant-positif { color: #3c763d; }  /* Vert olive désaturé au lieu de #00ac56 */
+.montant-negatif { color: #a94442; }  /* Rouge brique désaturé au lieu de #d40000 */
 
 .pagination-container {
     padding: 10px 20px;
@@ -1897,6 +1897,77 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
         transform: translate(-60%, -60%) rotate(45deg);
         opacity: 0.3;
     }
+}
+
+/* Bouton Créer une règle - Version corrigée */
+.create-rule-btn-liquid {
+    position: relative;
+    background: #e5e5ea; /* Couleur neutre par défaut */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 12px 18px;
+    width: 100%;
+    margin-bottom: 15px;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    backdrop-filter: blur(10px);
+}
+
+.btn-content {
+    position: relative;
+    z-index: 2;
+    color: #1d1d1f; /* Texte sombre par défaut */
+    font-weight: 600;
+    font-size: 16px;
+    text-align: center;
+    display: block;
+    width: 100%;
+}
+
+.btn-progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 6px; /* Plus épais */
+    background: rgba(0, 212, 212, 0.8);
+    border-radius: 0 0 16px 16px;
+    width: 0%;
+    transition: width 0.3s ease;
+    z-index: 1;
+    display: none; /* Masqué par défaut */
+}
+
+/* États dynamiques selon l'impact */
+.create-rule-btn-liquid.btn-neutral {
+    background: #e5e5ea;
+    color: #1d1d1f;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.create-rule-btn-liquid.btn-low-impact {
+    background: #a8a8a8;
+    color: white;
+    box-shadow: 0 2px 8px rgba(168, 168, 168, 0.2);
+}
+
+.create-rule-btn-liquid.btn-high-impact {
+    background: #00d4d4;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 212, 212, 0.2);
+}
+
+/* Aura subtile pour impact > 90% sans collision */
+.create-rule-btn-liquid.btn-aura {
+    box-shadow: 
+        0 2px 8px rgba(0, 212, 212, 0.2),
+        0 0 20px rgba(0, 212, 212, 0.25),
+        0 0 40px rgba(0, 212, 212, 0.15);
+}
+
+.create-rule-btn-liquid:hover {
+    transform: translateY(-1px);
 }
 
 .btn-content {
@@ -2876,7 +2947,6 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     <div class="btn-specular-highlight"></div>
     <div class="btn-content">
         <span class="btn-text">Créer une nouvelle règle</span>
-        <span class="btn-impact" id="btn-impact-display">0% d'impact</span>
     </div>
     <div class="btn-progress-bar" id="btn-progress-bar"></div>
 </button>
@@ -3114,11 +3184,28 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     position: absolute;
     bottom: 0;
     left: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #4CAF50, #8BC34A);
-    width: 0%;
-    transition: width 0.6s ease;
+    height: 12px;
     border-radius: 0 0 16px 16px;
+    width: 0%;
+    transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 1;
+    display: none;
+    /* Couleur définie dynamiquement par JavaScript */
+}
+
+/* Progression turquoise pour règles excellentes (+90%) */
+.create-rule-btn-liquid.btn-excellent {
+    color: white;
+    animation: pulse-excellence 2s ease-in-out infinite;
+}
+
+@keyframes pulse-excellence {
+    0%, 100% { 
+        transform: scale(1);
+    }
+    50% { 
+        transform: scale(1.02);
+    }
 }
 
 /* Effets visuels pour seuils élevés */
@@ -3309,9 +3396,14 @@ let transactionSort = { field: null, direction: 'asc' };
             montantVal: '',
             montantVal2: ''
         };
-
 // Variable pour stocker les détails des collisions
 let collisionDetails = [];
+
+// Fonction utilitaire pour notifier les changements de règles
+function notifierChangementRegles() {
+    console.log('📡 Notification changement de règles...');
+    localStorage.setItem('regles_modifiees', Date.now().toString());
+}
 
         // Initialisation au chargement de la page
         document.addEventListener('DOMContentLoaded', function() {
@@ -3896,8 +3988,8 @@ if (transactionSort.field) {
             const montantOp = document.getElementById('montant-operateur').value;
             const montantVal = document.getElementById('montant-valeur').value;
             const montantVal2 = document.getElementById('montant-valeur2').value;
-const keywords1 = document.getElementById('search-keywords').value;
-            const keywords2 = document.getElementById('search-keywords-2').value;
+            const keywords1 = document.getElementById('search-keywords').value.trim();
+            const keywords2 = document.getElementById('search-keywords-2').value.trim();
             console.log('🔍 DEBUG - Début filtrerTransactions:', {
                 compteSelectionne,
                 keywords1,
@@ -4021,6 +4113,12 @@ highlightKeywordsInAllTransactions(keywords1, keywords2);
 
 // Calculer l'impact potentiel
 calculateImpactPotentiel(keywords1, keywords2);
+
+// ✅ NOUVEAU : Désélectionner visuellement si plus de mots-clés
+if (!keywords1 && !keywords2) {
+    document.querySelectorAll('.group-item').forEach(item => item.classList.remove('selected'));
+    groupeSelectionne = null;
+}
 
 // Recharger les groupements quand les filtres changent (mais pas quand un groupe est sélectionné)
 if (compteSelectionne && groupeSelectionne === null) {
@@ -4842,29 +4940,107 @@ function calculateImpactPotentiel(keywords1, keywords2) {
     const mots1 = keywords1 ? keywords1.toLowerCase().split(' ').filter(mot => mot.trim()) : [];
     const mots2 = keywords2 ? keywords2.toLowerCase().split(' ').filter(mot => mot.trim()) : [];
 
-function updateCreateRuleButton(impactPercent) {
-    const btnImpact = document.getElementById('btn-impact-display');
+function updateCreateRuleButton(impactPercent, collisionPercent = 0) {
     const btnProgress = document.getElementById('btn-progress-bar');
     const btn = document.getElementById('create-rule-btn');
+    
+    if (!btnProgress || !btn) return;
 
-    if (!btnImpact || !btnProgress || !btn) return;
+    // 1. Supprimer toutes les classes d'état ET réinitialiser tous les styles
+    btn.classList.remove('btn-neutral', 'btn-low-impact', 'btn-high-impact', 'btn-excellent', 'btn-aura');
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.style.boxShadow = '';
 
-    // Mettre à jour le texte d'impact
-    btnImpact.textContent = `${impactPercent.toFixed(1)}% d'impact`;
-
-    // Mettre à jour la barre de progression
+    // 2. Gestion de l'affichage conditionnel
+    if (impactPercent === 0) {
+        btn.classList.add('btn-neutral');
+        btnProgress.style.display = 'none';
+        btnProgress.style.width = '0%';
+        return;
+    }
+// 3. Impact > 0 : afficher la barre de progression (sauf à 100%)
+if (impactPercent >= 100) {
+    btnProgress.style.display = 'none';
+    btnProgress.style.width = '0%';
+    btnProgress.style.height = '0px';
+    btnProgress.style.background = '';
+    btnProgress.style.boxShadow = '';
+} else {
+    btnProgress.style.display = 'block';
     btnProgress.style.width = `${Math.min(impactPercent, 100)}%`;
+}
 
-    // Supprimer toutes les classes d'effet
-    btn.classList.remove('impact-high-80', 'impact-high-90', 'impact-ultra-95');
-
-    // Ajouter les effets selon les seuils (cumulatifs)
-    if (impactPercent >= 95) {
-        btn.classList.add('impact-ultra-95');
-    } else if (impactPercent >= 90) {
-        btn.classList.add('impact-high-90');
-    } else if (impactPercent >= 80) {
-        btn.classList.add('impact-high-80');
+    // 4. Couleurs avec progressivité turquoise MOINS saturée
+    if (impactPercent < 30) {
+        // 1-29% : turquoise très pâle
+        const lightness = 220 - (impactPercent * 2); // 220 → 160
+        btn.style.background = `rgb(${lightness}, ${lightness + 10}, ${lightness + 15})`;
+        btn.style.color = '#1d1d1f';
+        
+    } else if (impactPercent < 70) {
+        // 30-69% : turquoise modéré
+        const greenBlue = Math.floor(180 + (impactPercent - 30) * 1.8); // 180 → 252
+        btn.style.background = `rgb(0, ${greenBlue}, ${greenBlue})`;
+        btn.style.color = 'white';
+        
+    } else if (impactPercent < 90) {
+        // 70-89% : turquoise standard
+        btn.style.background = '#00d4d4';
+        btn.style.color = 'white';
+        btn.style.boxShadow = '0 2px 8px rgba(0, 212, 212, 0.2)';
+        
+    } else {
+        // 90%+ : turquoise légèrement saturé SANS dégradé (homogène)
+        btn.classList.add('btn-excellent');
+        
+        // Saturation beaucoup plus modérée
+        const maxSaturation = 220; // Réduit de 230 à 220
+        const saturationProgress = Math.min((impactPercent - 90) / 10, 1); // 0 à 1 sur 90%-100%
+        const saturation = 212 + Math.floor(saturationProgress * (maxSaturation - 212)); // 212 → 220
+        
+        // Couleur HOMOGÈNE sans dégradé
+        btn.style.background = `rgb(0, ${saturation}, ${saturation})`;
+        btn.style.color = 'white';
+        btn.style.boxShadow = `0 2px 8px rgba(0, ${saturation}, ${saturation}, 0.3)`;
+        
+        // Aura uniquement si aucune collision
+        if (collisionPercent === 0) {
+            btn.classList.add('btn-aura');
+            btn.style.boxShadow = `0 2px 8px rgba(0, ${saturation}, ${saturation}, 0.3), 0 0 20px rgba(0, ${saturation}, ${saturation}, 0.25)`;
+        }
+    }
+    
+    // Couleur de la barre harmonisée avec le bouton
+    if (impactPercent < 30) {
+        // Barre grise pour faible impact
+        btnProgress.style.background = 'linear-gradient(90deg, #d1d1d6 0%, #c7c7cc 100%)';
+        btnProgress.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.1)';
+        
+    } else if (impactPercent < 70) {
+        // Barre turquoise modérée
+        const barGreenBlue = Math.floor(150 + (impactPercent - 30) * 2.5);
+        btnProgress.style.background = `linear-gradient(90deg, rgb(0, ${barGreenBlue}, ${barGreenBlue}) 0%, rgb(0, ${Math.max(barGreenBlue - 20, 130)}, ${Math.max(barGreenBlue - 20, 130)}) 100%)`;
+        btnProgress.style.boxShadow = `inset 0 1px 2px rgba(0,0,0,0.1), 0 0 8px rgba(0,${barGreenBlue},${barGreenBlue},0.3)`;
+        
+    } else if (impactPercent < 90) {
+        // Barre turquoise standard
+        btnProgress.style.background = 'linear-gradient(90deg, #00d4d4 0%, #00baba 100%)';
+        btnProgress.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.1), 0 0 8px rgba(0,212,212,0.3)';
+        
+    } else {
+        // Barre saturée pour 90%+ avec modération
+        const maxBarSaturation = 220; // Même limite que le bouton
+        const barSaturationProgress = Math.min((impactPercent - 90) / 10, 1);
+        const barSaturation = 212 + Math.floor(barSaturationProgress * (maxBarSaturation - 212));
+        
+        if (impactPercent >= 95) {
+            btnProgress.style.background = `linear-gradient(90deg, rgb(0, ${Math.min(barSaturation + 8, maxBarSaturation)}, ${Math.min(barSaturation + 8, maxBarSaturation)}) 0%, rgb(0, ${barSaturation}, ${barSaturation}) 50%, rgb(0, ${Math.min(barSaturation + 4, maxBarSaturation)}, ${Math.min(barSaturation + 4, maxBarSaturation)}) 100%)`;
+            btnProgress.style.boxShadow = `inset 0 1px 2px rgba(0,0,0,0.1), 0 0 12px rgba(0,${barSaturation},${barSaturation},0.4)`;
+        } else {
+            btnProgress.style.background = `linear-gradient(90deg, rgb(0, ${Math.min(barSaturation + 4, maxBarSaturation)}, ${Math.min(barSaturation + 4, maxBarSaturation)}) 0%, rgb(0, ${barSaturation}, ${barSaturation}) 100%)`;
+            btnProgress.style.boxShadow = `inset 0 1px 2px rgba(0,0,0,0.1), 0 0 10px rgba(0,${barSaturation},${barSaturation},0.3)`;
+        }
     }
 }
 
@@ -4952,7 +5128,11 @@ const impactGlobal = totalGlobal > 0 ? (nbMatchesGlobal / totalGlobal * 100) : 0
     const collision = nbMatchesCompte > 0 ? (nbMatchesAutres / nbMatchesCompte * 100) : 0;
 
 // 4. Mettre à jour l'affichage (impact local dans le bouton)
-updateCreateRuleButton(impactLocal);
+// Remplacer :
+updateCreateRuleButton(impactLocal, collision);
+
+// Par :
+updateCreateRuleButton(impactLocal, collision);
 
     // 5. Afficher ou cacher la collision avec coloration
     if (collision > 0) {
@@ -5270,7 +5450,7 @@ function creerNouvelleRegle() {
         // Marquer les transactions comme couvertes localement
         marquerTransactionsCommeCouverte(regleData);
 
-// Vider TOUS les filtres pour voir immédiatement les transactions non couvertes
+        // Vider TOUS les filtres pour voir immédiatement les transactions non couvertes
         document.getElementById('filter-banque').value = '';
         document.getElementById('montant-operateur').value = '=';
         document.getElementById('montant-valeur').value = '';
@@ -5295,6 +5475,9 @@ function creerNouvelleRegle() {
         // Calculer l'impact avec les nouveaux filtres
         const keywords = document.getElementById('search-keywords').value;
         calculateImpactPotentiel(keywords);
+
+        // Notifier le changement pour mise à jour page entreprises
+        notifierChangementRegles();
 
         console.log('🎯 Règle créée - Compte maintenu:', compteActuel);
     } else {
@@ -6031,7 +6214,7 @@ function resetFilters() {
     document.getElementById('montant-valeur2').value = '';
     document.getElementById('montant-valeur2').style.display = 'none';
     document.getElementById('show-covered-transactions').checked = false;
-
+    
     updateFilterIndicator();
     filtrerTransactions();
 

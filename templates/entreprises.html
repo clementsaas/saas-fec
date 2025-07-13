@@ -340,8 +340,7 @@ body.sidebar-collapsed {
     <div class="entreprises-panel">
         <div class="entreprises-header">
             <div class="header-info">
-                <h1>🏢 Entreprises</h1>
-                <div class="header-subtitle">Gérez vos sociétés et suivez leur automatisation</div>
+                <h1>Entreprises</h1>
             </div>
             <button class="btn-nouvelle-societe" onclick="ouvrirModaleSociete()">
                 <span>+</span>
@@ -363,40 +362,209 @@ body.sidebar-collapsed {
                         </tr>
                     </thead>
                     <tbody>
-                        {% for societe in societes %}
-                        <tr>
-                            <td>
-                                <div class="societe-nom">{{ societe.nom }}</div>
-                                {% if societe.siret %}
-                                <small class="text-muted">SIRET: {{ societe.siret }}</small>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="badge-automatisation automatisation-faible">
-                                    <span class="automatisation-value" data-societe-id="{{ societe.id }}">0%</span>
-                                </span>
-                            </td>
-                            <td>
-                                <span class="collisions-count collisions-none">
-                                    <span class="collisions-value" data-societe-id="{{ societe.id }}">0</span>
-                                </span>
-                            </td>
-                            <td>
-                                <span class="date-import">
-                                    <span class="import-date" data-societe-id="{{ societe.id }}">
-                                        <span class="no-data">Aucun import</span>
-                                    </span>
-                                </span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-action btn-voir" onclick="voirSociete({{ societe.id }})">
-                                        Voir
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
+{% for societe in societes %}
+<tr data-societe-id="{{ societe.id }}">
+    <td>
+        <div class="societe-nom" style="cursor: pointer; color: #007aff; text-decoration: none;" 
+             onclick="naviguerVersSociete({{ societe.id }})">
+            {{ societe.nom }}
+        </div>
+        {% if societe.siret %}
+        <small class="text-muted">SIRET: {{ societe.siret }}</small>
+        {% endif %}
+    </td>
+    <td>
+        <span class="badge-automatisation automatisation-faible" id="automatisation-{{ societe.id }}">
+            <span class="automatisation-value" id="automatisation-value-{{ societe.id }}">
+                Chargement...
+            </span>
+        </span>
+    </td>
+    <td>
+        <span class="collisions-count collisions-none" id="collisions-{{ societe.id }}">
+            <span class="collisions-value" id="collisions-value-{{ societe.id }}">
+                -
+            </span>
+        </span>
+    </td>
+    <td>
+        <div class="date-import" id="import-date-{{ societe.id }}">
+            <span class="no-data">Chargement...</span>
+        </div>
+    </td>
+    <td>
+        <div class="action-buttons">
+            <button class="btn-action btn-voir" onclick="voirSociete({{ societe.id }})">Voir</button>
+        </div>
+    </td>
+</tr>
+{% endfor %}
+
+<script>
+// Variables globales pour gérer les mises à jour
+let updateInterval = null;
+let socketConnected = false;
+
+// Fonction pour naviguer vers la page de règles d'une société
+function naviguerVersSociete(societeId) {
+    window.location.href = `/societe/${societeId}/regles`;
+}
+
+// Fonction pour charger les données d'une société
+function chargerDonneesSociete(societeId) {
+    console.log(`📊 Chargement données société ${societeId}`);
+    
+    fetch(`/api/societe/${societeId}/statistiques`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                mettreAJourAffichageSociete(societeId, data);
+            } else {
+                console.error(`Erreur API société ${societeId}:`, data.error);
+                // Afficher des valeurs par défaut en cas d'erreur
+                mettreAJourAffichageSociete(societeId, {
+                    automatisation: 0,
+                    collisions: 0,
+                    dernier_import: null
+                });
+            }
+        })
+        .catch(error => {
+            console.error(`Erreur réseau société ${societeId}:`, error);
+            // Afficher des valeurs par défaut en cas d'erreur
+            mettreAJourAffichageSociete(societeId, {
+                automatisation: 0,
+                collisions: 0,
+                dernier_import: null
+            });
+        });
+}
+
+// Fonction pour mettre à jour l'affichage d'une société
+function mettreAJourAffichageSociete(societeId, data) {
+    // Mettre à jour le pourcentage d'automatisation
+    const automatisationValue = document.getElementById(`automatisation-value-${societeId}`);
+    const automatisationBadge = document.getElementById(`automatisation-${societeId}`);
+    
+    if (automatisationValue && automatisationBadge) {
+        const pourcentage = data.automatisation || 0;
+        automatisationValue.textContent = `${pourcentage}%`;
+        
+        // Appliquer la classe de couleur appropriée
+        automatisationBadge.className = 'badge-automatisation';
+        if (pourcentage >= 80) {
+            automatisationBadge.classList.add('automatisation-excellent');
+        } else if (pourcentage >= 60) {
+            automatisationBadge.classList.add('automatisation-bon');
+        } else if (pourcentage >= 30) {
+            automatisationBadge.classList.add('automatisation-moyen');
+        } else {
+            automatisationBadge.classList.add('automatisation-faible');
+        }
+    }
+    
+    // Mettre à jour le nombre de collisions
+    const collisionsValue = document.getElementById(`collisions-value-${societeId}`);
+    const collisionsBadge = document.getElementById(`collisions-${societeId}`);
+    
+    if (collisionsValue && collisionsBadge) {
+        const collisions = data.collisions || 0;
+        collisionsValue.textContent = collisions;
+        
+        // Appliquer la classe de couleur appropriée
+        collisionsBadge.className = 'collisions-count';
+        if (collisions === 0) {
+            collisionsBadge.classList.add('collisions-none');
+        } else if (collisions <= 3) {
+            collisionsBadge.classList.add('collisions-few');
+        } else {
+            collisionsBadge.classList.add('collisions-many');
+        }
+    }
+    
+    // Mettre à jour la date d'import
+    const importDate = document.getElementById(`import-date-${societeId}`);
+    if (importDate) {
+        if (data.dernier_import) {
+            const date = new Date(data.dernier_import);
+            const dateFormatee = date.toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            importDate.innerHTML = `<span class="date-import">${dateFormatee}</span>`;
+        } else {
+            importDate.innerHTML = '<span class="no-data">Aucun import</span>';
+        }
+    }
+}
+
+// Fonction pour charger toutes les données des sociétés
+function chargerToutesLesDonnees() {
+    const lignesSocietes = document.querySelectorAll('[data-societe-id]');
+    lignesSocietes.forEach(ligne => {
+        const societeId = ligne.getAttribute('data-societe-id');
+        chargerDonneesSociete(societeId);
+    });
+}
+
+// Fonction pour démarrer les mises à jour automatiques
+function demarrerMisesAJourAutomatiques() {
+    // Mise à jour initiale
+    chargerToutesLesDonnees();
+    
+    // Mise à jour périodique toutes les 30 secondes
+    if (updateInterval) {
+        clearInterval(updateInterval);
+    }
+    
+    updateInterval = setInterval(() => {
+        console.log('🔄 Mise à jour automatique des données...');
+        chargerToutesLesDonnees();
+    }, 30000); // 30 secondes
+}
+
+// Fonction pour arrêter les mises à jour automatiques
+function arreterMisesAJourAutomatiques() {
+    if (updateInterval) {
+        clearInterval(updateInterval);
+        updateInterval = null;
+    }
+}
+
+// Fonction publique pour forcer la mise à jour après modification des règles
+window.rafraichirDonneesEntreprises = function() {
+    console.log('🔄 Rafraîchissement forcé des données entreprises...');
+    chargerToutesLesDonnees();
+};
+
+// Initialisation au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Initialisation page entreprises');
+    demarrerMisesAJourAutomatiques();
+});
+
+// Nettoyage en quittant la page
+window.addEventListener('beforeunload', function() {
+    arreterMisesAJourAutomatiques();
+});
+
+// Fonction pour surveiller les événements de changement de règles
+function ecouterEvenementsRegles() {
+    // Utiliser le localStorage pour écouter les changements entre pages
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'regles_modifiees') {
+            console.log('📡 Détection de modification de règles depuis une autre page');
+            rafraichirDonneesEntreprises();
+            // Nettoyer l'événement
+            localStorage.removeItem('regles_modifiees');
+        }
+    });
+}
+
+// Démarrer l'écoute des événements
+ecouterEvenementsRegles();
+</script>
                     </tbody>
                 </table>
             </div>

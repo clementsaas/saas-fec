@@ -393,3 +393,121 @@ def create_societe():
         db.session.rollback()
         print(f"Erreur création société: {e}")
         return jsonify({'success': False, 'error': 'Erreur interne du serveur'}), 500
+    
+    @api_bp.route('/societe/<int:societe_id>/statistiques')
+def get_societe_statistiques(societe_id):
+    """API pour récupérer les statistiques d'une société (automatisation + collisions)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Non connecté'}), 401
+
+    try:
+        # Vérifier que l'utilisateur a accès à cette société
+        societe = Societe.query.get_or_404(societe_id)
+        if societe.organization_id != session['organization_id']:
+            return jsonify({'success': False, 'error': 'Accès non autorisé'}), 403
+
+        # Récupérer le FEC le plus récent et actif
+        fec_actif = FecFile.query.filter_by(
+            societe_id=societe_id,
+            is_active=True
+        ).order_by(FecFile.date_import.desc()).first()
+
+        if not fec_actif:
+            return jsonify({
+                'success': True,
+                'automatisation': 0,
+                'collisions': 0,
+                'dernier_import': None
+            })
+
+        # Récupérer les écritures bancaires
+        ecritures = EcritureBancaire.query.filter_by(fec_file_id=fec_actif.id).all()
+        
+        # Récupérer les règles existantes
+        regles_existantes = RegleAffectation.query.filter_by(
+            societe_id=societe_id,
+            is_active=True
+        ).all()
+
+        # Calculer l'automatisation globale
+        automatisation = calculer_automatisation_globale(ecritures, regles_existantes)
+        
+        # Calculer les collisions
+        collisions_totales = calculer_collisions_totales(regles_existantes, ecritures)
+        
+        return jsonify({
+            'success': True,
+            'automatisation': round(automatisation, 1),
+            'collisions': collisions_totales,
+            'dernier_import': fec_actif.date_import.isoformat() if fec_actif else None
+        })
+
+    except Exception as e:
+        print(f"Erreur API statistiques société {societe_id}: {e}")
+        return jsonify({'success': False, 'error': 'Erreur interne'}), 500
+
+
+def calculer_automatisation_globale(ecritures, regles_existantes):
+    """Calcule le pourcentage d'automatisation global"""
+    if not ecritures:
+        return 0
+    
+    from app.services.regle_tester import RegleTester
+    tester = RegleTester()
+    
+    ecritures_couvertes = set()
+    
+    for regle in regles_existantes:
+        if regle.is_active:
+            matches = tester.test_regle_object(regle, ecritures)
+            for match in matches:
+                ecritures_couvertes.add(match.id)
+    
+    total_ecritures = len(ecritures)
+    ecritures_automatisees = len(ecritures_couvertes)
+    
+    return (ecritures_automatisees / total_ecritures * 100) if total_ecritures > 0 else 0
+
+
+def calculer_collisions_totales(regles_existantes, ecritures):
+    """Calcule le nombre total de collisions entre toutes les règles actives"""
+    if not regles_existantes or len(regles_existantes) < 2:
+        return 0
+    
+    from app.services.regle_tester import RegleTester
+    tester = RegleTester()
+    
+    # Grouper les écritures par compte pour chaque règle
+    regles_matches = {}
+    
+    for regle in regles_existantes:
+        if regle.is_active:
+            matches = tester.test_regle_object(regle, ecritures)
+            regles_matches[regle.id] = {}
+            
+            for match in matches:
+                compte = match.compte_contrepartie
+                if compte not in regles_matches[regle.id]:
+                    regles_matches[regle.id][compte] = []
+                regles_matches[regle.id][compte].append(match)
+    
+    # Détecter les collisions : même compte touché par plusieurs règles
+    comptes_avec_collisions = {}
+    
+    for regle_id, comptes_matches in regles_matches.items():
+        for compte, matches in comptes_matches.items():
+            if compte not in comptes_avec_collisions:
+                comptes_avec_collisions[compte] = []
+            comptes_avec_collisions[compte].append({
+                'regle_id': regle_id,
+                'nb_matches': len(matches)
+            })
+    
+    # Compter les collisions : comptes touchés par plus d'une règle
+    nb_collisions = 0
+    for compte, regles_impliquees in comptes_avec_collisions.items():
+        if len(regles_impliquees) > 1:
+            # Une collision = le nombre total de transactions en conflit
+            nb_collisions += sum(r['nb_matches'] for r in regles_impliquees)
+    
+    return nb_collisions
