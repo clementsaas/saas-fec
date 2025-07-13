@@ -286,4 +286,18 @@ def create_app():
 
     return app
 
+@app.route('/entreprises')
+def entreprises():
+    """Page de gestion des entreprises/sociétés"""
+    if 'user_id' not in session:
+        return redirect(url_for('auth.login'))
+
+    # Récupérer toutes les sociétés de l'organisation
+    organization_id = session['organization_id']
+    societes = Societe.query.filter_by(organization_id=organization_id).all()
+    
+    return render_template('entreprises.html', 
+                         societes=societes,
+                         current_page='entreprises')
+
     return app

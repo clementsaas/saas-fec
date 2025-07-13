@@ -347,3 +347,49 @@ def groupements_intelligents():
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)})
+    
+    @api_bp.route('/societes', methods=['POST'])
+def create_societe():
+    """Créer une nouvelle société"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Non connecté'}), 401
+
+    try:
+        data = request.get_json()
+        nom_societe = data.get('nom', '').strip()
+        
+        if not nom_societe:
+            return jsonify({'success': False, 'error': 'Le nom de la société est obligatoire'}), 400
+
+        # Vérifier que le nom n'existe pas déjà dans l'organisation
+        organization_id = session['organization_id']
+        societe_existante = Societe.query.filter_by(
+            nom=nom_societe, 
+            organization_id=organization_id
+        ).first()
+        
+        if societe_existante:
+            return jsonify({'success': False, 'error': 'Une société avec ce nom existe déjà'}), 400
+
+        # Créer la nouvelle société
+        nouvelle_societe = Societe(
+            nom=nom_societe,
+            organization_id=organization_id
+        )
+        
+        db.session.add(nouvelle_societe)
+        db.session.commit()
+
+        return jsonify({
+            'success': True, 
+            'societe': {
+                'id': nouvelle_societe.id,
+                'nom': nouvelle_societe.nom,
+                'created_at': nouvelle_societe.created_at.strftime('%d/%m/%Y')
+            }
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erreur création société: {e}")
+        return jsonify({'success': False, 'error': 'Erreur interne du serveur'}), 500

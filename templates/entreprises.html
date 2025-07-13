@@ -1,0 +1,435 @@
+{% extends "base_with_sidebar.html" %}
+
+{% block title %}Entreprises - Affectia{% endblock %}
+
+{% block content %}
+<style>
+.entreprises-header {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-info h1 {
+    margin: 0;
+    color: #333;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.header-subtitle {
+    color: #666;
+    font-size: 14px;
+}
+
+.btn-nouvelle-societe {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-nouvelle-societe:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.entreprises-table {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.table {
+    margin: 0;
+}
+
+.table th {
+    background: #f8f9fa;
+    border: none;
+    padding: 15px 20px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.table td {
+    padding: 15px 20px;
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background: #f8f9ff;
+}
+
+.societe-nom {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.badge-automatisation {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.automatisation-excellent { background: #d4edda; color: #155724; }
+.automatisation-bon { background: #d1ecf1; color: #0c5460; }
+.automatisation-moyen { background: #fff3cd; color: #856404; }
+.automatisation-faible { background: #f8d7da; color: #721c24; }
+
+.collisions-count {
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.collisions-none { background: #d4edda; color: #155724; }
+.collisions-few { background: #fff3cd; color: #856404; }
+.collisions-many { background: #f8d7da; color: #721c24; }
+
+.date-import {
+    font-size: 13px;
+    color: #666;
+}
+
+.no-data {
+    color: #999;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-voir {
+    background: #2196f3;
+    color: white;
+}
+
+.btn-voir:hover {
+    background: #1976d2;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+/* Modal */
+.modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+.btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    border: 2px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 12px 15px;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+</style>
+
+<div class="entreprises-header">
+    <div class="header-info">
+        <h1>🏢 Entreprises</h1>
+        <div class="header-subtitle">Gérez vos sociétés et suivez leur automatisation</div>
+    </div>
+    <button class="btn-nouvelle-societe" onclick="ouvrirModaleSociete()">
+        <span>+</span>
+        <span>Nouvelle société</span>
+    </button>
+</div>
+
+<div class="entreprises-table">
+    {% if societes %}
+    <table class="table" id="tableEntreprises">
+        <thead>
+            <tr>
+                <th>Nom de la société</th>
+                <th>% d'automatisation</th>
+                <th>Nombre de collisions</th>
+                <th>Dernier import</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for societe in societes %}
+            <tr>
+                <td>
+                    <div class="societe-nom">{{ societe.nom }}</div>
+                    {% if societe.siret %}
+                    <small class="text-muted">SIRET: {{ societe.siret }}</small>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge-automatisation automatisation-faible">
+                        <span class="automatisation-value" data-societe-id="{{ societe.id }}">0%</span>
+                    </span>
+                </td>
+                <td>
+                    <span class="collisions-count collisions-none">
+                        <span class="collisions-value" data-societe-id="{{ societe.id }}">0</span>
+                    </span>
+                </td>
+                <td>
+                    <span class="date-import">
+                        <span class="import-date" data-societe-id="{{ societe.id }}">
+                            <span class="no-data">Aucun import</span>
+                        </span>
+                    </span>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-action btn-voir" onclick="voirSociete({{ societe.id }})">
+                            Voir
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🏢</div>
+        <h3>Aucune société</h3>
+        <p>Commencez par créer votre première société</p>
+        <button class="btn-nouvelle-societe" onclick="ouvrirModaleSociete()">
+            <span>+</span>
+            <span>Créer ma première société</span>
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal Nouvelle Société -->
+<div class="modal fade" id="modalNouvelleSociete" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Créer une nouvelle société</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="alertContainer"></div>
+                <form id="formNouvelleSociete">
+                    <div class="mb-3">
+                        <label for="nomSociete" class="form-label">Nom de la société *</label>
+                        <input type="text" class="form-control" id="nomSociete" 
+                               placeholder="Ex: ABC Consulting SARL" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="creerSociete()" id="btnCreer">
+                    Créer la société
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🏢 Page entreprises chargée');
+    
+    // Charger les données pour chaque société
+    {% if societes %}
+    {% for societe in societes %}
+    chargerDonneesSociete({{ societe.id }});
+    {% endfor %}
+    {% endif %}
+});
+
+function ouvrirModaleSociete() {
+    const modal = new bootstrap.Modal(document.getElementById('modalNouvelleSociete'));
+    document.getElementById('nomSociete').value = '';
+    document.getElementById('alertContainer').innerHTML = '';
+    modal.show();
+    
+    // Focus sur le champ nom
+    setTimeout(() => {
+        document.getElementById('nomSociete').focus();
+    }, 300);
+}
+
+function creerSociete() {
+    const nom = document.getElementById('nomSociete').value.trim();
+    const btnCreer = document.getElementById('btnCreer');
+    const alertContainer = document.getElementById('alertContainer');
+    
+    // Validation
+    if (!nom) {
+        afficherErreur('Le nom de la société est obligatoire');
+        return;
+    }
+    
+    // État de chargement
+    btnCreer.disabled = true;
+    btnCreer.textContent = 'Création...';
+    alertContainer.innerHTML = '';
+    
+    // Requête API
+    fetch('/api/societes', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nom: nom })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Succès - fermer la modal et rafraîchir
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalNouvelleSociete'));
+            modal.hide();
+            
+            // Rafraîchir la page pour afficher la nouvelle société
+            window.location.reload();
+        } else {
+            afficherErreur(data.error || 'Erreur lors de la création');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        afficherErreur('Erreur de connexion');
+    })
+    .finally(() => {
+        btnCreer.disabled = false;
+        btnCreer.textContent = 'Créer la société';
+    });
+}
+
+function afficherErreur(message) {
+    const alertContainer = document.getElementById('alertContainer');
+    alertContainer.innerHTML = `
+        <div class="alert alert-danger" role="alert">
+            ${message}
+        </div>
+    `;
+}
+
+function chargerDonneesSociete(societeId) {
+    // Simuler un chargement de données - à remplacer par un vrai appel API
+    console.log(`📊 Chargement données société ${societeId}`);
+    
+    // Pour la MVP, afficher des valeurs par défaut
+    setTimeout(() => {
+        const automatisationEl = document.querySelector(`[data-societe-id="${societeId}"] .automatisation-value`);
+        const collisionsEl = document.querySelector(`[data-societe-id="${societeId}"] .collisions-value`);
+        const importDateEl = document.querySelector(`[data-societe-id="${societeId}"] .import-date`);
+        
+        if (automatisationEl) {
+            automatisationEl.textContent = '0%';
+            automatisationEl.closest('.badge-automatisation').className = 'badge-automatisation automatisation-faible';
+        }
+        
+        if (collisionsEl) {
+            collisionsEl.textContent = '0';
+            collisionsEl.closest('.collisions-count').className = 'collisions-count collisions-none';
+        }
+        
+        if (importDateEl) {
+            importDateEl.innerHTML = '<span class="no-data">Aucun import</span>';
+        }
+    }, 100);
+}
+
+function voirSociete(societeId) {
+    window.location.href = `/societe/${societeId}`;
+}
+
+// Validation en temps réel
+document.getElementById('nomSociete').addEventListener('input', function() {
+    const btnCreer = document.getElementById('btnCreer');
+    btnCreer.disabled = this.value.trim().length === 0;
+});
+
+// Soumission par Entrée
+document.getElementById('nomSociete').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        creerSociete();
+    }
+});
+</script>
+{% endblock %}
