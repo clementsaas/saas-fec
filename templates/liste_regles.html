@@ -2692,5 +2692,144 @@ function naviguerVers(page) {
 }
 
     </script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- SYSTÈME DE CAPTURE D'ERREURS CENTRALISÉ -->
+<script>
+(function() {
+    'use strict';
+    
+    const contextualData = {
+        nomEntreprise: window.nomEntreprise || 'Non défini',
+        userRole: window.userRole || 'Non défini',
+        currentSociete: window.currentSociete || 'Non défini',
+        organizationId: window.organizationId || 'Non défini'
+    };
+    
+    let lastClickedElement = null;
+    
+    document.addEventListener('click', function(event) {
+        lastClickedElement = event.target.outerHTML.substring(0, 300);
+    }, true);
+    
+    function formatErrorMessage(type, details) {
+        const timestamp = new Date().toISOString();
+        const userAgent = navigator.userAgent;
+        const currentUrl = window.location.href;
+        
+        const errorReport = {
+            "=== RAPPORT D'ERREUR AFFECTIA ===": null,
+            "📆 Timestamp": timestamp,
+            "🧠 Type d'erreur": type,
+            "🌐 URL courante": currentUrl,
+            "🖥️ User Agent": userAgent,
+            "🧬 Dernier élément cliqué": lastClickedElement || "Aucun",
+            "📦 Variables contextuelles": contextualData,
+            "🔍 Détails de l'erreur": details,
+            "=== FIN DU RAPPORT ===": null
+        };
+        
+        return JSON.stringify(errorReport, null, 2);
+    }
+    
+    window.addEventListener('error', function(event) {
+        const details = {
+            message: event.message,
+            filename: event.filename || 'Inconnu',
+            lineno: event.lineno || 'Inconnu',
+            colno: event.colno || 'Inconnu',
+            stack: event.error && event.error.stack ? event.error.stack : 'Stack trace non disponible'
+        };
+        
+        console.error(formatErrorMessage('Erreur JavaScript', details));
+    });
+    
+    window.addEventListener('unhandledrejection', function(event) {
+        const details = {
+            reason: event.reason,
+            promise: 'Promise rejetée',
+            stack: event.reason && event.reason.stack ? event.reason.stack : 'Stack trace non disponible'
+        };
+        
+        console.error(formatErrorMessage('Promesse non catchée', details));
+    });
+    
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+        const startTime = Date.now();
+        const [resource, config = {}] = args;
+        
+        const requestInfo = {
+            method: config.method || 'GET',
+            endpoint: resource,
+            headers: config.headers ? JSON.stringify(config.headers) : 'Aucun',
+            body: config.body ? (typeof config.body === 'string' ? config.body : JSON.stringify(config.body)) : 'Aucun'
+        };
+        
+        return originalFetch.apply(this, args)
+            .then(response => {
+                const responseTime = Date.now() - startTime;
+                
+                if (!response.ok) {
+                    const responseClone = response.clone();
+                    
+                    responseClone.text().then(responseText => {
+                        const details = {
+                            ...requestInfo,
+                            "statut_http": response.status,
+                            "statut_text": response.statusText,
+                            "response_time_ms": responseTime,
+                            "response_body": responseText.substring(0, 1000),
+                            "response_headers": JSON.stringify([...response.headers.entries()])
+                        };
+                        
+                        console.error(formatErrorMessage('Erreur Fetch - Réponse non OK', details));
+                    }).catch(() => {
+                        const details = {
+                            ...requestInfo,
+                            "statut_http": response.status,
+                            "statut_text": response.statusText,
+                            "response_time_ms": responseTime,
+                            "response_body": "Impossible de lire le body de la réponse"
+                        };
+                        
+                        console.error(formatErrorMessage('Erreur Fetch - Réponse non OK', details));
+                    });
+                }
+                
+                return response;
+            })
+            .catch(error => {
+                const responseTime = Date.now() - startTime;
+                
+                const details = {
+                    ...requestInfo,
+                    "error_message": error.message,
+                    "error_name": error.name,
+                    "response_time_ms": responseTime,
+                    "stack": error.stack || 'Stack trace non disponible',
+                    "type_erreur": "Requête échouée (réseau/serveur inaccessible)"
+                };
+                
+                console.error(formatErrorMessage('Erreur Fetch - Requête échouée', details));
+                throw error;
+            });
+    };
+    
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        window.testErrors = {
+            jsError: () => { throw new Error("Test erreur JavaScript"); },
+            promiseError: () => { Promise.reject("Test promesse non catchée"); },
+            fetchError: () => { fetch("/api/url-inexistante"); }
+        };
+        
+        console.log("🧪 Mode développement : tapez testErrors.jsError() pour tester");
+    }
+    
+    console.log("✅ Système de capture d'erreurs Affectia initialisé");
+})();
+</script>
 </body>
 </html>

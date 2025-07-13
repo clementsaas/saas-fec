@@ -9,6 +9,7 @@ import json
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 
+
 @api_bp.route('/societe/<int:societe_id>/dashboard-data')
 def get_dashboard_data(societe_id):
     """API pour récupérer les données du dashboard d'une société"""
