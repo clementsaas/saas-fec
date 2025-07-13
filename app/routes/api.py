@@ -348,7 +348,7 @@ def groupements_intelligents():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)})
     
-    @api_bp.route('/societes', methods=['POST'])
+@api_bp.route('/societes', methods=['POST'])
 def create_societe():
     """Créer une nouvelle société"""
     if 'user_id' not in session:

@@ -23,83 +23,6 @@
 </button>
 </div>
 
-<!-- Section société intégrée dans la sidebar -->
-<div class="sidebar-company-section">
-<div class="company-section-sidebar" onclick="toggleCompanyDropdownSidebar()">
-        <div class="company-layout-sidebar">
-            <div class="company-name-section-sidebar">
-                <h2 id="current-company-name-sidebar">{{ societe.nom if societe else 'Chargement...' }}</h2>
-            </div>
-            <div class="automation-score-section-sidebar" id="automation-score-sidebar">
-                <div class="automation-glass-background-sidebar">
-                    <div class="automation-specular-highlight-sidebar"></div>
-                    <div class="automation-content-sidebar">
-                        <span class="percentage-sidebar" id="automation-percentage-sidebar">{{ automatisation_globale if automatisation_globale else '0' }}%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dropdown Apple Intelligence dans la sidebar -->
-    <div class="apple-intelligence-dropdown-sidebar" id="companyDropdownSidebar">
-        <div class="ai-dropdown-content-sidebar">
-            <!-- Barre de recherche avec effet Liquid Glass -->
-            <div class="ai-search-container-sidebar">
-                <div class="ai-search-wrapper-sidebar">
-                    <input type="text" class="ai-search-input-sidebar" id="companySearchSidebar"
-                           placeholder="Rechercher une société..."
-                           autocomplete="off"
-                           onclick="event.stopPropagation()"
-                           oninput="filterCompaniesAISidebar()">
-                    <div class="ai-search-icon-sidebar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Liste des sociétés avec style Apple Intelligence -->
-            <div class="ai-companies-list-sidebar" id="companyListSidebar">
-                {% if societes %}
-                    {% for soc in societes %}
-                    {% if loop.index0 < 5 %}
-                    <div class="ai-company-item-sidebar {% if soc.id == societe.id %}selected{% endif %}"
-                         onclick="selectCompanyAISidebar({{ soc.id }})"
-                         data-nom="{{ soc.nom|lower }}"
-                         data-index="{{ loop.index0 }}">
-                        <div class="ai-company-content-sidebar">
-                            <div class="ai-company-main-sidebar">
-                                <div class="ai-company-name-sidebar">{{ soc.nom }}</div>
-                                {% if soc.siret %}
-                                <div class="ai-company-siret-sidebar">SIRET: {{ soc.siret }}</div>
-                                {% endif %}
-                            </div>
-                            {% if soc.id == societe.id %}
-                            <div class="ai-current-indicator-sidebar">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z"/>
-                                </svg>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                {% else %}
-                    <div class="ai-no-companies-sidebar">
-                        <div style="text-align: center; padding: 20px; color: #86868b;">
-                            <div style="font-size: 24px; margin-bottom: 8px;">🏢</div>
-                            <div style="font-size: 14px;">Aucune société disponible</div>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Navigation principale -->
 <div class="sidebar-nav">
         <!-- Séparateur -->
@@ -185,7 +108,7 @@
     position: fixed;
     left: 0;
     top: 0;
-    width: 225px;
+    width: 245px;
     height: 100vh;
     background: linear-gradient(135deg,
         rgba(255, 255, 255, 0.95) 0%,
@@ -446,7 +369,7 @@
 
 /* Layout adjustments - Sidebar pousse le contenu avec espacement */
 body {
-    margin-left: 245px;
+    margin-left: 265px;
     transition: margin-left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 

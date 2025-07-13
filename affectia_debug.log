@@ -14881,3 +14881,17 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 2025-07-13 16:14:37,364 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:14:37] "[33mGET /entreprises HTTP/1.1[0m" 404 -
 2025-07-13 16:14:39,326 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:14:39] "POST /api/groupements-intelligents HTTP/1.1" 200 -
 2025-07-13 16:14:40,874 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:14:40] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-13 16:20:29,616 - app - WARNING - PAGE INTROUVABLE: http://127.0.0.1:5000/entreprises - Référent: http://127.0.0.1:5000/societe/7
+2025-07-13 16:20:29,617 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:20:29] "[33mGET /entreprises HTTP/1.1[0m" 404 -
+2025-07-13 16:21:25,219 - app - WARNING - PAGE INTROUVABLE: http://127.0.0.1:5000/entreprises - Référent: http://127.0.0.1:5000/societe/7
+2025-07-13 16:21:25,220 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:21:25] "[33mGET /entreprises HTTP/1.1[0m" 404 -
+2025-07-13 16:23:18,482 - app - WARNING - PAGE INTROUVABLE: http://127.0.0.1:5000/entreprises - Référent: http://127.0.0.1:5000/societe/7
+2025-07-13 16:23:18,483 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:23:18] "[33mGET /entreprises HTTP/1.1[0m" 404 -
+2025-07-13 16:23:19,218 - app - WARNING - PAGE INTROUVABLE: http://127.0.0.1:5000/entreprises - Référent: http://127.0.0.1:5000/societe/7
+2025-07-13 16:23:19,219 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:23:19] "[33mGET /entreprises HTTP/1.1[0m" 404 -
+2025-07-13 16:23:21,056 - app - WARNING - PAGE INTROUVABLE: http://127.0.0.1:5000/entreprises - Référent: http://127.0.0.1:5000/societe/7
+2025-07-13 16:23:21,056 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:23:21] "[33mGET /entreprises HTTP/1.1[0m" 404 -
+2025-07-13 16:27:44,578 - app - WARNING - PAGE INTROUVABLE: http://127.0.0.1:5000/entreprises - Référent: http://127.0.0.1:5000/societe/7
+2025-07-13 16:27:44,579 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:27:44] "[33mGET /entreprises HTTP/1.1[0m" 404 -
+2025-07-13 16:44:50,404 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:44:50] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-13 16:44:52,510 - werkzeug - INFO - 127.0.0.1 - - [13/Jul/2025 16:44:52] "POST /api/groupements-intelligents HTTP/1.1" 200 -
