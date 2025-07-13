@@ -2,12 +2,24 @@
 <div class="affectia-sidebar" id="affectiaSidebar">
 <!-- En-tête avec toggle -->
 <div class="sidebar-header">
-<button class="sidebar-toggle-btn" id="sidebarToggle" title="Fermer la barre latérale">
+<div class="sidebar-logo-container" id="sidebarLogoContainer" title="">
     <img src="/static/images/logo_affectia_vector.svg"
          alt="Affectia Logo"
-         class="affectia-logo-toggle"
+         class="affectia-logo-display"
          width="24"
          height="24">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="sidebar-close-icon">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+        <path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" />
+        <path d="M9 4l0 16" />
+    </svg>
+</div>
+<button class="sidebar-close-btn" id="sidebarClose" title="Fermer la barre latérale">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-layout-sidebar">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+        <path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" />
+        <path d="M9 4l0 16" />
+    </svg>
 </button>
 </div>
 
@@ -178,7 +190,7 @@
     z-index: 1003;
     display: flex;
     flex-direction: column;
-    padding: 8px;
+    padding: 4px 8px 8px 8px;
     box-shadow:
         2px 0 20px rgba(0, 0, 0, 0.08),
         inset -1px 0 0 rgba(255, 255, 255, 0.6);
@@ -192,42 +204,144 @@
 /* En-tête */
 .sidebar-header {
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
-    padding: 8px 4px;
-    margin-bottom: 16px;
+    padding: 4px 4px;
+    margin-bottom: 12px;
+    gap: 8px;
 }
 
-.sidebar-toggle-btn {
+.sidebar-close-btn {
     background: none;
     border: none;
     padding: 8px;
     border-radius: 6px;
-    cursor: ew-resize;
+    cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #64748b;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
 }
 
-.sidebar-toggle-btn:hover {
+.sidebar-close-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.sidebar-close-btn:hover {
     background: rgba(100, 116, 139, 0.1);
+    color: #334155;
 }
 
-.affectia-logo-toggle {
+.affectia-sidebar.collapsed .sidebar-close-btn {
+    display: none;
+}
+
+/* Container du logo avec logique smart */
+.sidebar-logo-container {
+    background: none;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    position: relative;
+    cursor: default;
+}
+
+/* Logo Affectia */
+.affectia-logo-display {
     transition: all 0.3s ease;
+    filter: brightness(0) saturate(100%) invert(42%) sepia(8%) saturate(1168%) hue-rotate(180deg) brightness(95%) contrast(88%);
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    opacity: 1;
+}
+
+/* Icône de fermeture (cachée par défaut) */
+.sidebar-close-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+/* État normal (sidebar ouverte) - logo ne fait rien */
+.affectia-sidebar:not(.collapsed) .sidebar-logo-container {
+    cursor: default;
+}
+
+.affectia-sidebar:not(.collapsed) .sidebar-logo-container:hover .affectia-logo-display {
+    transform: none;
     filter: brightness(0) saturate(100%) invert(42%) sepia(8%) saturate(1168%) hue-rotate(180deg) brightness(95%) contrast(88%);
 }
 
-.sidebar-toggle-btn:hover .affectia-logo-toggle {
-    transform: scale(1.1);
+/* État collapsed - logo devient interactif */
+.affectia-sidebar.collapsed .sidebar-logo-container {
+    cursor: pointer;
+}
+
+.affectia-sidebar.collapsed .affectia-logo-display {
+    animation: logoRotate 2s ease-in-out infinite;
     filter: brightness(0) saturate(100%) invert(37%) sepia(96%) saturate(6870%) hue-rotate(221deg) brightness(97%) contrast(94%);
 }
 
-.affectia-sidebar.collapsed .affectia-logo-toggle {
-    animation: logoRotate 2s ease-in-out infinite;
-    filter: brightness(0) saturate(100%) invert(37%) sepia(96%) saturate(6870%) hue-rotate(221deg) brightness(97%) contrast(94%);
+/* Au hover en mode collapsed : logo disparaît, icône fermeture apparaît */
+.affectia-sidebar.collapsed .sidebar-logo-container:hover .affectia-logo-display {
+    opacity: 0;
+    transform: scale(0.8);
+    animation: none;
+}
+
+.affectia-sidebar.collapsed .sidebar-logo-container:hover .sidebar-close-icon {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+}
+
+.affectia-sidebar.collapsed .sidebar-logo-container:hover {
+    background: rgba(100, 116, 139, 0.1);
+}
+
+/* Bouton de fermeture normal */
+.sidebar-close-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.sidebar-close-btn:hover {
+    background: rgba(100, 116, 139, 0.1);
+    color: #334155;
+}
+
+/* Cacher le bouton fermer en mode collapsed */
+.affectia-sidebar.collapsed .sidebar-close-btn {
+    display: none;
 }
 
 @keyframes logoRotate {
@@ -834,14 +948,27 @@ let sidebarToggleBtn, sidebar, body, headerBar, mainContainer;
 // Initialize sidebar functionality
 function initSidebar() {
     sidebarToggleBtn = document.getElementById('sidebarToggle');
+    const sidebarCloseBtn = document.getElementById('sidebarClose');
     sidebar = document.getElementById('affectiaSidebar');
     body = document.body;
     headerBar = document.querySelector('.header-bar');
     mainContainer = document.querySelector('.main-container');
 
-    // Event listeners
-    if (sidebarToggleBtn) {
-        sidebarToggleBtn.addEventListener('click', function(e) {
+// Event listeners
+const sidebarLogoContainer = document.getElementById('sidebarLogoContainer');
+
+if (sidebarLogoContainer) {
+    sidebarLogoContainer.addEventListener('click', function(e) {
+        // Ne toggle que si la sidebar est collapsed
+        if (sidebar && sidebar.classList.contains('collapsed')) {
+            e.stopPropagation();
+            toggleSidebar();
+        }
+    });
+}
+
+    if (sidebarCloseBtn) {
+        sidebarCloseBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             toggleSidebar();
         });
