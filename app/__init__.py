@@ -186,11 +186,6 @@ def create_app():
             flash('Erreur lors du chargement du dashboard', 'error')
             return redirect(url_for('dashboard'))
 
-
-        except Exception as e:
-            print(f"Erreur API dashboard: {e}")
-            return jsonify({'success': False, 'error': 'Erreur interne'}), 500
-
     # Fonction pour rendre l'utilisateur disponible dans tous les templates
     @app.context_processor
     def inject_user():
@@ -284,20 +279,18 @@ def create_app():
             print(f"Erreur API dashboard: {e}")
             return jsonify({'success': False, 'error': 'Erreur interne'}), 500
 
-    return app
+    @app.route('/entreprises')
+    def entreprises():
+        """Page de gestion des entreprises/sociétés"""
+        if 'user_id' not in session:
+            return redirect(url_for('auth.login'))
 
-@app.route('/entreprises')
-def entreprises():
-    """Page de gestion des entreprises/sociétés"""
-    if 'user_id' not in session:
-        return redirect(url_for('auth.login'))
-
-    # Récupérer toutes les sociétés de l'organisation
-    organization_id = session['organization_id']
-    societes = Societe.query.filter_by(organization_id=organization_id).all()
-    
-    return render_template('entreprises.html', 
-                         societes=societes,
-                         current_page='entreprises')
+        # Récupérer toutes les sociétés de l'organisation
+        organization_id = session['organization_id']
+        societes = Societe.query.filter_by(organization_id=organization_id).all()
+        
+        return render_template('entreprises.html', 
+                             societes=societes,
+                             current_page='entreprises')
 
     return app
