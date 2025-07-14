@@ -7,9 +7,7 @@
 {% include 'includes/sidebar_simplifiee.html' %}
 
 <style>
-/* Styles spécifiques à la page entreprises - HARMONISÉS avec Dashboard */
-/* EXACT COPY from liste_regles et societe_dashboard */
-/* Layout spécifique pour sidebar_simplifiee */
+/* Layout spécifique pour sidebar_simplifiee - EXACT COPY from societe_dashboard */
 body {
     overflow: hidden;
     height: 100vh;
@@ -18,7 +16,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: #f5f5f7;
     color: #1d1d1f;
-    margin-left: 270px !important;
+    margin-left: 225px !important;
     transition: margin-left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
@@ -26,7 +24,25 @@ body.sidebar-collapsed {
     margin-left: 73px !important;
 }
 
-/* Panel principal avec hauteur exacte */
+/* Container principal - EXACT COPY from societe_dashboard */
+.main-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px 20px 5px 20px;
+    height: calc(100vh - 0px);
+    margin-left: -280px;
+    padding-left: 300px;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-sizing: border-box;
+}
+
+.main-container.sidebar-collapsed {
+    margin-left: 0 !important;
+    padding-left: 20px !important;
+}
+
+/* Panel principal - EXACT COPY from societe_dashboard */
 .entreprises-panel {
     background: white;
     border-radius: 16px;
@@ -37,6 +53,7 @@ body.sidebar-collapsed {
     height: calc(100vh - 30px);
 }
 
+/* Header - EXACT COPY from societe_dashboard */
 .entreprises-header {
     background: white;
     padding: 20px 30px;
@@ -55,13 +72,7 @@ body.sidebar-collapsed {
     letter-spacing: -0.02em;
 }
 
-.header-subtitle {
-    color: #86868b;
-    font-size: 14px;
-    font-weight: 500;
-    margin-top: 4px;
-}
-
+/* Bouton nouvelle société - Style harmonisé */
 .btn-nouvelle-societe {
     background: #1d1d1f;
     color: white;
@@ -82,6 +93,7 @@ body.sidebar-collapsed {
     transform: translateY(-1px);
 }
 
+/* Container du tableau */
 .entreprises-table-container {
     flex: 1;
     overflow-y: auto;
@@ -100,6 +112,7 @@ body.sidebar-collapsed {
     font-size: 14px;
 }
 
+/* En-tête du tableau - EXACT COPY from societe_dashboard */
 .table th {
     background: #f9f9fb !important;
     padding: 15px 20px;
@@ -116,6 +129,15 @@ body.sidebar-collapsed {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.table th:first-child {
+    padding-left: 30px;
+}
+
+.table th:last-child {
+    padding-right: 30px;
+}
+
+/* Lignes du tableau */
 .table td {
     padding: 15px 20px;
     border: none;
@@ -123,44 +145,79 @@ body.sidebar-collapsed {
     vertical-align: middle;
 }
 
+.table td:first-child {
+    padding-left: 30px;
+}
+
+.table td:last-child {
+    padding-right: 30px;
+}
+
 .table tbody tr {
     transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+/* Hover discret - AUCUNE couleur bleue */
+.table tbody tr {
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .table tbody tr:hover {
-    background: #f9f9fb;
+    background: #c2cbd4ee;
 }
 
+/* Nom de société - PAS de couleur bleue au hover */
 .societe-nom {
     font-weight: 600;
     color: #1d1d1f;
     font-size: 16px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    text-decoration: none;
 }
 
+.table tbody tr:hover .societe-nom {
+    color: #1d1d1f; /* RESTE NOIR */
+}
+
+.societe-siret {
+    font-size: 12px;
+    color: #86868b;
+    font-weight: 400;
+}
+
+/* Badges d'automatisation - Couleurs harmonisées */
 .badge-automatisation {
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
+    display: inline-block;
 }
 
 .automatisation-excellent { 
     background: rgba(52, 199, 89, 0.1); 
     color: #34c759; 
 }
+
 .automatisation-bon { 
     background: rgba(0, 122, 255, 0.1); 
     color: #007aff; 
 }
+
 .automatisation-moyen { 
     background: rgba(255, 149, 0, 0.1); 
     color: #ff9500; 
 }
+
 .automatisation-faible { 
     background: rgba(255, 59, 48, 0.1); 
     color: #ff3b30; 
 }
 
+/* Collisions */
 .collisions-count {
     font-weight: 600;
     padding: 4px 8px;
@@ -172,10 +229,12 @@ body.sidebar-collapsed {
     background: rgba(52, 199, 89, 0.1); 
     color: #34c759; 
 }
+
 .collisions-few { 
     background: rgba(255, 149, 0, 0.1); 
     color: #ff9500; 
 }
+
 .collisions-many { 
     background: rgba(255, 59, 48, 0.1); 
     color: #ff3b30; 
@@ -192,30 +251,7 @@ body.sidebar-collapsed {
     font-size: 13px;
 }
 
-.action-buttons {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-action {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-voir {
-    background: #1d1d1f;
-    color: white;
-}
-
-.btn-voir:hover {
-    background: #000;
-}
-
-/* État vide - STYLE DASHBOARD */
+/* État vide - EXACT COPY from societe_dashboard */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -242,7 +278,7 @@ body.sidebar-collapsed {
     line-height: 1.5;
 }
 
-/* Modal - STYLE DASHBOARD */
+/* Modal - Style harmonisé */
 .modal-content {
     border-radius: 16px;
     border: none;
@@ -334,6 +370,222 @@ body.sidebar-collapsed {
     color: #ff3b30;
 }
 
+/* Animation de chargement */
+.loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 8px;
+    height: 14px;
+    display: inline-block;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .entreprises-header {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .table th, .table td {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+    
+    .table th:first-child, .table td:first-child {
+        padding-left: 15px;
+    }
+    
+    .table th:last-child, .table td:last-child {
+        padding-right: 15px;
+    }
+}
+
+/* Styles pour la colonne Actions */
+.btn-actions {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    color: #86868b;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-actions:hover {
+    background: #f5f5f7;
+    color: #1d1d1f;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    min-width: 150px;
+    margin-top: 4px;
+    padding: 4px;
+    z-index: 1000;
+    border: 1px solid #e5e5ea;
+}
+
+.dropdown-item {
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    text-align: left;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #1d1d1f;
+}
+
+.dropdown-item:hover {
+    background: #f5f5f7;
+}
+
+.dropdown-item.text-danger {
+    color: #ff3b30;
+}
+
+.dropdown-item.text-danger:hover {
+    background: rgba(255, 59, 48, 0.1);
+}
+
+/* Modal de confirmation */
+.modal-confirmation .modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+.modal-confirmation .modal-header {
+    background: #ff3b30;
+    color: white;
+    border: none;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 30px;
+}
+
+.modal-confirmation .btn-danger {
+    background: #ff3b30;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-weight: 500;
+}
+
+.modal-confirmation .btn-danger:hover {
+    background: #d70015;
+}
+
+/* Modal de renommage - Direction artistique cohérente */
+#modalRenommerSociete .modal-header {
+    background: #1d1d1f;
+    color: white;
+    border: none;
+    border-radius: 16px 16px 0 0;
+    padding: 20px 30px;
+}
+
+#modalRenommerSociete .modal-title {
+    font-weight: 600;
+    font-size: 18px;
+}
+
+#modalRenommerSociete .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+#modalRenommerSociete .modal-body {
+    padding: 30px;
+}
+
+#modalRenommerSociete .form-label {
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+#modalRenommerSociete .form-control {
+    border: 1px solid #d2d2d7;
+    border-radius: 12px;
+    padding: 12px 15px;
+    transition: all 0.2s ease;
+    background: white;
+    font-size: 14px;
+}
+
+#modalRenommerSociete .form-control:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+    outline: none;
+}
+
+#modalRenommerSociete .modal-footer {
+    padding: 20px 30px;
+    border-top: 1px solid #f5f5f7;
+}
+
+#modalRenommerSociete .btn-primary {
+    background: #1d1d1f;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-weight: 500;
+}
+
+#modalRenommerSociete .btn-primary:hover {
+    background: #000;
+}
+
+#modalRenommerSociete .btn-secondary {
+    background: #e5e5ea;
+    color: #1d1d1f;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-weight: 500;
+}
+
+#modalRenommerSociete .btn-secondary:hover {
+    background: #d1d1d6;
+}
+
+#modalRenommerSociete .alert {
+    border-radius: 12px;
+    border: none;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+#modalRenommerSociete .alert-danger {
+    background: rgba(255, 59, 48, 0.1);
+    color: #ff3b30;
+}
+
 </style>
 
 <div class="main-container">
@@ -352,58 +604,122 @@ body.sidebar-collapsed {
         <div class="entreprises-table-container">
             <div class="entreprises-table">
                 <table class="table" id="tableEntreprises">
-                    <thead>
-                        <tr>
-                            <th>Nom de la société</th>
-                            <th>% d'automatisation</th>
-                            <th>Nombre de collisions</th>
-                            <th>Dernier import</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+<thead>
+    <tr>
+        <th>Nom de la société</th>
+        <th>% d'automatisation</th>
+        <th>Nombre de collisions</th>
+        <th>Dernier import</th>
+        <th style="width: 60px; text-align: center;">Actions</th>
+    </tr>
+</thead>
                     <tbody>
-{% for societe in societes %}
-<tr data-societe-id="{{ societe.id }}">
-    <td>
-        <div class="societe-nom" style="cursor: pointer; color: #007aff; text-decoration: none;" 
-             onclick="naviguerVersSociete({{ societe.id }})">
-            {{ societe.nom }}
-        </div>
+                        {% for societe in societes %}
+<tr data-societe-id="{{ societe.id }}" onclick="naviguerVersSociete({{ societe.id }})">
+    <td onclick="naviguerVersSociete({{ societe.id }})" style="cursor: pointer;">
+        <div class="societe-nom">{{ societe.nom }}</div>
         {% if societe.siret %}
-        <small class="text-muted">SIRET: {{ societe.siret }}</small>
+        <div class="societe-siret">SIRET: {{ societe.siret }}</div>
         {% endif %}
     </td>
-    <td>
+    <td onclick="naviguerVersSociete({{ societe.id }})" style="cursor: pointer;">
         <span class="badge-automatisation automatisation-faible" id="automatisation-{{ societe.id }}">
             <span class="automatisation-value" id="automatisation-value-{{ societe.id }}">
-                Chargement...
+                <div class="loading-skeleton" style="width: 30px;"></div>
             </span>
         </span>
     </td>
-    <td>
+    <td onclick="naviguerVersSociete({{ societe.id }})" style="cursor: pointer;">
         <span class="collisions-count collisions-none" id="collisions-{{ societe.id }}">
             <span class="collisions-value" id="collisions-value-{{ societe.id }}">
-                -
+                <div class="loading-skeleton" style="width: 20px;"></div>
             </span>
         </span>
     </td>
-    <td>
+    <td onclick="naviguerVersSociete({{ societe.id }})" style="cursor: pointer;">
         <div class="date-import" id="import-date-{{ societe.id }}">
-            <span class="no-data">Chargement...</span>
+            <div class="loading-skeleton" style="width: 80px;"></div>
         </div>
     </td>
-    <td>
-        <div class="action-buttons">
-            <button class="btn-action btn-voir" onclick="voirSociete({{ societe.id }})">Voir</button>
+    <td style="text-align: center;">
+        <div class="dropdown">
+            <button class="btn-actions" onclick="event.stopPropagation(); toggleActionsMenu({{ societe.id }})" id="actionsBtn-{{ societe.id }}">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+                    <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+                </svg>
+            </button>
+            <div class="dropdown-menu" id="actionsMenu-{{ societe.id }}" style="display: none;">
+                <button class="dropdown-item" onclick="renommerSociete({{ societe.id }}, '{{ societe.nom }}')">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                    </svg>
+                    Renommer
+                </button>
+                <button class="dropdown-item text-danger" onclick="confirmerSuppressionSociete({{ societe.id }}, '{{ societe.nom }}')">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                    </svg>
+                    Supprimer
+                </button>
+            </div>
         </div>
     </td>
 </tr>
-{% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="entreprises-table-container">
+            <div class="empty-state">
+                <div class="empty-state-icon">🏢</div>
+                <h3>Aucune société</h3>
+                <p>Commencez par créer votre première société</p>
+                <button class="btn-nouvelle-societe" onclick="ouvrirModaleSociete()">
+                    <span>+</span>
+                    <span>Créer ma première société</span>
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Nouvelle Société -->
+<div class="modal fade" id="modalNouvelleSociete" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Créer une nouvelle société</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="alertContainer"></div>
+                <form id="formNouvelleSociete">
+                    <div class="mb-3">
+                        <label for="nomSociete" class="form-label">Nom de la société *</label>
+                        <input type="text" class="form-control" id="nomSociete" 
+                               placeholder="Ex: ABC Consulting SARL" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="creerSociete()" id="btnCreer">
+                    Créer la société
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 // Variables globales pour gérer les mises à jour
 let updateInterval = null;
-let socketConnected = false;
 
 // Fonction pour naviguer vers la page de règles d'une société
 function naviguerVersSociete(societeId) {
@@ -421,7 +737,6 @@ function chargerDonneesSociete(societeId) {
                 mettreAJourAffichageSociete(societeId, data);
             } else {
                 console.error(`Erreur API société ${societeId}:`, data.error);
-                // Afficher des valeurs par défaut en cas d'erreur
                 mettreAJourAffichageSociete(societeId, {
                     automatisation: 0,
                     collisions: 0,
@@ -431,7 +746,6 @@ function chargerDonneesSociete(societeId) {
         })
         .catch(error => {
             console.error(`Erreur réseau société ${societeId}:`, error);
-            // Afficher des valeurs par défaut en cas d'erreur
             mettreAJourAffichageSociete(societeId, {
                 automatisation: 0,
                 collisions: 0,
@@ -510,10 +824,8 @@ function chargerToutesLesDonnees() {
 
 // Fonction pour démarrer les mises à jour automatiques
 function demarrerMisesAJourAutomatiques() {
-    // Mise à jour initiale
     chargerToutesLesDonnees();
     
-    // Mise à jour périodique toutes les 30 secondes
     if (updateInterval) {
         clearInterval(updateInterval);
     }
@@ -521,7 +833,7 @@ function demarrerMisesAJourAutomatiques() {
     updateInterval = setInterval(() => {
         console.log('🔄 Mise à jour automatique des données...');
         chargerToutesLesDonnees();
-    }, 30000); // 30 secondes
+    }, 30000);
 }
 
 // Fonction pour arrêter les mises à jour automatiques
@@ -551,12 +863,10 @@ window.addEventListener('beforeunload', function() {
 
 // Fonction pour surveiller les événements de changement de règles
 function ecouterEvenementsRegles() {
-    // Utiliser le localStorage pour écouter les changements entre pages
     window.addEventListener('storage', function(e) {
         if (e.key === 'regles_modifiees') {
             console.log('📡 Détection de modification de règles depuis une autre page');
             rafraichirDonneesEntreprises();
-            // Nettoyer l'événement
             localStorage.removeItem('regles_modifiees');
         }
     });
@@ -564,72 +874,14 @@ function ecouterEvenementsRegles() {
 
 // Démarrer l'écoute des événements
 ecouterEvenementsRegles();
-</script>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <div class="empty-state-icon">🏢</div>
-            <h3>Aucune société</h3>
-            <p>Commencez par créer votre première société</p>
-            <button class="btn-nouvelle-societe" onclick="ouvrirModaleSociete()">
-                <span>+</span>
-                <span>Créer ma première société</span>
-            </button>
-        </div>
-        {% endif %}
-    </div>
-</div>
 
-<!-- Modal Nouvelle Société -->
-<div class="modal fade" id="modalNouvelleSociete" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Créer une nouvelle société</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="alertContainer"></div>
-                <form id="formNouvelleSociete">
-                    <div class="mb-3">
-                        <label for="nomSociete" class="form-label">Nom de la société *</label>
-                        <input type="text" class="form-control" id="nomSociete" 
-                               placeholder="Ex: ABC Consulting SARL" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary" onclick="creerSociete()" id="btnCreer">
-                    Créer la société
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🏢 Page entreprises chargée');
-    
-    // Charger les données pour chaque société
-    {% if societes %}
-    {% for societe in societes %}
-    chargerDonneesSociete({{ societe.id }});
-    {% endfor %}
-    {% endif %}
-});
-
+// Fonctions pour la modal et création de société
 function ouvrirModaleSociete() {
     const modal = new bootstrap.Modal(document.getElementById('modalNouvelleSociete'));
     document.getElementById('nomSociete').value = '';
     document.getElementById('alertContainer').innerHTML = '';
     modal.show();
     
-    // Focus sur le champ nom
     setTimeout(() => {
         document.getElementById('nomSociete').focus();
     }, 300);
@@ -640,18 +892,15 @@ function creerSociete() {
     const btnCreer = document.getElementById('btnCreer');
     const alertContainer = document.getElementById('alertContainer');
     
-    // Validation
     if (!nom) {
         afficherErreur('Le nom de la société est obligatoire');
         return;
     }
     
-    // État de chargement
     btnCreer.disabled = true;
     btnCreer.textContent = 'Création...';
     alertContainer.innerHTML = '';
     
-    // Requête API
     fetch('/api/societes', {
         method: 'POST',
         headers: {
@@ -662,11 +911,8 @@ function creerSociete() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Succès - fermer la modal et rafraîchir
             const modal = bootstrap.Modal.getInstance(document.getElementById('modalNouvelleSociete'));
             modal.hide();
-            
-            // Rafraîchir la page pour afficher la nouvelle société
             window.location.reload();
         } else {
             afficherErreur(data.error || 'Erreur lors de la création');
@@ -691,36 +937,6 @@ function afficherErreur(message) {
     `;
 }
 
-function chargerDonneesSociete(societeId) {
-    // Simuler un chargement de données - à remplacer par un vrai appel API
-    console.log(`📊 Chargement données société ${societeId}`);
-    
-    // Pour la MVP, afficher des valeurs par défaut
-    setTimeout(() => {
-        const automatisationEl = document.querySelector(`[data-societe-id="${societeId}"] .automatisation-value`);
-        const collisionsEl = document.querySelector(`[data-societe-id="${societeId}"] .collisions-value`);
-        const importDateEl = document.querySelector(`[data-societe-id="${societeId}"] .import-date`);
-        
-        if (automatisationEl) {
-            automatisationEl.textContent = '0%';
-            automatisationEl.closest('.badge-automatisation').className = 'badge-automatisation automatisation-faible';
-        }
-        
-        if (collisionsEl) {
-            collisionsEl.textContent = '0';
-            collisionsEl.closest('.collisions-count').className = 'collisions-count collisions-none';
-        }
-        
-        if (importDateEl) {
-            importDateEl.innerHTML = '<span class="no-data">Aucun import</span>';
-        }
-    }, 100);
-}
-
-function voirSociete(societeId) {
-    window.location.href = `/societe/${societeId}`;
-}
-
 // Validation en temps réel
 document.getElementById('nomSociete').addEventListener('input', function() {
     const btnCreer = document.getElementById('btnCreer');
@@ -734,5 +950,208 @@ document.getElementById('nomSociete').addEventListener('keypress', function(e) {
         creerSociete();
     }
 });
+
+// Fonction pour toggler le menu d'actions
+function toggleActionsMenu(societeId) {
+    const menu = document.getElementById(`actionsMenu-${societeId}`);
+    const allMenus = document.querySelectorAll('.dropdown-menu');
+    
+    // Fermer tous les autres menus
+    allMenus.forEach(m => {
+        if (m.id !== `actionsMenu-${societeId}`) {
+            m.style.display = 'none';
+        }
+    });
+    
+    // Toggle le menu actuel
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+// Fermer les menus si on clique ailleurs
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    }
+});
+
+// Fonction pour confirmer la suppression
+function confirmerSuppressionSociete(societeId, nomSociete) {
+    const modalHtml = `
+        <div class="modal fade modal-confirmation" id="modalSuppressionSociete" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Supprimer la société</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Êtes-vous sûr de vouloir supprimer la société <strong>"${nomSociete}"</strong> ?</p>
+                        <p class="text-muted">Cette action est irréversible et supprimera toutes les données associées.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-danger" onclick="supprimerSociete(${societeId})">
+                            Supprimer définitivement
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('modalSuppressionSociete'));
+    modal.show();
+    
+    // Nettoyer après fermeture
+    document.getElementById('modalSuppressionSociete').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// Fonction pour supprimer la société
+function supprimerSociete(societeId) {
+    fetch(`/api/societes/${societeId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Fermer le modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalSuppressionSociete'));
+            modal.hide();
+            
+            // Recharger la page
+            window.location.reload();
+        } else {
+            alert('Erreur lors de la suppression : ' + (data.error || 'Erreur inconnue'));
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur de connexion');
+    });
+}
+
+// Fonction pour renommer la société avec modal moderne
+function renommerSociete(societeId, nomActuel) {
+    const modalHtml = `
+        <div class="modal fade" id="modalRenommerSociete" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Renommer la société</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="alertRenameContainer"></div>
+                        <form id="formRenommerSociete">
+                            <div class="mb-3">
+                                <label for="nouveauNomSociete" class="form-label">Nouveau nom de la société *</label>
+                                <input type="text" class="form-control" id="nouveauNomSociete" 
+                                       value="${nomActuel}" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" onclick="confirmerRenommage(${societeId})" id="btnRenommer">
+                            Renommer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('modalRenommerSociete'));
+    modal.show();
+    
+    // Focus et sélection du texte
+    setTimeout(() => {
+        const input = document.getElementById('nouveauNomSociete');
+        input.focus();
+        input.select();
+    }, 300);
+    
+    // Validation en temps réel
+    document.getElementById('nouveauNomSociete').addEventListener('input', function() {
+        const btnRenommer = document.getElementById('btnRenommer');
+        const nouveauNom = this.value.trim();
+        btnRenommer.disabled = nouveauNom.length === 0 || nouveauNom === nomActuel;
+    });
+    
+    // Soumission par Entrée
+    document.getElementById('nouveauNomSociete').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmerRenommage(societeId);
+        }
+    });
+    
+    // Nettoyer après fermeture
+    document.getElementById('modalRenommerSociete').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// Fonction pour confirmer le renommage
+function confirmerRenommage(societeId) {
+    const nouveauNom = document.getElementById('nouveauNomSociete').value.trim();
+    const btnRenommer = document.getElementById('btnRenommer');
+    const alertContainer = document.getElementById('alertRenameContainer');
+    
+    if (!nouveauNom) {
+        afficherErreurRename('Le nom de la société est obligatoire');
+        return;
+    }
+    
+    btnRenommer.disabled = true;
+    btnRenommer.textContent = 'Renommage...';
+    alertContainer.innerHTML = '';
+    
+    fetch(`/api/societes/${societeId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nom: nouveauNom })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalRenommerSociete'));
+            modal.hide();
+            window.location.reload();
+        } else {
+            afficherErreurRename(data.error || 'Erreur lors du renommage');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        afficherErreurRename('Erreur de connexion');
+    })
+    .finally(() => {
+        btnRenommer.disabled = false;
+        btnRenommer.textContent = 'Renommer';
+    });
+}
+
+// Fonction pour afficher les erreurs de renommage
+function afficherErreurRename(message) {
+    const alertContainer = document.getElementById('alertRenameContainer');
+    alertContainer.innerHTML = `
+        <div class="alert alert-danger" role="alert">
+            ${message}
+        </div>
+    `;
+}
+
 </script>
 {% endblock %}

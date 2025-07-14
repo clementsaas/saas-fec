@@ -60,8 +60,8 @@ body.sidebar-collapsed {
 
 .ai-search-wrapper:focus-within {
     background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(0, 122, 255, 0.5);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+    border-color: rgba(156, 163, 175, 0.6);
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.15);
 }
 
 .ai-search-input {
@@ -274,8 +274,8 @@ body.sidebar-collapsed {
 
 .ai-search-wrapper:focus-within {
     background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(0, 122, 255, 0.5);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+    border-color: rgba(156, 163, 175, 0.6);
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.15);
 }
 
 .ai-search-input {
@@ -858,11 +858,11 @@ body.sidebar-collapsed {
             background-position: 10px center;
         }
 
-        .search-input:focus {
-            outline: none;
-            border-color: #007aff;
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-        }
+.search-input:focus {
+    outline: none;
+    border-color: #9ca3af;
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.15);
+}
 
 .comptes-header {
             display: grid;
@@ -1475,11 +1475,11 @@ body.sidebar-collapsed {
             transition: border-color 0.2s ease;
         }
 
-        .filter-input:focus {
-            outline: none;
-            border-color: #007aff;
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-        }
+.filter-input:focus {
+    outline: none;
+    border-color: #9ca3af;
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.15);
+}
 
         .search-keywords-input {
             width: 100%;
@@ -1494,11 +1494,11 @@ body.sidebar-collapsed {
             background-position: 10px center;
         }
 
-        .search-keywords-input:focus {
-            outline: none;
-            border-color: #007aff;
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-        }
+.search-keywords-input:focus {
+    outline: none;
+    border-color: #9ca3af;
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.15);
+}
 
         .montant-filter-container {
             display: flex;
@@ -2349,112 +2349,238 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    animation: modalFadeIn 0.3s ease;
+}
 
-        .modal-content {
-            background-color: white;
-            margin: 10% auto;
-            padding: 0;
-            border-radius: 20px;
-            width: 500px;
-            max-width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 
-        .modal-header {
-            padding: 20px 30px;
-            border-bottom: 1px solid #f5f5f7;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.modal-content {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(248, 250, 252, 0.95) 100%);
+    backdrop-filter: blur(20px) saturate(150%);
+    margin: 8% auto;
+    padding: 0;
+    border-radius: 20px;
+    width: 210px;
+    max-width: 90%;
+    box-shadow: 
+        0 25px 80px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.4);
+    animation: modalSlideIn 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+    overflow: hidden;
+}
 
-        .modal-title {
-            font-weight: 600;
-            color: #1d1d1f;
-            margin: 0;
-        }
+@keyframes modalSlideIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-20px) scale(0.95); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+    }
+}
 
-        .btn-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #86868b;
-        }
+.modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.6);
+}
 
-        .modal-body {
-            padding: 30px;
-        }
+.modal-title {
+    font-weight: 600;
+    color: #1d1d1f;
+    margin: 0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-        .upload-zone {
-            border: 2px dashed #d2d2d7;
-            border-radius: 16px;
-            padding: 40px;
-            text-align: center;
-            background: #f9f9fb;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
 
-        .upload-zone:hover {
-            border-color: #007aff;
-            background: #f0f8ff;
-        }
+.modal-title svg {
+    color: #64748b;
+}
 
-        .upload-zone.dragover {
-            border-color: #007aff;
-            background: #f0f8ff;
-        }
+.btn-close {
+    background: rgba(100, 116, 139, 0.1);
+    border: none;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        .upload-content h5 {
-            color: #1d1d1f;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
+.btn-close:hover {
+    background: rgba(100, 116, 139, 0.2);
+    color: #334155;
+    transform: scale(1.05);
+}
 
-        .upload-content p {
-            color: #86868b;
-            margin-bottom: 10px;
-        }
+.modal-body {
+    padding: 20px;
+}
 
-        .upload-content small {
-            color: #86868b;
-        }
+.upload-zone {
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 75px 1px;
+    text-align: center;
+    background: rgba(249, 250, 251, 0.8);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
 
-        .progress-container {
-            display: none;
-            margin-top: 20px;
-        }
+.upload-zone::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 40%,
+        rgba(156, 163, 175, 0.05) 50%,
+        transparent 60%
+    );
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    transition: transform 0.6s ease;
+}
 
-        .progress-bar-container {
-            background: #f5f5f7;
-            border-radius: 10px;
-            height: 8px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
+.upload-zone:hover::before {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+}
 
-        .progress-bar {
-            background: #007aff;
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
+.upload-zone:hover {
+    border-color: #9ca3af;
+    background: rgba(243, 244, 246, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
 
-        .progress-text {
-            color: #86868b;
-            font-size: 12px;
-        }
+.upload-zone.dragover {
+    border-color: #6b7280;
+    background: rgba(229, 231, 235, 0.9);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    color: #9ca3af;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.upload-zone:hover .upload-icon {
+    color: #6b7280;
+    transform: scale(1.1);
+}
+
+.upload-content h5 {
+    color: #374151;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.upload-content p {
+    color: #6b7280;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.browse-link {
+    color: #6b7280;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.browse-link:hover {
+    color: #374151;
+}
+
+.upload-content small {
+    color: #9ca3af;
+    font-size: 10px;
+}
+
+.file-info {
+    padding: 20px;
+}
+
+.success-icon {
+    color: #10b981;
+    margin-bottom: 16px;
+}
+
+.file-info h5 {
+    color: #374151;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.file-info p {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.progress-container {
+    display: none;
+    margin-top: 24px;
+    padding: 20px;
+    background: rgba(249, 250, 251, 0.6);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.progress-bar-container {
+    background: rgba(229, 231, 235, 0.8);
+    border-radius: 8px;
+    height: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #6b7280, #9ca3af);
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 8px;
+}
+
+.progress-text {
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+}
 
         .toast {
             position: fixed;
@@ -2783,39 +2909,56 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
 <!-- Inclusion de la sidebar -->
     {% set current_page = 'dashboard' %}
     {% include 'includes/sidebar.html' %}
-
-    <!-- Modal Upload FEC -->
-    <div class="modal" id="uploadModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">📁 Nouveau fichier FEC</h5>
-                <button type="button" class="btn-close" onclick="closeUploadModal()">&times;</button>
+<!-- Modal Upload FEC -->
+<div class="modal" id="uploadModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M4 1.5h5v2a2 2 0 0 0 2 2h2v8a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5"/>
+                </svg>
+                Importer un fichier FEC
+            </h5>
+            <button type="button" class="btn-close" onclick="closeUploadModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-content" id="uploadContent">
+                    <div class="upload-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                            <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/>
+                        </svg>
+                    </div>
+                    <h5>Glissez votre fichier FEC ici</h5>
+                    <p>ou <span class="browse-link">cliquez pour parcourir</span></p>
+                    <small>Formats acceptés : .txt, .csv • Max 100 MB</small>
+                </div>
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <div class="success-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.061L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                        </svg>
+                    </div>
+                    <h5 id="fileName"></h5>
+                    <p id="fileSize"></p>
+                </div>
             </div>
-            <div class="modal-body">
-                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-                    <div class="upload-content" id="uploadContent">
-                        <div style="font-size: 48px; margin-bottom: 15px;">📁</div>
-                        <h5>Glissez votre fichier FEC ici</h5>
-                        <p>ou cliquez pour parcourir</p>
-                        <small>Formats acceptés : .txt, .csv (max 100 MB)</small>
-                    </div>
-                    <div class="file-info" id="fileInfo" style="display: none;">
-                        <div style="font-size: 48px; color: #28c840; margin-bottom: 15px;">✅</div>
-                        <h5 id="fileName"></h5>
-                        <p id="fileSize"></p>
-                    </div>
-                </div>
-                <input type="file" id="fileInput" accept=".txt,.csv" style="display: none;" onchange="handleFileSelect(this.files)">
+            <input type="file" id="fileInput" accept=".txt,.csv" style="display: none;" onchange="handleFileSelect(this.files)">
 
-                <div class="progress-container" id="progressContainer">
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" id="progressBar"></div>
-                    </div>
-                    <small class="progress-text" id="progressText">Traitement en cours...</small>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
                 </div>
+                <div class="progress-text" id="progressText">Traitement en cours...</div>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Interface principale -->
     <div class="main-container">
@@ -2934,39 +3077,40 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
         <div class="filters-specular-highlight"></div>
     </div>
 
-    <div class="filters-body-ai" id="filters-body-ai" style="display: none;">
-        <div class="filter-group-ai">
-            <label class="checkbox-label-ai">
-                <input type="checkbox" id="show-covered-transactions" onchange="filtrerTransactions();">
-                <span class="checkbox-text-ai">Afficher transactions traitées</span>
-            </label>
-        </div>
+<div class="filters-body-ai" id="filters-body-ai" style="display: none;">
+    <div class="filter-group-ai">
+        <label class="checkbox-label-ai">
+            <input type="checkbox" id="show-covered-transactions" onchange="filtrerTransactions();">
+            <span class="checkbox-text-ai">Afficher transactions traitées</span>
+        </label>
+    </div>
 
-        <div class="filter-group-ai">
-            <label class="filter-label-ai">Banque</label>
-            <select class="filter-input-ai" id="filter-banque" onchange="filtrerTransactions();">
-                <option value="">Toutes les banques</option>
+    <div class="filter-group-ai">
+        <label class="filter-label-ai">Banque</label>
+        <select class="filter-input-ai" id="filter-banque" onchange="filtrerTransactions();">
+            <option value="">Toutes les banques</option>
+        </select>
+    </div>
+
+    <div class="filter-group-ai">
+        <label class="filter-label-ai">Montant</label>
+        <div class="montant-filter-ai">
+            <select class="filter-input-ai filter-input-small-ai" id="montant-operateur" onchange="filtrerTransactions(); toggleMontantSecond();">
+                <option value="=" selected>=</option>
+                <option value="!=">≠</option>
+                <option value="<"><</option>
+                <option value=">">></option>
+                <option value="<=">≤</option>
+                <option value=">=">≥</option>
+                <option value="entre">Entre</option>
             </select>
-        </div>
-
-        <div class="filter-group-ai">
-            <div class="montant-filter-ai">
-                <select class="filter-input-ai filter-input-small-ai" id="montant-operateur" onchange="filtrerTransactions(); toggleMontantSecond();">
-                    <option value="=" selected>=</option>
-                    <option value="!=">≠</option>
-                    <option value="<"><</option>
-                    <option value=">">></option>
-                    <option value="<=">≤</option>
-                    <option value=">=">≥</option>
-                    <option value="entre">Entre</option>
-                </select>
-                <input type="number" class="filter-input-ai" id="montant-valeur"
-                       placeholder="Montant" autocomplete="off" onchange="filtrerTransactions();">
-                <input type="number" class="filter-input-ai" id="montant-valeur2"
-                       placeholder="Et" autocomplete="off" onchange="filtrerTransactions();" style="display: none;">
-            </div>
+            <input type="number" class="filter-input-ai" id="montant-valeur"
+                   placeholder="Montant" autocomplete="off" onchange="filtrerTransactions();">
+            <input type="number" class="filter-input-ai" id="montant-valeur2"
+                   placeholder="Et" autocomplete="off" onchange="filtrerTransactions();" style="display: none;">
         </div>
     </div>
+</div>
 </div>
 
 <button class="create-rule-btn-liquid impact-dynamic-btn" id="create-rule-btn" onclick="creerNouvelleRegle()" style="display: none;">
@@ -3071,70 +3215,78 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     color: #86868b;
 }
 
+/* Filtre avancé avec design cohérent */
 .filters-body-ai {
-    padding: 16px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.08) 0%,
-        rgba(247, 250, 252, 0.05) 100%);
+    gap: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+background-color: #fafafa; /* gris clair Tailwind */
+    border-radius: 0 0 14px 14px;
     animation: filtersBodyExpand 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+/* Animation d'expansion */
 @keyframes filtersBodyExpand {
     0% {
         opacity: 0;
         transform: translateY(-10px);
+        max-height: 0;
     }
     100% {
         opacity: 1;
         transform: translateY(0);
+        max-height: 300px;
     }
 }
 
 .filter-group-ai {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .filter-label-ai {
     font-size: 12px;
     font-weight: 600;
-    color: #1d1d1f;
+    color: #374151;
     letter-spacing: -0.01em;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
 .filter-input-ai {
-    padding: 8px 12px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(156, 163, 175, 0.3);
+    border-radius: 8px;
     font-size: 13px;
     background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(10px);
     transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-    color: #1d1d1f;
+    color: #374151;
     font-weight: 400;
     outline: none;
 }
 
 .filter-input-ai:hover {
     background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(0, 122, 255, 0.2);
+    border-color: rgba(156, 163, 175, 0.5);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(156, 163, 175, 0.15);
 }
 
 .filter-input-ai:focus {
     background: rgba(255, 255, 255, 1);
-    border-color: rgba(0, 122, 255, 0.5);
-    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.15);
+    border-color: #9ca3af;
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.15);
 }
 
-/* Masquer les flèches des inputs number dans les filtres avancés */
+.filter-input-ai::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+/* Masquer les flèches des inputs number */
 .filter-input-ai[type=number]::-webkit-outer-spin-button,
 .filter-input-ai[type=number]::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -3146,7 +3298,7 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
 }
 
 .filter-input-small-ai {
-    flex: 0 0 60px;
+    flex: 0 0 65px;
 }
 
 .checkbox-label-ai {
@@ -3162,24 +3314,34 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     transform: translateX(2px);
 }
 
+/* Case à cocher avec accent gris */
+.checkbox-label-ai {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 8px 0;
+    transition: all 0.2s ease;
+}
+
 .checkbox-label-ai input[type="checkbox"] {
     width: 16px;
     height: 16px;
-    accent-color: #007aff;
-    border-radius: 3px;
+    accent-color: #6b7280;
+    border-radius: 4px;
     transition: all 0.2s ease;
 }
 
 .checkbox-text-ai {
     font-size: 13px;
     font-weight: 500;
-    color: #1d1d1f;
+    color: #374151;
     letter-spacing: -0.01em;
 }
 
 .montant-filter-ai {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
 }
 
