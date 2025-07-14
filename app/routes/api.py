@@ -394,7 +394,7 @@ def create_societe():
         print(f"Erreur création société: {e}")
         return jsonify({'success': False, 'error': 'Erreur interne du serveur'}), 500
     
-    @api_bp.route('/societe/<int:societe_id>/statistiques')
+@api_bp.route('/societe/<int:societe_id>/statistiques')
 def get_societe_statistiques(societe_id):
     """API pour récupérer les statistiques d'une société (automatisation + collisions)"""
     if 'user_id' not in session:
@@ -445,6 +445,7 @@ def get_societe_statistiques(societe_id):
     except Exception as e:
         print(f"Erreur API statistiques société {societe_id}: {e}")
         return jsonify({'success': False, 'error': 'Erreur interne'}), 500
+
 
 
 def calculer_automatisation_globale(ecritures, regles_existantes):

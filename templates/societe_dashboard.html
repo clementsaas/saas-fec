@@ -772,6 +772,32 @@ body.sidebar-collapsed {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    min-height: 0;
+}
+
+/* Scrollbars discrètes pour les panneaux de contrepartie et transactions uniquement */
+.panel-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.panel-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+    background: rgba(134, 134, 139, 0.3);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.panel-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(134, 134, 139, 0.5);
+}
+
+/* Firefox */
+.panel-body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(134, 134, 139, 0.3) transparent;
 }
 
         .search-container {
@@ -1545,16 +1571,16 @@ body.sidebar-collapsed {
         }
 
 .keyword-highlight {
-    background: #667eea;
-    color: white;
+    background: #cdd5f8;
+    color: black;
     padding: 2px 4px;
     border-radius: 4px;
     font-weight: 600;
 }
 
 .keyword-highlight-2 {
-    background: #66c0ea;
-    color: white;
+    background: #f8cddc;
+    color: black;
     padding: 2px 4px;
     border-radius: 4px;
     font-weight: 600;
@@ -2288,8 +2314,8 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
         }
 
         .collision-keyword-highlight {
-            background: #4285F4;
-            color: white;
+            background: #cdd5f8;
+            color: black;
             padding: 2px 4px;
             border-radius: 4px;
             font-weight: 600;
@@ -2943,7 +2969,7 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
     </div>
 </div>
 
-<button class="create-rule-btn-liquid impact-dynamic-btn" id="create-rule-btn" onclick="creerNouvelleRegle()">
+<button class="create-rule-btn-liquid impact-dynamic-btn" id="create-rule-btn" onclick="creerNouvelleRegle()" style="display: none;">
     <div class="btn-specular-highlight"></div>
     <div class="btn-content">
         <span class="btn-text">Créer une nouvelle règle</span>
@@ -4126,6 +4152,9 @@ if (compteSelectionne && groupeSelectionne === null) {
         chargerGroupementsIntelligents();
     }, 100);
 }
+
+// Mettre à jour l'affichage du bouton "Créer une nouvelle règle"
+toggleCreateRuleButton();
 
         }
 
@@ -6571,6 +6600,42 @@ function afficherEtatVideGroupements() {
     
     console.log("✅ Système de capture d'erreurs Affectia initialisé");
 })();
+
+// Fonction pour gérer l'affichage du bouton "Créer une nouvelle règle"
+function toggleCreateRuleButton() {
+    const keywordInput1 = document.getElementById('search-keywords');
+    const keywordInput2 = document.getElementById('search-keywords-2');
+    const createRuleBtn = document.getElementById('create-rule-btn');
+    
+    if (!createRuleBtn) return;
+    
+    // Vérifier si au moins un champ contient du texte (hors espaces)
+    const hasKeywords = (keywordInput1 && keywordInput1.value.trim() !== '') || 
+                       (keywordInput2 && keywordInput2.value.trim() !== '');
+    
+    // Afficher/masquer le bouton selon l'état des champs
+    createRuleBtn.style.display = hasKeywords ? 'block' : 'none';
+}
+
+// Ajouter les event listeners aux champs de recherche
+document.addEventListener('DOMContentLoaded', function() {
+    const keywordInput1 = document.getElementById('search-keywords');
+    const keywordInput2 = document.getElementById('search-keywords-2');
+    
+    if (keywordInput1) {
+        keywordInput1.addEventListener('input', toggleCreateRuleButton);
+        keywordInput1.addEventListener('keyup', toggleCreateRuleButton);
+    }
+    
+    if (keywordInput2) {
+        keywordInput2.addEventListener('input', toggleCreateRuleButton);
+        keywordInput2.addEventListener('keyup', toggleCreateRuleButton);
+    }
+    
+    // Vérification initiale au chargement de la page
+    toggleCreateRuleButton();
+});
+
 </script>
 </body>
 </html>

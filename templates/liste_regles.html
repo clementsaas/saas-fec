@@ -572,6 +572,31 @@ body {
     min-height: 0;
 }
 
+/* Scrollbars discrètes pour les panneaux de contrepartie et transactions uniquement */
+.panel-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.panel-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+    background: rgba(134, 134, 139, 0.3);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+}
+
+.panel-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(134, 134, 139, 0.5);
+}
+
+/* Firefox */
+.panel-body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(134, 134, 139, 0.3) transparent;
+}
+
 .search-container {
     padding: 15px 20px;
     background: #f9f9fb;
