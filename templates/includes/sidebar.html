@@ -1092,13 +1092,13 @@ switch(page) {
                 }
             }
             break;
-        case 'create_rule':
-            if (societeId) {
-                window.location.href = `/societe/${societeId}`;
-            } else {
-                window.location.href = '/dashboard';
-            }
-            break;
+case 'create_rule':
+    if (societeId) {
+        window.location.href = `/societe/${societeId}?mode=create_rule`;
+    } else {
+        window.location.href = '/dashboard';
+    }
+    break;
         case 'regles':
             if (societeId) {
                 window.location.href = `/regles/liste?societe_id=${societeId}`;
