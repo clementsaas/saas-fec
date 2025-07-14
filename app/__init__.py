@@ -186,6 +186,25 @@ def create_app():
             flash('Erreur lors du chargement du dashboard', 'error')
             return redirect(url_for('dashboard'))
 
+    @app.route('/entreprises')
+    def entreprises():
+        """Page de gestion des entreprises/sociétés"""
+        if 'user_id' not in session:
+            return redirect(url_for('auth.login'))
+
+        # Récupérer toutes les sociétés de l'organisation
+        organization_id = session['organization_id']
+        societes = Societe.query.filter_by(organization_id=organization_id).all()
+        
+        # Pour la sidebar, utiliser la première société ou None
+        societe_active = societes[0] if societes else None
+        
+        return render_template('entreprises.html', 
+                             societes=societes,
+                             societe=societe_active,
+                             automatisation_globale=0,
+                             current_page='entreprises')
+
     # Fonction pour rendre l'utilisateur disponible dans tous les templates
     @app.context_processor
     def inject_user():
@@ -278,24 +297,5 @@ def create_app():
         except Exception as e:
             print(f"Erreur API dashboard: {e}")
             return jsonify({'success': False, 'error': 'Erreur interne'}), 500
-
-@app.route('/entreprises')
-def entreprises():
-    """Page de gestion des entreprises/sociétés"""
-    if 'user_id' not in session:
-        return redirect(url_for('auth.login'))
-
-    # Récupérer toutes les sociétés de l'organisation
-    organization_id = session['organization_id']
-    societes = Societe.query.filter_by(organization_id=organization_id).all()
-    
-    # Pour la sidebar, utiliser la première société ou None
-    societe_active = societes[0] if societes else None
-    
-    return render_template('entreprises.html', 
-                         societes=societes,
-                         societe=societe_active,  # Variable attendue par la sidebar
-                         automatisation_globale=0,  # Valeur par défaut
-                         current_page='entreprises')
 
     return app

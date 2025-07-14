@@ -16551,3 +16551,39 @@ werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on 
 2025-07-14 02:28:56,471 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 02:28:56] "GET /societe/6 HTTP/1.1" 200 -
 2025-07-14 02:28:56,508 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 02:28:56] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
 2025-07-14 02:28:58,047 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 02:28:58] "[36mGET /static/images/favicon.png HTTP/1.1[0m" 304 -
+2025-07-14 14:26:47,554 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-14 14:26:47,554 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-14 14:26:50,924 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:26:50] "[32mGET / HTTP/1.1[0m" 302 -
+2025-07-14 14:26:51,023 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:26:51] "GET /login HTTP/1.1" 200 -
+2025-07-14 14:26:51,487 - app - WARNING - PAGE INTROUVABLE: http://127.0.0.1:5000/favicon.ico - Référent: http://127.0.0.1:5000/login
+2025-07-14 14:26:51,489 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:26:51] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-14 14:27:05,205 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:05] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-14 14:27:05,258 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:05] "GET /dashboard HTTP/1.1" 200 -
+2025-07-14 14:27:07,293 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:07] "GET /societe/8 HTTP/1.1" 200 -
+2025-07-14 14:27:07,562 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:07] "GET /static/images/logo_affectia_vector.svg HTTP/1.1" 200 -
+2025-07-14 14:27:10,689 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:10] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-14 14:27:10,845 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:10] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-14 14:27:16,839 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:16] "GET /entreprises HTTP/1.1" 200 -
+2025-07-14 14:27:16,879 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:16] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-14 14:27:32,961 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:32] "GET /societe/8 HTTP/1.1" 200 -
+2025-07-14 14:27:33,115 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:33] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-14 14:27:35,160 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:35] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-14 14:27:35,566 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:27:35] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-14 14:29:59,412 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:29:59] "GET /entreprises HTTP/1.1" 200 -
+2025-07-14 14:29:59,445 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:29:59] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-14 14:32:32,144 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:32:32] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-14 14:32:32,154 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:32:32] "GET /dashboard HTTP/1.1" 200 -
+2025-07-14 14:33:14,491 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-14 14:33:14,492 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-14 14:33:18,119 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:33:18] "GET /societe/7 HTTP/1.1" 200 -
+2025-07-14 14:33:18,329 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:33:18] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-14 14:33:25,497 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:33:25] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-14 14:33:25,582 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:33:25] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-14 14:33:26,743 - app - WARNING - PAGE INTROUVABLE: http://127.0.0.1:5000/societe/7/parametres - Référent: http://127.0.0.1:5000/societe/7
+2025-07-14 14:33:26,744 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:33:26] "[33mGET /societe/7/parametres HTTP/1.1[0m" 404 -
+2025-07-14 14:33:31,481 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:33:31] "GET /societe/7 HTTP/1.1" 200 -
+2025-07-14 14:33:31,526 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:33:31] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-14 14:33:37,888 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:33:37] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-14 14:33:38,447 - werkzeug - INFO - 127.0.0.1 - - [14/Jul/2025 14:33:38] "POST /api/groupements-intelligents HTTP/1.1" 200 -

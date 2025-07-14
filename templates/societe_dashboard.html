@@ -3068,7 +3068,7 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
 
 .filters-chevron-ai.expanded {
     transform: rotate(180deg);
-    color: #007aff;
+    color: #86868b;
 }
 
 .filters-body-ai {
@@ -3323,7 +3323,7 @@ function toggleFiltersAI() {
 <div class="collision-text-section">
     <div class="collision-title">Collision de règle</div>
     <div class="collision-description">
-        Cette règle affecterait aussi <span class="collision-percentage-text" id="collision-percentage">0%</span> de transactions d'autres comptes, créant des conflits d'affectation.
+        Cette règle affecterait aussi <span class="collision-percentage-text" id="collision-percentage">0%</span>d'autres comptes, créant des conflits d'affectation.
     </div>
     <div class="collision-cta" onclick="ouvrirModalCollision()">
         Voir les transactions en conflit
@@ -5157,28 +5157,15 @@ const impactGlobal = totalGlobal > 0 ? (nbMatchesGlobal / totalGlobal * 100) : 0
     const collision = nbMatchesCompte > 0 ? (nbMatchesAutres / nbMatchesCompte * 100) : 0;
 
 // 4. Mettre à jour l'affichage (impact local dans le bouton)
-// Remplacer :
 updateCreateRuleButton(impactLocal, collision);
-
-// Par :
-updateCreateRuleButton(impactLocal, collision);
-
-    // 5. Afficher ou cacher la collision avec coloration
-    if (collision > 0) {
-        collisionElement.textContent = collision.toFixed(1) + '%';
-        collisionInfo.classList.remove('hidden');
 
 // 5. Afficher ou cacher la collision
-if (collision > 0) {
-    collisionElement.textContent = collision.toFixed(1) + '%';
+if (nbMatchesAutres > 0) {
+    collisionElement.textContent = `${nbMatchesAutres} transaction${nbMatchesAutres > 1 ? 's' : ''}`;
     collisionInfo.classList.remove('hidden');
-    // Couleur supprimée - gardera la couleur par défaut du CSS
 } else {
     collisionInfo.classList.add('hidden');
 }
-    } else {
-        collisionInfo.classList.add('hidden');
-    }
 
 // Stocker les détails des collisions pour le modal
 collisionDetails = [];

@@ -29,7 +29,7 @@ def login():
             session['organization_id'] = user.organization_id
 
             flash(f'Bonjour {user.prenom} ! Connexion réussie.', 'success')
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('entreprises'))
         else:
             flash('Email ou mot de passe incorrect', 'error')
 
