@@ -2319,6 +2319,15 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
             font-weight: 600;
         }
 
+        /* Code à ajouter dans la section <style> */
+.collision-keyword-highlight-2 {
+    background: #65c3f0;
+    color: black;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
         .collision-chevron {
             transition: transform 0.2s ease;
         }
@@ -4100,17 +4109,17 @@ function highlightKeywordsInAllTransactions(keywords1, keywords2) {
 
                 let highlightedText = originalText;
 
-                // Surligner les premiers mots-clés
-                if (keywords1 && keywords1.trim()) {
-                    const regex1 = new RegExp(`(${keywords1.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                    highlightedText = highlightedText.replace(regex1, '<span class="keyword-highlight">$1</span>');
-                }
+// Surligner la première chaîne de mots-clés complète
+if (keywords1 && keywords1.trim()) {
+    const regex1 = new RegExp(`(${keywords1.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    highlightedText = highlightedText.replace(regex1, '<span class="keyword-highlight">$1</span>');
+}
 
-                // Surligner les deuxièmes mots-clés
-                if (keywords2 && keywords2.trim()) {
-                    const regex2 = new RegExp(`(${keywords2.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                    highlightedText = highlightedText.replace(regex2, '<span class="keyword-highlight-2">$1</span>');
-                }
+// Surligner la deuxième chaîne de mots-clés complète
+if (keywords2 && keywords2.trim()) {
+    const regex2 = new RegExp(`(${keywords2.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    highlightedText = highlightedText.replace(regex2, '<span class="keyword-highlight-2">$1</span>');
+}
 
                 transaction.innerHTML = highlightedText;
             });
@@ -4176,12 +4185,12 @@ if (transactionSort.field) {
             const montantVal2 = document.getElementById('montant-valeur2').value;
             const keywords1 = document.getElementById('search-keywords').value.trim();
             const keywords2 = document.getElementById('search-keywords-2').value.trim();
-            console.log('🔍 DEBUG - Début filtrerTransactions:', {
-                compteSelectionne,
-                keywords1,
-                keywords2,
-                nbEcrituresTotal: toutesEcritures.length
-            });
+console.log('🔍 DEBUG - Début filtrerTransactions:', {
+    compteSelectionne,
+    chaine_complete_1: keywords1,
+    chaine_complete_2: keywords2,
+    nbEcrituresTotal: toutesEcritures.length
+});
 
             // Gérer l'affichage du deuxième champ montant
             const montantVal2Input = document.getElementById('montant-valeur2');
@@ -4218,19 +4227,17 @@ ecrituresFiltered = ecrituresCompte.filter(ecriture => {
 // Filtre mots-clés - Vérification des deux groupes (ET logique)
                 const libelleMinuscule = ecriture.ecriture_lib.toLowerCase();
 
-                // Vérifier premier groupe de mots-clés
-                if (keywords1 && keywords1.trim()) {
-                    const motsCles1 = keywords1.toLowerCase().split(' ').filter(mot => mot.trim());
-                    const match1 = motsCles1.every(mot => libelleMinuscule.includes(mot));
-                    if (!match1) return false;
-                }
+// Vérifier première chaîne complète
+if (keywords1 && keywords1.trim()) {
+    const chaine1 = keywords1.toLowerCase().trim();
+    if (!libelleMinuscule.includes(chaine1)) return false;
+}
 
-                // Vérifier deuxième groupe de mots-clés
-                if (keywords2 && keywords2.trim()) {
-                    const motsCles2 = keywords2.toLowerCase().split(' ').filter(mot => mot.trim());
-                    const match2 = motsCles2.every(mot => libelleMinuscule.includes(mot));
-                    if (!match2) return false;
-                }
+// Vérifier deuxième chaîne complète
+if (keywords2 && keywords2.trim()) {
+    const chaine2 = keywords2.toLowerCase().trim();
+    if (!libelleMinuscule.includes(chaine2)) return false;
+}
 
 // Filtre montant
 if (montantOp && montantVal !== '') {
@@ -4272,12 +4279,18 @@ case '=':
                 return true;
             });
 
-console.log('🔍 Filtrage:', {
-                compteSelectionne,
-                totalCompte: ecrituresCompte.length,
-                filtrees: ecrituresFiltered.length,
-                filtres: { banque, keywords1, keywords2, montantOp, montantVal }
-            });
+console.log('Filtrage par chaînes complètes:', {
+    compteSelectionne,
+    totalCompte: ecrituresCompte.length,
+    filtrees: ecrituresFiltered.length,
+    filtres: { 
+        banque, 
+        chaine_mots_cles_1: keywords1, 
+        chaine_mots_cles_2: keywords2, 
+        montantOp, 
+        montantVal 
+    }
+});
 
 // Afficher les transactions
 afficherTransactions();
@@ -4460,6 +4473,7 @@ function extraireNgramsFrequents(transactions, seuilMinFrequence = 3, tailleMaxN
 // ========================================
 
 function normaliserPourExtraction(libelle) {
+    // Normalisation légère qui préserve la structure pour la comparaison de chaînes complètes
     return libelle
         .toUpperCase()
         .replace(/[ÀÁÂÃÄÅ]/g, 'A')
@@ -4468,8 +4482,7 @@ function normaliserPourExtraction(libelle) {
         .replace(/[ÒÓÔÕÖ]/g, 'O')
         .replace(/[ÙÚÛÜ]/g, 'U')
         .replace(/Ç/g, 'C')
-        .replace(/[^\w\s]/g, ' ')           // Ponctuation → espaces
-        .replace(/\s+/g, ' ')              // Espaces multiples
+        .replace(/\s+/g, ' ')              // Espaces multiples seulement
         .trim();
 }
 
@@ -5125,9 +5138,9 @@ function calculateImpactPotentiel(keywords1, keywords2) {
     const montantVal = document.getElementById('montant-valeur').value;
     const montantVal2 = document.getElementById('montant-valeur2').value;
 
-// Préparer les mots-clés
-    const mots1 = keywords1 ? keywords1.toLowerCase().split(' ').filter(mot => mot.trim()) : [];
-    const mots2 = keywords2 ? keywords2.toLowerCase().split(' ').filter(mot => mot.trim()) : [];
+// Préparer les chaînes de mots-clés complètes
+const chaine1 = keywords1 ? keywords1.toLowerCase().trim() : '';
+const chaine2 = keywords2 ? keywords2.toLowerCase().trim() : '';
 
 function updateCreateRuleButton(impactPercent, collisionPercent = 0) {
     const btnProgress = document.getElementById('btn-progress-bar');
@@ -5238,17 +5251,17 @@ if (impactPercent >= 100) {
 // 1. Vérifier les mots-clés - correspondance des deux groupes
         const libelleMinuscule = ecriture.ecriture_lib.toLowerCase();
 
-        // Vérifier premier groupe
-        if (keywords1 && keywords1.trim()) {
-            const matchMotsCles1 = mots1.every(mot => libelleMinuscule.includes(mot));
-            if (!matchMotsCles1) return false;
-        }
+// Vérifier première chaîne complète
+if (keywords1 && keywords1.trim()) {
+    const chaine1 = keywords1.toLowerCase().trim();
+    if (!libelleMinuscule.includes(chaine1)) return false;
+}
 
-        // Vérifier deuxième groupe
-        if (keywords2 && keywords2.trim()) {
-            const matchMotsCles2 = mots2.every(mot => libelleMinuscule.includes(mot));
-            if (!matchMotsCles2) return false;
-        }
+// Vérifier deuxième chaîne complète
+if (keywords2 && keywords2.trim()) {
+    const chaine2 = keywords2.toLowerCase().trim();
+    if (!libelleMinuscule.includes(chaine2)) return false;
+}
 
         // 2. Vérifier la banque
         if (banque && ecriture.journal_code !== banque) return false;
@@ -5355,11 +5368,11 @@ if (nbMatchesAutres > 0) {
     // DEBUG amélioré
     console.log('=== CALCUL IMPACT & COLLISION (TOUS FILTRES) ===');
 console.log('Filtres actifs:', {
-        mots_cles_1: mots1,
-        mots_cles_2: mots2,
-        banque: banque || 'Toutes',
-        montant: montantOp && montantVal ? `${montantOp} ${montantVal}` : 'Tous'
-    });
+    chaine_mots_cles_1: chaine1,
+    chaine_mots_cles_2: chaine2,
+    banque: banque || 'Toutes',
+    montant: montantOp && montantVal ? `${montantOp} ${montantVal}` : 'Tous'
+});
     console.log('Compte sélectionné:', compteSelectionne);
 console.log('Matches dans le compte:', nbMatchesCompte, '/', totalCompte);
     console.log('Impact:', impactLocal.toFixed(1) + '%');
@@ -5577,25 +5590,31 @@ function creerNouvelleRegle() {
         return;
     }
 
-    // Vérifier qu'on a des mots-clés
-    const keywords = document.getElementById('search-keywords').value.trim();
-    if (!keywords) {
-        afficherNotification('warning', 'Saisissez des mots-clés pour créer une règle');
-        return;
-    }
+// Vérifier qu'on a au moins une chaîne de mots-clés
+const keywords = document.getElementById('search-keywords').value.trim();
+if (!keywords) {
+    afficherNotification('warning', 'Saisissez au moins une chaîne de mots-clés pour créer une règle');
+    return;
+}
 
-    // Construire les données de la règle
-    const regleData = {
-        nom: `Règle ${compteSelectionne} - ${keywords.substring(0, 20)}`,
-        mots_cles: keywords.split(' ').filter(mot => mot.trim()),
-        compte_destination: compteSelectionne,
-        libelle_destination: getLibelleCompte(compteSelectionne),
-        journal_code: document.getElementById('filter-banque').value || null,
-        fec_id: {{ fec_actif.id if fec_actif else 'null' }},
-        societe_id: societeId
-    };
+// Construire les données de la règle
+const keywords2 = document.getElementById('search-keywords-2').value.trim();
+const regleData = {
+    nom: `Règle ${compteSelectionne} - ${keywords.substring(0, 20)}`,
+    mot_cle_1: keywords.trim(),
+    mot_cle_2: keywords2 || null,
+    compte_destination: compteSelectionne,
+    libelle_destination: getLibelleCompte(compteSelectionne),
+    journal_code: document.getElementById('filter-banque').value || null,
+    fec_id: {{ fec_actif.id if fec_actif else 'null' }},
+    societe_id: societeId
+};
 
-    console.log('🔍 Données de la règle à créer:', regleData);
+console.log('🔍 Données de la règle à créer (chaînes complètes):', {
+    ...regleData,
+    type_recherche: 'chaines_completes',
+    ancien_format: 'tokens_separes_SUPPRIME'
+});
 
     // Préparer les critères de montant si définis
     const montantOp = document.getElementById('montant-operateur').value;
@@ -5687,13 +5706,12 @@ function marquerTransactionsCommeCouverte(regleData) {
         if (ecriture.compte_contrepartie === compteSelectionne) {
             let match = true;
 
-            // Test mots-clés - MÊME LOGIQUE que dans filtrerTransactions
-            if (keywords) {
-                const libelleMinuscule = ecriture.ecriture_lib.toLowerCase();
-                const motsClesFiltrage = keywords.toLowerCase().split(' ').filter(mot => mot.trim());
-                const matchTousMotsCles = motsClesFiltrage.every(mot => libelleMinuscule.includes(mot));
-                if (!matchTousMotsCles) match = false;
-            }
+// Test mots-clés - MÊME LOGIQUE que dans filtrerTransactions (chaîne complète)
+if (keywords) {
+    const libelleMinuscule = ecriture.ecriture_lib.toLowerCase();
+    const chaineComplete = keywords.toLowerCase().trim();
+    if (!libelleMinuscule.includes(chaineComplete)) match = false;
+}
 
             // Test banque - MÊME LOGIQUE que dans filtrerTransactions
             if (banque && ecriture.journal_code !== banque) match = false;
@@ -6180,7 +6198,8 @@ let html = `
                     </p>
                     <div style="margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.7); border-radius: 8px; font-size: 14px; line-height: 1.6;">
                         <div style="margin-bottom: 5px;"><span style="color: #86868b; font-weight: 500;">Banque :</span> <span style="color: #1d1d1f; font-weight: 600;">${banqueText}</span></div>
-                        <div style="margin-bottom: 5px;"><span style="color: #86868b; font-weight: 500;">Mots-clés :</span> <span style="color: #1d1d1f; font-weight: 600;">${keywords}</span></div>
+<div style="margin-bottom: 5px;"><span style="color: #86868b; font-weight: 500;">Mots-clés 1 :</span> <span style="color: #1d1d1f; font-weight: 600;">${keywords}</span></div>
+${keywords2Modal ? `<div style="margin-bottom: 5px;"><span style="color: #86868b; font-weight: 500;">Mots-clés 2 :</span> <span style="color: #1d1d1f; font-weight: 600;">${keywords2Modal}</span></div>` : ''}
                         <div><span style="color: #86868b; font-weight: 500;">Montant :</span> <span style="color: #1d1d1f; font-weight: 600;">${montantText}</span></div>
                     </div>
                     <p style="margin: 10px 0 0 0; color: #86868b; font-size: 13px; font-style: italic; display: flex; align-items: center; gap: 6px;">
@@ -6238,21 +6257,30 @@ const pourcentageCollisionCompte = window.nbMatchesCompte > 0 ?
                     const signe = transaction.montant >= 0 ? '' : '-';
                     const montantClass = transaction.montant >= 0 ? 'positif' : 'negatif';
 
-// Surligner les mots-clés dans le libellé (correspondance exacte)
-                    let libelleAvecSurlignage = transaction.ecriture_lib;
-                    if (keywords && keywords.trim()) {
-                        const rechercheComplete = keywords.trim();
-                        // Échapper les caractères HTML d'abord
-                        libelleAvecSurlignage = libelleAvecSurlignage
-                            .replace(/&/g, '&amp;')
-                            .replace(/</g, '&lt;')
-                            .replace(/>/g, '&gt;')
-                            .replace(/"/g, '&quot;');
+// Surligner les chaînes de mots-clés dans le libellé (correspondance exacte des chaînes complètes)
+let libelleAvecSurlignage = transaction.ecriture_lib;
+const keywords2Modal = document.getElementById('search-keywords-2').value.trim();
 
-                        // Puis surligner la phrase exacte
-                        const regex = new RegExp(`(${rechercheComplete.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                        libelleAvecSurlignage = libelleAvecSurlignage.replace(regex, '<span class="collision-keyword-highlight">$1</span>');
-                    } else {
+// Échapper les caractères HTML d'abord
+libelleAvecSurlignage = libelleAvecSurlignage
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+// Surligner la première chaîne complète
+if (keywords && keywords.trim()) {
+    const rechercheComplete1 = keywords.trim();
+    const regex1 = new RegExp(`(${rechercheComplete1.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    libelleAvecSurlignage = libelleAvecSurlignage.replace(regex1, '<span class="collision-keyword-highlight">$1</span>');
+}
+
+// Surligner la deuxième chaîne complète
+if (keywords2Modal && keywords2Modal.trim()) {
+    const rechercheComplete2 = keywords2Modal.trim();
+    const regex2 = new RegExp(`(${rechercheComplete2.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    libelleAvecSurlignage = libelleAvecSurlignage.replace(regex2, '<span class="collision-keyword-highlight-2">$1</span>');
+} else {
                         // Échapper les caractères HTML même sans surlignage
                         libelleAvecSurlignage = libelleAvecSurlignage
                             .replace(/&/g, '&amp;')
@@ -6514,27 +6542,29 @@ function selectionnerGroupe(index) {
     if (groupe) {
         console.log('📊 Groupe sélectionné avec rule_data:', groupe);
 
-        // Si c'est une suggestion de règle avec mots-clés séparés
-        if (groupe.suggested_keywords && groupe.suggested_keywords.length > 0) {
-            const keywordInput1 = document.getElementById('search-keywords');
-            const keywordInput2 = document.getElementById('search-keywords-2');
+// Traiter les suggestions comme des chaînes complètes
+if (groupe.suggested_mot_cle_1) {
+    const keywordInput1 = document.getElementById('search-keywords');
+    const keywordInput2 = document.getElementById('search-keywords-2');
 
-            // Remplir le premier champ
-            keywordInput1.value = groupe.suggested_keywords[0] || '';
+    // Remplir le premier champ avec la chaîne complète
+    keywordInput1.value = groupe.suggested_mot_cle_1 || '';
 
-            // Remplir le deuxième champ si disponible
-            if (groupe.suggested_keywords.length > 1) {
-                keywordInput2.style.display = 'block';
-                keywordInput2.value = groupe.suggested_keywords[1] || '';
-            } else {
-                keywordInput2.style.display = 'none';
-                keywordInput2.value = '';
-            }
-        } else {
-            // Mode fallback avec pattern complet
-            const searchInput = document.getElementById('search-keywords');
-            searchInput.value = groupe.pattern;
-        }
+    // Remplir le deuxième champ si disponible
+    if (groupe.suggested_mot_cle_2) {
+        keywordInput2.style.display = 'block';
+        keywordInput2.value = groupe.suggested_mot_cle_2;
+    } else {
+        keywordInput2.style.display = 'none';
+        keywordInput2.value = '';
+    }
+} else {
+    // Mode fallback avec pattern complet (traité comme une seule chaîne)
+    const searchInput = document.getElementById('search-keywords');
+    searchInput.value = groupe.pattern;
+    document.getElementById('search-keywords-2').style.display = 'none';
+    document.getElementById('search-keywords-2').value = '';
+}
 
         // 🎯 APPLIQUER les critères automatiques depuis rule_data
         if (groupe.rule_data) {

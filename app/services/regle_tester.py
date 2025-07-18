@@ -1,29 +1,42 @@
 class RegleTester:
     """Service pour tester les règles d'affectation sur les écritures bancaires"""
 
-    def test_regle(self, regle_data, ecritures):
-        """
-        Teste une règle sur une liste d'écritures bancaires
+def test_regle(self, regle_data, ecritures):
+    """
+    Teste une règle sur une liste d'écritures bancaires (NOUVELLE VERSION)
 
-        Args:
-            regle_data (dict): Configuration de la règle
-            ecritures (list): Liste des objets EcritureBancaire
+    Args:
+        regle_data (dict): Configuration de la règle avec mot_cle_1 et mot_cle_2
+        ecritures (list): Liste des objets EcritureBancaire
 
-        Returns:
-            list: Liste des écritures qui matchent la règle
-        """
-        matching_ecritures = []
+    Returns:
+        list: Liste des écritures qui matchent la règle
+    """
+    matching_ecritures = []
 
-        # Extraire les critères de la règle
-        mots_cles = [mot.strip().lower() for mot in regle_data.get('mots_cles', [])]
-        journal_code = regle_data.get('journal_code')
-        criteres_montant = regle_data.get('criteres_montant')
+    # Extraire les critères de la règle (NOUVEAU FORMAT)
+    mot_cle_1 = regle_data.get('mot_cle_1', '').strip()
+    mot_cle_2 = regle_data.get('mot_cle_2', '').strip() if regle_data.get('mot_cle_2') else None
+    journal_code = regle_data.get('journal_code')
+    criteres_montant = regle_data.get('criteres_montant')
 
-        for ecriture in ecritures:
-            if self._ecriture_matches_regle(ecriture, mots_cles, journal_code, criteres_montant):
-                matching_ecritures.append(ecriture)
+    # RÉTROCOMPATIBILITÉ : si pas de mot_cle_1, essayer l'ancien format
+    if not mot_cle_1 and regle_data.get('mots_cles'):
+        # Conversion de l'ancien format vers le nouveau
+        mots_cles = regle_data.get('mots_cles', [])
+        if isinstance(mots_cles, list) and len(mots_cles) > 0:
+            mot_cle_1 = mots_cles[0]
+            if len(mots_cles) > 1:
+                mot_cle_2 = mots_cles[1]
 
+    if not mot_cle_1:
         return matching_ecritures
+
+    for ecriture in ecritures:
+        if self._ecriture_matches_regle(ecriture, mot_cle_1, mot_cle_2, journal_code, criteres_montant):
+            matching_ecritures.append(ecriture)
+
+    return matching_ecritures
 
     def test_regle_object(self, regle, ecritures):
         """
@@ -44,27 +57,35 @@ class RegleTester:
 
         return self.test_regle(regle_data, ecritures)
 
-    def _ecriture_matches_regle(self, ecriture, mots_cles, journal_code, criteres_montant):
-        """
-        Vérifie si une écriture match une règle
+def _ecriture_matches_regle(self, ecriture, mot_cle_1, mot_cle_2=None, journal_code=None, criteres_montant=None):
+    """
+    Vérifie si une écriture match une règle (NOUVELLE VERSION - CHAÎNES COMPLÈTES)
 
-        Args:
-            ecriture: Objet EcritureBancaire
-            mots_cles (list): Liste des mots-clés à chercher
-            journal_code (str): Code journal à filtrer (optionnel)
-            criteres_montant (dict): Critères de montant (optionnel)
+    Args:
+        ecriture: Objet EcritureBancaire
+        mot_cle_1 (str): Première chaîne de mots-clés (obligatoire)
+        mot_cle_2 (str): Deuxième chaîne de mots-clés (optionnelle)
+        journal_code (str): Code journal à filtrer (optionnel)
+        criteres_montant (dict): Critères de montant (optionnel)
 
-        Returns:
-            bool: True si l'écriture match la règle
-        """
-        # 1. Test des mots-clés (obligatoire)
-        if not mots_cles:
-            return False
+    Returns:
+        bool: True si l'écriture match la règle
+    """
+    # 1. Test de la première chaîne de mots-clés (obligatoire)
+    if not mot_cle_1 or not mot_cle_1.strip():
+        return False
 
-        libelle_lower = ecriture.ecriture_lib.lower()
-        mot_cle_match = any(mot_cle in libelle_lower for mot_cle in mots_cles)
+    libelle_lower = ecriture.ecriture_lib.lower()
+    chaine_1_lower = mot_cle_1.strip().lower()
+    
+    # La première chaîne DOIT être présente
+    if chaine_1_lower not in libelle_lower:
+        return False
 
-        if not mot_cle_match:
+    # 2. Test de la deuxième chaîne de mots-clés (optionnelle - ET logique)
+    if mot_cle_2 and mot_cle_2.strip():
+        chaine_2_lower = mot_cle_2.strip().lower()
+        if chaine_2_lower not in libelle_lower:
             return False
 
         # 2. Test du journal (optionnel)
