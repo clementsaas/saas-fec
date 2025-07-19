@@ -38,24 +38,40 @@ def test_regle(self, regle_data, ecritures):
 
     return matching_ecritures
 
-    def test_regle_object(self, regle, ecritures):
-        """
-        Teste un objet RegleAffectation sur une liste d'écritures
+def test_regle_object(self, regle, ecritures):
+    """
+    Teste un objet RegleAffectation sur une liste d'écritures - VERSION CORRIGÉE CHAÎNES COMPLÈTES
 
-        Args:
-            regle (RegleAffectation): Objet règle depuis la base de données
-            ecritures (list): Liste des objets EcritureBancaire
+    Args:
+        regle (RegleAffectation): Objet règle depuis la base de données
+        ecritures (list): Liste des objets EcritureBancaire
 
-        Returns:
-            list: Liste des écritures qui matchent la règle
-        """
-        regle_data = {
-            'mots_cles': regle.mots_cles,
-            'journal_code': regle.journal_code,
-            'criteres_montant': regle.criteres_montant
-        }
-
-        return self.test_regle(regle_data, ecritures)
+    Returns:
+        list: Liste des écritures qui matchent la règle
+    """
+    # Conversion de l'ancien format vers le nouveau format chaînes complètes
+    mot_cle_1 = ''
+    mot_cle_2 = None
+    
+    if regle.mots_cles:
+        if isinstance(regle.mots_cles, list) and len(regle.mots_cles) > 0:
+            # Prendre la première chaîne complète (pas de découpage)
+            mot_cle_1 = str(regle.mots_cles[0]).strip()
+            if len(regle.mots_cles) > 1:
+                # Prendre la deuxième chaîne complète (pas de découpage)
+                mot_cle_2 = str(regle.mots_cles[1]).strip()
+        elif isinstance(regle.mots_cles, str):
+            # Si c'est une chaîne, la prendre telle quelle
+            mot_cle_1 = regle.mots_cles.strip()
+    
+    # Utiliser le nouveau format directement
+    regle_data = {
+        'mot_cle_1': mot_cle_1,
+        'mot_cle_2': mot_cle_2,
+        'journal_code': regle.journal_code,
+        'criteres_montant': regle.criteres_montant
+    }
+    return self.test_regle(regle_data, ecritures)
 
 def _ecriture_matches_regle(self, ecriture, mot_cle_1, mot_cle_2=None, journal_code=None, criteres_montant=None):
     """
@@ -88,16 +104,16 @@ def _ecriture_matches_regle(self, ecriture, mot_cle_1, mot_cle_2=None, journal_c
         if chaine_2_lower not in libelle_lower:
             return False
 
-        # 2. Test du journal (optionnel)
-        if journal_code and ecriture.journal_code != journal_code:
+    # 3. Test du journal (optionnel)
+    if journal_code and ecriture.journal_code != journal_code:
+        return False
+
+    # 4. Test du montant (optionnel)
+    if criteres_montant:
+        if not self._test_critere_montant(ecriture.montant, criteres_montant):
             return False
 
-        # 3. Test du montant (optionnel)
-        if criteres_montant:
-            if not self._test_critere_montant(ecriture.montant, criteres_montant):
-                return False
-
-        return True
+    return True
 
     def _test_critere_montant(self, montant, criteres_montant):
         """
