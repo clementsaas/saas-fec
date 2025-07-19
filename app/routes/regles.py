@@ -144,11 +144,8 @@ def create_regle():
     try:
         data = request.get_json()
 
-# Validation des données - NOUVEAU FORMAT
-        has_mot_cle_1 = data.get('mot_cle_1')
-        has_mots_cles = data.get('mots_cles')
-        
-        if not all([data.get('nom'), (has_mot_cle_1 or has_mots_cles),
+        # Validation des données
+        if not all([data.get('nom'), data.get('mots_cles'),
                     data.get('compte_destination'), data.get('libelle_destination'),
                     data.get('fec_id')]):
             return jsonify({'success': False, 'error': 'Champs obligatoires manquants'})
@@ -182,20 +179,10 @@ def create_regle():
         total_ecritures = len(ecritures)
         pourcentage_couverture_total = (nb_transactions_couvertes / total_ecritures * 100) if total_ecritures > 0 else 0
 
-# Convertir les données vers le format base de données
-        mots_cles_array = []
-        if data.get('mot_cle_1'):
-            mots_cles_array.append(data['mot_cle_1'])
-            if data.get('mot_cle_2'):
-                mots_cles_array.append(data['mot_cle_2'])
-        elif data.get('mots_cles'):
-            # Rétrocompatibilité avec l'ancien format
-            mots_cles_array = data['mots_cles'] if isinstance(data['mots_cles'], list) else [data['mots_cles']]
-
         # Créer la règle
         regle = RegleAffectation(
             nom=data['nom'],
-            mots_cles=mots_cles_array,
+            mots_cles=data['mots_cles'],
             criteres_montant=data.get('criteres_montant'),
             journal_code=data.get('journal_code'),
             compte_destination=data['compte_destination'],
@@ -801,32 +788,17 @@ def test_collision():
             is_active=True
         ).all()
 
-# Tester la règle avec collision
+        # Tester la règle avec collision
         from app.services.regle_tester import RegleTester
         tester = RegleTester()
 
-        # Convertir vers le nouveau format
-        mot_cle_1 = ''
-        mot_cle_2 = None
-
-        if data.get('mot_cle_1'):
-            mot_cle_1 = data['mot_cle_1']
-            mot_cle_2 = data.get('mot_cle_2')
-        elif data.get('mots_cles'):
-            # Rétrocompatibilité - convertir l'ancien format
-            mots_cles_list = [mot.strip() for mot in data['mots_cles'].split(',') if mot.strip()]
-            if mots_cles_list:
-                mot_cle_1 = mots_cles_list[0]
-                if len(mots_cles_list) > 1:
-                    mot_cle_2 = mots_cles_list[1]
-
         # Préparer les données de la règle
         regle_data = {
-            'mot_cle_1': mot_cle_1,
-            'mot_cle_2': mot_cle_2,
+            'mots_cles': [mot.strip() for mot in data['mots_cles'].split(',') if mot.strip()],
             'journal_code': data.get('journal_code'),
             'criteres_montant': data.get('criteres_montant')
         }
+
         # Test complet avec collision
         resultats = tester.test_regle_avec_collision(
             regle_data, ecritures, compte_selectionne, regles_existantes

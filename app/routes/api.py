@@ -487,14 +487,7 @@ def calculer_collisions_totales(regles_existantes, ecritures):
             regles_matches[regle.id] = {}
             
             for match in matches:
-                # Déterminer le compte de contrepartie (compatible avec l'ancien format)
-                if hasattr(match, 'compte_contrepartie') and match.compte_contrepartie:
-                    compte = match.compte_contrepartie
-                elif not match.compte_final.startswith('512'):
-                    compte = match.compte_final
-                else:
-                    compte = "AUTRE"
-                
+                compte = match.compte_contrepartie
                 if compte not in regles_matches[regle.id]:
                     regles_matches[regle.id][compte] = []
                 regles_matches[regle.id][compte].append(match)
@@ -515,7 +508,7 @@ def calculer_collisions_totales(regles_existantes, ecritures):
     nb_collisions = 0
     for compte, regles_impliquees in comptes_avec_collisions.items():
         if len(regles_impliquees) > 1:
-            # Une collision = le nombre de comptes en conflit (plus simple)
-            nb_collisions += 1
+            # Une collision = le nombre total de transactions en conflit
+            nb_collisions += sum(r['nb_matches'] for r in regles_impliquees)
     
     return nb_collisions

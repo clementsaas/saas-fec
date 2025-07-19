@@ -9,7 +9,7 @@ class RegleAffectation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(200), nullable=False)
 
-# Critères de la règle (JSON pour flexibilité)
+    # Critères de la règle (JSON pour flexibilité)
     mots_cles = db.Column(db.JSON, nullable=False)  # ["mot1", "mot2"]
     criteres_montant = db.Column(db.JSON, nullable=True)  # {"operateur": ">=", "valeur": 100.0}
     journal_code = db.Column(db.String(10), nullable=True)  # Optionnel
