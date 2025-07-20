@@ -1,4 +1,4 @@
-<!-- Sidebar Affectia - Intelligence Douce -->
+<!-- Sidebar Affectia - Apple Intelligence 2025 -->
 <div class="affectia-sidebar" id="affectiaSidebar">
 <!-- En-tête avec toggle -->
 <div class="sidebar-header">
@@ -102,8 +102,6 @@
 
 <!-- Navigation principale -->
 <div class="sidebar-nav">
-        <!-- Séparateur -->
-    <hr class="nav-divider">
 <!-- Entreprise -->
 <div class="nav-item {{ 'active' if current_page == 'entreprises' else '' }}"
      onclick="navigateToPage('entreprises')"
@@ -117,8 +115,8 @@
     <span class="nav-text">Entreprises</span>
 </div>
 
-     <!-- Séparateur -->
-    <hr class="nav-divider">
+<!-- Séparateur discret -->
+<div class="nav-divider"></div>
 
         <!-- Créer des règles -->
         <div class="nav-item {{ 'active' if current_page == 'create_rule' else '' }}"
@@ -145,8 +143,8 @@
             <span class="nav-text">Liste des règles</span>
         </div>
 
-    <!-- Séparateur -->
-    <hr class="nav-divider">
+    <!-- Séparateur discret -->
+    <div class="nav-divider"></div>
 
         <!-- Importer des écritures-->
         <div class="nav-item {{ 'active' if current_page == 'import' else '' }}"
@@ -162,8 +160,8 @@
         </div>
     </div>
 
-<!-- Section Paramètres -->
-    <div class="sidebar-nav" style="margin-top: auto;">
+<!-- Section Paramètres avec espacement automatique -->
+    <div class="sidebar-nav sidebar-nav-bottom">
         <!-- Paramètres -->
         <div class="nav-item {{ 'active' if current_page == 'parametres' else '' }}"
              onclick="navigateToPage('parametres')"
@@ -180,226 +178,285 @@
 </div>
 
 <style>
-/* Base Sidebar - Intelligence Douce Style */
+/* === SYSTÈME TYPOGRAPHIQUE APPLE 2025 === */
+:root {
+    /* Couleurs système Apple Intelligence */
+    --ai-glass-primary: rgba(255, 255, 255, 0.72);
+    --ai-glass-secondary: rgba(249, 249, 251, 0.68);
+    --ai-glass-tertiary: rgba(242, 242, 247, 0.64);
+    
+    /* Couleurs de texte système */
+    --ai-text-primary: #1D1D1F;
+    --ai-text-secondary: #86868B;
+    --ai-text-tertiary: #C7C7CC;
+    
+    /* Couleurs d'accent système */
+    --ai-accent-blue: #007AFF;
+    --ai-accent-blue-secondary: rgba(0, 122, 255, 0.1);
+    
+    /* Rayon de courbure système */
+    --ai-radius-small: 6px;
+    --ai-radius-medium: 10px;
+    --ai-radius-large: 16px;
+    
+    /* Espacement système */
+    --ai-spacing-xs: 4px;
+    --ai-spacing-sm: 8px;
+    --ai-spacing-md: 12px;
+    --ai-spacing-lg: 16px;
+    --ai-spacing-xl: 20px;
+}
+
+/* === SIDEBAR PRINCIPALE - LIQUID GLASS EFFECT === */
 .affectia-sidebar {
     position: fixed;
     left: 0;
     top: 0;
-    width: 225px;
+    width: 240px;
     height: 100vh;
+    
+    /* Apple Intelligence Liquid Glass Background */
     background: 
+        /* Base glass layer */
         linear-gradient(135deg,
-            rgba(255, 255, 255, 0.98) 0%,
-            rgba(248, 250, 252, 0.95) 30%,
-            rgba(241, 245, 249, 0.92) 70%,
-            rgba(226, 232, 240, 0.9) 100%),
-        radial-gradient(ellipse at 15% 8%,
-            rgba(255, 255, 255, 0.8) 0%,
-            rgba(248, 250, 252, 0.4) 25%,
+            rgba(255, 255, 255, 0.72) 0%,
+            rgba(249, 249, 251, 0.68) 40%,
+            rgba(242, 242, 247, 0.64) 100%),
+        /* Subtle mesh gradient overlay */
+        radial-gradient(ellipse at 20% 10%,
+            rgba(255, 255, 255, 0.15) 0%,
             transparent 50%),
-        radial-gradient(ellipse at 85% 95%,
-            rgba(226, 232, 240, 0.15) 0%,
-            transparent 40%),
-        linear-gradient(
-            45deg,
-            transparent 48%,
-            rgba(255, 255, 255, 0.12) 49%,
-            rgba(255, 255, 255, 0.18) 50%,
-            rgba(255, 255, 255, 0.12) 51%,
-            transparent 52%
-        );
-    background-size: 100% 100%, 100% 100%, 100% 100%, 80px 80px;
-    backdrop-filter: blur(20px) saturate(150%);
-    border-right: 1px solid rgba(255, 255, 255, 0.4);
+        radial-gradient(ellipse at 80% 90%,
+            rgba(229, 231, 235, 0.08) 0%,
+            transparent 50%);
+    
+    /* Critical glass effects */
+    backdrop-filter: blur(40px) saturate(160%) brightness(1.05);
+    -webkit-backdrop-filter: blur(40px) saturate(160%) brightness(1.05);
+    
+    /* Subtle border - Apple style */
+    border-right: 0.5px solid rgba(255, 255, 255, 0.25);
+    
+    /* Shadows for depth */
+    box-shadow:
+        /* Main elevation shadow */
+        2px 0 32px rgba(0, 0, 0, 0.04),
+        /* Subtle inner highlight */
+        inset -0.5px 0 0 rgba(255, 255, 255, 0.4),
+        /* Top inner highlight */
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.3);
+    
     z-index: 1003;
     display: flex;
     flex-direction: column;
-    padding: 4px 8px 8px 8px;
-    box-shadow:
-        2px 0 20px rgba(0, 0, 0, 0.08),
-        inset -1px 0 0 rgba(255, 255, 255, 0.6),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    padding: var(--ai-spacing-md) var(--ai-spacing-sm) var(--ai-spacing-lg) var(--ai-spacing-sm);
+    
+    /* Apple's signature smooth transitions */
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+/* === ÉTATS DE LA SIDEBAR === */
 .affectia-sidebar.collapsed {
-    width: 53px;
+    width: 64px;
 }
 
-/* En-tête */
+/* === EN-TÊTE === */
 .sidebar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 4px 4px;
-    margin-bottom: 12px;
-    gap: 8px;
+    padding: var(--ai-spacing-xs);
+    margin-bottom: var(--ai-spacing-lg);
+    gap: var(--ai-spacing-sm);
 }
 
-.sidebar-close-btn {
-    background: none;
-    border: none;
-    padding: 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #64748b;
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
-}
-
-.sidebar-close-btn svg {
-    width: 24px;
-    height: 24px;
-}
-
-.sidebar-close-btn:hover {
-    background: rgba(100, 116, 139, 0.1);
-    color: #334155;
-}
-
-.affectia-sidebar.collapsed .sidebar-close-btn {
-    display: none;
-}
-
-/* Container du logo avec logique smart */
+/* Boutons d'interface - Style Apple 2025 */
+.sidebar-close-btn,
 .sidebar-logo-container {
     background: none;
     border: none;
-    padding: 8px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    padding: var(--ai-spacing-sm);
+    border-radius: var(--ai-radius-small);
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
-    width: 40px;
-    height: 40px;
+    color: var(--ai-text-secondary);
+    width: 36px;
+    height: 36px;
     flex-shrink: 0;
-    position: relative;
-    cursor: default;
+    
+    /* Apple smooth transitions */
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Logo Affectia */
-.affectia-logo-display {
-    transition: all 0.3s ease;
-    filter: brightness(0) saturate(100%) invert(42%) sepia(8%) saturate(1168%) hue-rotate(180deg) brightness(95%) contrast(0%);
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-    opacity: 1;
+.sidebar-close-btn:hover,
+.sidebar-logo-container:hover {
+    background: rgba(118, 118, 128, 0.08);
+    color: var(--ai-text-primary);
+    transform: translateY(-0.5px);
 }
 
-/* Icône de fermeture (cachée par défaut) */
+.sidebar-close-btn:active,
+.sidebar-logo-container:active {
+    transform: scale(0.95);
+    transition: all 0.1s ease;
+}
+
+/* Logo et icônes - Taille optimisée Apple */
+.affectia-logo-display,
 .sidebar-close-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    opacity: 0;
+    width: 20px;
+    height: 20px;
     transition: all 0.3s ease;
-    pointer-events: none;
 }
 
-/* État normal (sidebar ouverte) - logo ne fait rien */
-.affectia-sidebar:not(.collapsed) .sidebar-logo-container {
-    cursor: default;
-}
-
-.affectia-sidebar:not(.collapsed) .sidebar-logo-container:hover .affectia-logo-display {
-    transform: none;
+.affectia-logo-display {
     filter: brightness(0) saturate(100%) invert(42%) sepia(8%) saturate(1168%) hue-rotate(180deg) brightness(95%) contrast(88%);
 }
 
-/* État collapsed - logo devient interactif */
-.affectia-sidebar.collapsed .sidebar-logo-container {
+/* === SECTION SOCIÉTÉ === */
+.sidebar-company-section {
+    padding: 0 var(--ai-spacing-xs) var(--ai-spacing-lg) var(--ai-spacing-xs);
+    position: relative;
+}
+
+.company-section-sidebar {
+    display: flex;
+    align-items: center;
     cursor: pointer;
+    padding: var(--ai-spacing-md);
+    border-radius: var(--ai-radius-medium);
+    
+    /* Enhanced glass effect for company section */
+    background: 
+        linear-gradient(135deg,
+            rgba(255, 255, 255, 0.85) 0%,
+            rgba(255, 255, 255, 0.65) 100%);
+    backdrop-filter: blur(30px) saturate(180%);
+    
+    border: 0.5px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.02),
+        0 4px 12px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    
+    position: relative;
+    overflow: hidden;
+    
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Au hover en mode collapsed : logo disparaît, icône fermeture apparaît */
-.affectia-sidebar.collapsed .sidebar-logo-container:hover .affectia-logo-display {
-    opacity: 0;
-    transform: scale(0.8);
-    animation: none;
+.company-section-sidebar:hover {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 255, 255, 0.75) 100%);
+    transform: translateY(-1px);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.03),
+        0 8px 24px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-.affectia-sidebar.collapsed .sidebar-logo-container:hover .sidebar-close-icon {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-    pointer-events: auto;
+.company-layout-sidebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: var(--ai-spacing-sm);
 }
 
-.affectia-sidebar.collapsed .sidebar-logo-container:hover {
-    background: rgba(100, 116, 139, 0.1);
+/* Typographie Apple pour le nom de société */
+.company-name-section-sidebar h2 {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 590; /* Apple's signature medium weight */
+    color: var(--ai-text-primary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.015em; /* Apple's subtle letter spacing */
 }
 
-/* Bouton de fermeture normal */
-.sidebar-close-btn {
-    background: none;
-    border: none;
-    padding: 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+/* Score d'automatisation - Style Apple Intelligence */
+.automation-glass-background-sidebar {
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.12) 0%,
+        rgba(88, 86, 214, 0.08) 100%);
+    backdrop-filter: blur(20px) saturate(170%);
+    border: 0.5px solid rgba(0, 122, 255, 0.2);
+    border-radius: var(--ai-radius-small);
+    padding: 4px 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.automation-content-sidebar {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
 }
 
-.sidebar-close-btn:hover {
-    background: rgba(100, 116, 139, 0.1);
-    color: #334155;
+.percentage-sidebar {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ai-accent-blue);
+    font-feature-settings: 'tnum'; /* Tabular numbers pour alignement */
 }
 
-/* Cacher le bouton fermer en mode collapsed */
-.affectia-sidebar.collapsed .sidebar-close-btn {
-    display: none;
-}
-
-@keyframes logoRotate {
-    0%, 100% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(15deg) scale(1.05); }
-}
-
-/* Navigation */
+/* === NAVIGATION PRINCIPALE === */
 .sidebar-nav {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 0 4px;
-    margin-bottom: 16px;
+    padding: 0 var(--ai-spacing-xs);
+    margin-bottom: var(--ai-spacing-lg);
 }
 
+.sidebar-nav-bottom {
+    margin-top: auto;
+    margin-bottom: 0;
+}
+
+/* Items de navigation - Apple 2025 style */
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: 6px;
+    gap: var(--ai-spacing-md);
+    padding: 10px var(--ai-spacing-md);
+    border-radius: var(--ai-radius-small);
     cursor: pointer;
-    transition: all 0.2s ease;
-    color: #64748b;
+    color: var(--ai-text-secondary);
     position: relative;
+    
+    /* Apple smooth micro-interactions */
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+/* États hover et active - Style Apple nuancé */
 .nav-item:hover {
-    background: rgba(100, 116, 139, 0.1);
-    color: #334155;
+    background: rgba(118, 118, 128, 0.06);
+    color: var(--ai-text-primary);
+    transform: translateY(-0.5px);
 }
 
 .nav-item.active {
-    background: rgba(100, 116, 139, 0.1);
-    color: #334155;
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.08) 0%,
+        rgba(0, 122, 255, 0.05) 100%);
+    color: var(--ai-accent-blue);
+    
+    /* Subtle glow effect */
+    box-shadow: 
+        0 1px 3px rgba(0, 122, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
+/* Icônes de navigation - Taille et style Apple */
 .nav-icon {
     width: 20px;
     height: 20px;
@@ -413,360 +470,165 @@
     width: 20px;
     height: 20px;
     fill: currentColor;
+    transition: all 0.2s ease;
 }
 
+/* Texte de navigation - Typographie Apple */
 .nav-text {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
     font-size: 14px;
     font-weight: 400;
     white-space: nowrap;
-    transition: all 0.3s ease;
+    letter-spacing: -0.008em;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Séparateur */
+/* Séparateurs - Apple minimalist style */
 .nav-divider {
-    border: none;
-    height: 1px;
-    background: rgba(148, 163, 184, 0.2);
-    margin: 8px 16px;
-    transition: all 0.3s ease;
-}
-
-/* État collapsed */
-.affectia-sidebar.collapsed .nav-text {
-    display: none;
-}
-
-.affectia-sidebar.collapsed .nav-divider {
-    opacity: 0;
-}
-
-.affectia-sidebar.collapsed .sidebar-header {
-    justify-content: center;
-    padding: 8px;
-}
-
-.affectia-sidebar.collapsed .nav-item {
-    justify-content: center;
-    padding: 12px 8px;
-}
-
-.affectia-sidebar.collapsed .sidebar-toggle-btn {
-    display: none;
-}
-
-/* Curseur pour ouvrir quand collapsed */
-.affectia-sidebar.collapsed {
-    cursor: ew-resize;
-}
-
-/* Layout adjustments - Sidebar pousse le contenu avec espacement */
-body {
-    margin-left: 245px;
-    transition: margin-left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-body.sidebar-collapsed {
-    margin-left: 73px;
-}
-
-/* Header bar s'ajuste */
-.header-bar {
-    position: sticky;
-    top: 0;
-    z-index: 1001;
-    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-/* Main container s'ajuste automatiquement avec body */
-.main-container {
-    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-/* Panel gauche s'ajuste */
-.panel:first-child,
-.left-panel {
-    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-/* Tous les containers s'ajustent automatiquement */
-.container,
-.container-fluid {
-    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-/* Grid containers s'ajustent */
-.row {
-    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-/* Panels de la page s'ajustent */
-.panel {
-    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-/* Company section s'ajuste */
-.company-section {
-    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-/* Logo container s'ajuste */
-.logo-container,
-.logo-company-container {
-    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-}
-
-/* Fix pour les containers existants */
-.container,
-.container-fluid {
-    margin-left: 0 !important;
-    padding-left: 15px !important;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-    .affectia-sidebar {
-        width: 53px;
-    }
-
-    .affectia-sidebar .nav-text {
-        display: none;
-    }
-
-    .affectia-sidebar .nav-divider {
-        opacity: 0;
-    }
-
-    .affectia-sidebar .sidebar-header {
-        justify-content: center;
-        padding: 8px;
-    }
-
-    .affectia-sidebar .nav-item {
-        justify-content: center;
-        padding: 12px 8px;
-    }
-
-body {
-    margin-left: 73px;
-}
-
-}
-
-/* Section société dans la sidebar */
-.sidebar-company-section {
-    padding: 8px 4px 16px 4px;
-    position: relative;
-}
-
-.company-section-sidebar {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 8px;
-    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    position: relative;
-    overflow: hidden;
-}
-
-.company-section-sidebar:hover {
-    background: rgba(255, 255, 255, 0.8);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-}
-
-.company-layout-sidebar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    gap: 8px;
-}
-
-.company-name-section-sidebar {
-    flex: 1;
-    min-width: 0;
-}
-
-.company-name-section-sidebar h2 {
-    font-size: 13px;
-    font-weight: 600;
-    color: #1d1d1f;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.automation-score-section-sidebar {
-    flex-shrink: 0;
-}
-
-.automation-glass-background-sidebar {
-    background: linear-gradient(135deg,
-        rgba(59, 130, 246, 0.1) 0%,
-        rgba(147, 51, 234, 0.08) 100%);
-    backdrop-filter: blur(8px) saturate(150%);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: 6px;
-    padding: 4px 10px;
-    position: relative;
-    overflow: hidden;
-}
-
-.automation-specular-highlight-sidebar {
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
+    height: 0.5px;
     background: linear-gradient(90deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.3) 50%,
+        rgba(60, 60, 67, 0.12) 20%,
+        rgba(60, 60, 67, 0.12) 80%,
         transparent 100%);
-    animation: automationSidebarShine 3s ease-in-out infinite;
+    margin: var(--ai-spacing-sm) var(--ai-spacing-lg);
+    border: none;
+    transition: all 0.3s ease;
 }
 
-@keyframes automationSidebarShine {
-    0% { left: -100%; }
-    50% { left: 100%; }
-    100% { left: 100%; }
-}
-
-.automation-content-sidebar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    z-index: 2;
-}
-
-.percentage-sidebar {
-    font-size: 14px;
-    font-weight: 600;
-    color: #3b82f6;
-}
-
-/* Styles pour sidebar collapsed */
-.affectia-sidebar.collapsed .sidebar-company-section {
-    padding: 8px 4px 16px 4px;
-    display: flex;
-    justify-content: center;
-}
-
-.affectia-sidebar.collapsed .company-section-sidebar {
-    justify-content: center;
-    padding: 6px;
-    width: auto;
-}
-
-.affectia-sidebar.collapsed .company-layout-sidebar {
-    justify-content: center;
-}
-
-.affectia-sidebar.collapsed .company-name-section-sidebar {
-    display: none;
-}
-
-.affectia-sidebar.collapsed .automation-score-section-sidebar {
-    display: flex;
-    justify-content: center;
-}
-
-.affectia-sidebar.collapsed .automation-glass-background-sidebar {
-    padding: 4px 10px;
-    min-width: 28px;
-    text-align: center;
-}
-
-.affectia-sidebar.collapsed .percentage-sidebar {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-/* Dropdown Apple Intelligence dans la sidebar */
+/* === DROPDOWN APPLE INTELLIGENCE === */
 .apple-intelligence-dropdown-sidebar {
     position: absolute;
     top: calc(100% + 8px);
-    left: 8px;
-    right: 8px;
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.95) 0%,
-        rgba(247, 250, 252, 0.92) 30%,
-        rgba(255, 255, 255, 0.90) 100%);
-    backdrop-filter: blur(30px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 12px;
+    left: var(--ai-spacing-sm);
+    right: var(--ai-spacing-sm);
+    
+    /* Enhanced Liquid Glass pour le dropdown */
+    background: 
+        linear-gradient(135deg,
+            rgba(255, 255, 255, 0.92) 0%,
+            rgba(249, 249, 251, 0.88) 50%,
+            rgba(255, 255, 255, 0.85) 100%);
+    backdrop-filter: blur(60px) saturate(190%) brightness(1.1);
+    
+    border: 0.5px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--ai-radius-large);
+    
+    /* Apple signature shadows */
     box-shadow:
-        0 20px 60px rgba(0, 0, 0, 0.15),
-        0 8px 32px rgba(0, 0, 0, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        0 32px 64px rgba(0, 0, 0, 0.12),
+        0 16px 32px rgba(0, 0, 0, 0.08),
+        0 4px 16px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 0 0 0.5px rgba(255, 255, 255, 0.2);
+    
     display: none;
     z-index: 10000;
     overflow: hidden;
-    max-height: 300px;
+    max-height: 320px;
+    
+    /* Apple smooth entrance animation */
+    animation: aiDropdownAppear 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes aiDropdownAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.94);
+        filter: blur(4px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
 }
 
 .ai-dropdown-content-sidebar {
-    padding: 6px;
+    padding: var(--ai-spacing-sm);
 }
 
+/* Barre de recherche - Apple Intelligence style */
 .ai-search-container-sidebar {
-    padding: 6px 0 8px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    margin-bottom: 6px;
+    padding: var(--ai-spacing-sm) 0 var(--ai-spacing-md) 0;
+    border-bottom: 0.5px solid rgba(60, 60, 67, 0.08);
+    margin-bottom: var(--ai-spacing-sm);
 }
 
 .ai-search-wrapper-sidebar {
     position: relative;
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    border: 0.5px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--ai-spacing-sm);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.ai-search-wrapper-sidebar:focus-within {
+    border-color: rgba(0, 122, 255, 0.3);
+    box-shadow: 
+        0 0 0 3px rgba(0, 122, 255, 0.08),
+        0 2px 8px rgba(0, 122, 255, 0.1);
+    background: rgba(255, 255, 255, 0.9);
 }
 
 .ai-search-input-sidebar {
     width: 100%;
-    padding: 6px 30px 6px 10px;
+    padding: 8px 32px 8px var(--ai-spacing-md);
     border: none;
     background: transparent;
-    font-size: 12px;
-    color: #1d1d1f;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    font-size: 13px;
+    color: var(--ai-text-primary);
     outline: none;
+    letter-spacing: -0.005em;
+}
+
+.ai-search-input-sidebar::placeholder {
+    color: var(--ai-text-secondary);
+    font-style: normal;
 }
 
 .ai-search-icon-sidebar {
     position: absolute;
-    right: 8px;
+    right: var(--ai-spacing-md);
     top: 50%;
     transform: translateY(-50%);
-    color: #86868b;
+    color: var(--ai-text-secondary);
     pointer-events: none;
 }
 
+/* Liste des sociétés */
 .ai-companies-list-sidebar {
-    max-height: 200px;
+    max-height: 220px;
     overflow-y: auto;
+    margin: 0 -2px; /* Compensation pour le padding des items */
 }
 
 .ai-company-item-sidebar {
-    padding: 8px;
-    border-radius: 6px;
+    padding: var(--ai-spacing-md);
+    border-radius: var(--ai-radius-small);
     cursor: pointer;
-    transition: all 0.2s ease;
     margin-bottom: 2px;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .ai-company-item-sidebar:hover {
-    background: rgba(0, 122, 255, 0.08);
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.06) 0%,
+        rgba(88, 86, 214, 0.04) 100%);
+    transform: translateY(-0.5px);
+    box-shadow: 0 1px 4px rgba(0, 122, 255, 0.08);
 }
 
 .ai-company-item-sidebar.selected {
-    background: rgba(0, 122, 255, 0.12);
+    background: linear-gradient(135deg,
+        rgba(0, 122, 255, 0.1) 0%,
+        rgba(88, 86, 214, 0.06) 100%);
+    border: 0.5px solid rgba(0, 122, 255, 0.2);
+    box-shadow: 
+        0 2px 8px rgba(0, 122, 255, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .ai-company-content-sidebar {
@@ -780,200 +642,217 @@ body {
     min-width: 0;
 }
 
+/* Typographie des sociétés */
 .ai-company-name-sidebar {
-    font-size: 12px;
-    font-weight: 600;
-    color: #1d1d1f;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 590;
+    color: var(--ai-text-primary);
     margin-bottom: 1px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    letter-spacing: -0.005em;
 }
 
 .ai-company-siret-sidebar {
-    font-size: 10px;
-    color: #86868b;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--ai-text-secondary);
+    font-feature-settings: 'tnum';
 }
 
 .ai-current-indicator-sidebar {
-    color: #007aff;
-    margin-left: 8px;
-    opacity: 0.8;
-}
-
-/* Styles manquants pour les effets visuels de la section société */
-
-/* Animation specular pour la section société */
-.company-section-sidebar::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        45deg,
-        transparent 40%,
-        rgba(255, 255, 255, 0.1) 50%,
-        transparent 60%
-    );
-    animation: companySpecularMoveSidebar 8s ease-in-out infinite;
-    pointer-events: none;
-    opacity: 0.6;
-}
-
-@keyframes companySpecularMoveSidebar {
-    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-    50% { transform: translateX(50%) translateY(50%) rotate(45deg); }
-    100% { transform: translateX(200%) translateY(200%) rotate(45deg); }
-}
-
-/* Focus states pour la barre de recherche */
-.ai-search-wrapper-sidebar:focus-within {
-    border-color: rgba(0, 122, 255, 0.3);
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-}
-
-.ai-search-input-sidebar::placeholder {
-    color: #86868b;
-    font-style: italic;
-}
-
-/* Animation d'apparition du dropdown */
-@keyframes aiDropdownAppearSidebar {
-    0% {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.95);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.apple-intelligence-dropdown-sidebar {
-    animation: aiDropdownAppearSidebar 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-/* États hover et active pour les éléments de la liste */
-.ai-company-item-sidebar:hover {
-    background: linear-gradient(135deg,
-        rgba(0, 122, 255, 0.08) 0%,
-        rgba(88, 86, 214, 0.05) 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.1);
-}
-
-.ai-company-item-sidebar.selected {
-    background: linear-gradient(135deg,
-        rgba(0, 122, 255, 0.12) 0%,
-        rgba(88, 86, 214, 0.08) 100%);
-    border: 1px solid rgba(0, 122, 255, 0.2);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
-}
-
-/* État sélectionné avec navigation clavier */
-.ai-company-item-sidebar.keyboard-selected {
-    background: linear-gradient(135deg,
-        rgba(0, 122, 255, 0.15) 0%,
-        rgba(88, 86, 214, 0.10) 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.18);
-    border: 1px solid rgba(0, 122, 255, 0.3);
-}
-
-/* Scrollbar customisée pour la liste des sociétés */
-.ai-companies-list-sidebar::-webkit-scrollbar {
-    width: 4px;
-}
-
-.ai-companies-list-sidebar::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 2px;
-}
-
-.ai-companies-list-sidebar::-webkit-scrollbar-thumb {
-    background: rgba(0, 122, 255, 0.3);
-    border-radius: 2px;
-}
-
-.ai-companies-list-sidebar::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 122, 255, 0.5);
-}
-
-/* Amélioration de l'état no-companies */
-.ai-no-companies-sidebar {
-    opacity: 0.7;
-    font-style: italic;
-}
-
-/* Effet de transition pour l'indicateur current */
-.ai-current-indicator-sidebar svg {
+    color: var(--ai-accent-blue);
+    margin-left: var(--ai-spacing-sm);
+    opacity: 0.9;
     transition: all 0.2s ease;
 }
 
 .ai-company-item-sidebar:hover .ai-current-indicator-sidebar svg {
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
-/* Responsive pour les textes dans la sidebar */
+/* === ÉTATS COLLAPSED === */
+.affectia-sidebar.collapsed .nav-text,
+.affectia-sidebar.collapsed .company-name-section-sidebar {
+    opacity: 0;
+    display: none;
+}
+
+.affectia-sidebar.collapsed .nav-divider {
+    opacity: 0;
+}
+
+.affectia-sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: var(--ai-spacing-sm);
+}
+
+.affectia-sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 10px var(--ai-spacing-sm);
+}
+
+.affectia-sidebar.collapsed .sidebar-close-btn {
+    display: none;
+}
+
+.affectia-sidebar.collapsed .company-section-sidebar {
+    justify-content: center;
+    padding: var(--ai-spacing-sm);
+}
+
+.affectia-sidebar.collapsed .automation-glass-background-sidebar {
+    padding: 3px 6px;
+    min-width: 24px;
+}
+
+.affectia-sidebar.collapsed .percentage-sidebar {
+    font-size: 11px;
+}
+
+/* === SCROLLBAR PERSONNALISÉE === */
+.ai-companies-list-sidebar::-webkit-scrollbar {
+    width: 3px;
+}
+
+.ai-companies-list-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ai-companies-list-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0, 122, 255, 0.2);
+    border-radius: 2px;
+}
+
+.ai-companies-list-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 122, 255, 0.4);
+}
+
+/* === LAYOUT ADJUSTMENTS === */
+body {
+    margin-left: 260px;
+    transition: margin-left 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+body.sidebar-collapsed {
+    margin-left: 84px;
+}
+
+.header-bar,
+.main-container {
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* === RESPONSIVE === */
 @media (max-width: 1024px) {
-    .company-name-section-sidebar h2 {
-        font-size: 12px;
+    .affectia-sidebar {
+        width: 64px;
     }
-
-    .percentage-sidebar {
-        font-size: 10px;
+    
+    .affectia-sidebar .nav-text,
+    .affectia-sidebar .company-name-section-sidebar {
+        display: none;
     }
-
-    .ai-company-name-sidebar {
-        font-size: 11px;
-    }
-
-    .ai-company-siret-sidebar {
-        font-size: 9px;
-    }
-}
-
-/* Animation pour l'apparition de la section société */
-.sidebar-company-section {
-    animation: sidebarCompanyAppear 0.5s ease-out;
-}
-
-@keyframes sidebarCompanyAppear {
-    0% {
+    
+    .affectia-sidebar .nav-divider {
         opacity: 0;
-        transform: translateY(-10px);
     }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
+    
+    body {
+        margin-left: 84px;
     }
 }
 
-/* Effet glass background plus prononcé */
-.automation-glass-background-sidebar::after {
-    content: '';
+/* === ANIMATIONS SUBTILES === */
+.nav-item:active {
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+}
+
+.company-section-sidebar:active {
+    transform: scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* === EFFETS SPÉCULAIRES === */
+.automation-specular-highlight-sidebar {
     position: absolute;
     top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.2) 0%,
-        rgba(255, 255, 255, 0.1) 50%,
-        rgba(255, 255, 255, 0.05) 100%);
-    border-radius: 6px;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.6) 50%,
+        transparent 100%);
+    animation: automationSpecularMove 4s ease-in-out infinite;
     pointer-events: none;
 }
 
-/* Z-index pour s'assurer que le contenu est au-dessus */
-.automation-content-sidebar {
-    position: relative;
-    z-index: 3;
+@keyframes automationSpecularMove {
+    0% { left: -100%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
 }
 
+/* Highlight spéculaire pour la section société */
+.company-section-sidebar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 40%,
+        rgba(255, 255, 255, 0.5) 50%,
+        rgba(255, 255, 255, 0.3) 60%,
+        transparent 100%);
+    animation: companySpecularSweep 6s ease-in-out infinite;
+    pointer-events: none;
+    border-radius: var(--ai-radius-medium);
+}
+
+@keyframes companySpecularSweep {
+    0% { left: -100%; opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
+}
+
+/* === ÉTATS FOCUS POUR ACCESSIBILITÉ === */
+.nav-item:focus-visible,
+.company-section-sidebar:focus-visible {
+    outline: 2px solid var(--ai-accent-blue);
+    outline-offset: 2px;
+}
+
+.sidebar-close-btn:focus-visible,
+.sidebar-logo-container:focus-visible {
+    outline: 2px solid var(--ai-accent-blue);
+    outline-offset: 1px;
+}
+
+/* === DARK MODE SUPPORT (FUTUR) === */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ai-glass-primary: rgba(30, 30, 30, 0.72);
+        --ai-glass-secondary: rgba(28, 28, 30, 0.68);
+        --ai-glass-tertiary: rgba(22, 22, 24, 0.64);
+        
+        --ai-text-primary: #FFFFFF;
+        --ai-text-secondary: #98989D;
+        --ai-text-tertiary: #48484A;
+        
+        --ai-accent-blue: #0A84FF;
+        --ai-accent-blue-secondary: rgba(10, 132, 255, 0.15);
+    }
+}
 </style>
 
 <script>
