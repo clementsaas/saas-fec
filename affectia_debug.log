@@ -1092,3 +1092,38 @@
 2025-07-21 01:19:05,833 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 01:19:05] "POST /api/groupements-intelligents HTTP/1.1" 200 -
 2025-07-21 01:19:08,635 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 01:19:08] "POST /api/groupements-intelligents HTTP/1.1" 200 -
 2025-07-21 01:19:11,030 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 01:19:11] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-21 19:42:23,095 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-21 19:42:23,096 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-07-21 19:42:25,943 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:25] "[32mGET / HTTP/1.1[0m" 302 -
+2025-07-21 19:42:25,970 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:25] "GET /login HTTP/1.1" 200 -
+2025-07-21 19:42:26,179 - app - WARNING - PAGE INTROUVABLE: http://127.0.0.1:5000/favicon.ico - Référent: http://127.0.0.1:5000/login
+2025-07-21 19:42:26,180 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:26] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-21 19:42:33,395 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:33] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-21 19:42:33,475 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:33] "GET /entreprises HTTP/1.1" 200 -
+2025-07-21 19:42:33,725 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:33] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-21 19:42:34,500 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:34] "GET /api/societe/5/statistiques HTTP/1.1" 200 -
+2025-07-21 19:42:34,985 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:34] "GET /api/societe/9/statistiques HTTP/1.1" 200 -
+2025-07-21 19:42:35,057 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:35] "GET /api/societe/7/statistiques HTTP/1.1" 200 -
+2025-07-21 19:42:35,148 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:35] "GET /api/societe/8/statistiques HTTP/1.1" 200 -
+2025-07-21 19:42:35,268 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:35] "GET /api/societe/6/statistiques HTTP/1.1" 200 -
+2025-07-21 19:42:37,520 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:37] "GET /societe/8 HTTP/1.1" 200 -
+2025-07-21 19:42:37,548 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:37] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-21 19:42:42,770 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:42] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-21 19:42:42,925 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:42:42] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-21 19:46:56,220 - app - INFO - Nombre de regles trouvees: 0
+2025-07-21 19:46:56,220 - app - INFO - Nombre de regles JSON: 0
+2025-07-21 19:46:56,292 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:46:56] "GET /regles/liste?societe_id=8 HTTP/1.1" 200 -
+2025-07-21 19:46:56,344 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:46:56] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-21 19:47:03,013 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:47:03] "GET /societe/8?mode=create_rule HTTP/1.1" 200 -
+2025-07-21 19:47:03,045 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:47:03] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-21 19:47:05,162 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:47:05] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-21 19:47:05,913 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 19:47:05] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-21 22:36:06,589 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 22:36:06] "GET /societe/7 HTTP/1.1" 200 -
+2025-07-21 22:36:06,635 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 22:36:06] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-21 22:36:10,158 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 22:36:10] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-21 22:36:12,666 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 22:36:12] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-21 22:39:12,001 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 22:39:12] "GET /societe/7 HTTP/1.1" 200 -
+2025-07-21 22:39:12,047 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 22:39:12] "[36mGET /static/images/logo_affectia_vector.svg HTTP/1.1[0m" 304 -
+2025-07-21 22:39:18,198 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 22:39:18] "POST /api/groupements-intelligents HTTP/1.1" 200 -
+2025-07-21 22:39:19,621 - werkzeug - INFO - 127.0.0.1 - - [21/Jul/2025 22:39:19] "POST /api/groupements-intelligents HTTP/1.1" 200 -

@@ -2923,19 +2923,34 @@ animation: btnSpecularMove 8s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
                 </svg>
             </button>
         </div>
-        <div class="modal-body">
-            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-                <div class="upload-content" id="uploadContent">
-                    <div class="upload-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
-                            <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/>
-                        </svg>
-                    </div>
-                    <h5>Glissez votre fichier FEC ici</h5>
-                    <p>ou <span class="browse-link">cliquez pour parcourir</span></p>
-                    <small>Formats acceptés : .txt, .csv • Max 100 MB</small>
-                </div>
+<div class="modal-body">
+    <!-- Nouveau sélecteur de format FEC -->
+    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px solid #e9ecef;">
+        <label for="formatSelector" style="display: block; font-weight: 600; color: #1d1d1f; margin-bottom: 8px; font-size: 14px;">
+            🔧 Format FEC
+        </label>
+        <select class="form-select" id="formatSelector" name="format_fec" style="border-radius: 8px; border: 1px solid #d2d2d7; padding: 8px 12px; font-size: 13px; background: white;">
+            <option value="standard" selected>Standard (18 colonnes classiques)</option>
+            <option value="pennylane">Pennylane (avec retraitement automatique)</option>
+        </select>
+        <small style="color: #86868b; font-size: 12px; line-height: 1.4; margin-top: 5px; display: block;">
+            <strong>Standard :</strong> Format FEC traditionnel<br>
+            <strong>Pennylane :</strong> Nettoyage automatique des suffixes TVA et Import/Export
+        </small>
+    </div>
+
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-content" id="uploadContent">
+            <div class="upload-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                    <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/>
+                </svg>
+            </div>
+            <h5>Glissez votre fichier FEC ici</h5>
+            <p>ou <span class="browse-link">cliquez pour parcourir</span></p>
+            <small>Formats acceptés : .txt, .csv • Max 100 MB</small>
+        </div>
                 <div class="file-info" id="fileInfo" style="display: none;">
                     <div class="success-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
@@ -3430,6 +3445,50 @@ background-color: #fafafa; /* gris clair Tailwind */
     50% { transform: scale(1.05); box-shadow: 0 12px 35px rgba(244, 67, 54, 0.7); }
 }
 
+/* Styles pour l'indicateur de chargement des suggestions */
+.loading-suggestions {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+    border-radius: 8px;
+    margin: 10px 0;
+    border: 1px solid #e0e6ed;
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #e9ecef;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.loading-text {
+    flex: 1;
+}
+
+.loading-primary {
+    font-weight: 600;
+    color: #445dd1;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.loading-secondary {
+    font-size: 12px;
+    color: #979ec2;
+    font-style: italic;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 </style>
 
 <script>
@@ -3448,6 +3507,7 @@ function toggleFiltersAI() {
         container.classList.remove('expanded');
     }
 }
+
 </script>
 
 <!-- Conteneur des groupes de transactions intelligents -->
@@ -4116,21 +4176,29 @@ function highlightKeywordsInAllTransactions(keywords1, keywords2) {
             });
         }
 
-        // Gestion des comptes
-        function selectionnerCompte(compte) {
-            // Retirer la sélection précédente
-            document.querySelectorAll('.compte-item').forEach(item => {
-                item.classList.remove('selected');
-            });
+// Gestion des comptes
+function selectionnerCompte(compte) {
+    // 🎯 ANNULER immédiatement toute suggestion en cours
+    if (currentSuggestionRequest && currentSuggestionAccount !== compte) {
+        console.log(`🚫 Changement de compte détecté (${currentSuggestionAccount} → ${compte}), annulation suggestions`);
+        currentSuggestionRequest.abort();
+        currentSuggestionRequest = null;
+        currentSuggestionAccount = null;
+    }
 
-            // Ajouter la sélection au nouveau compte
-            const compteElement = document.querySelector(`[data-compte="${compte}"]`);
-            if (compteElement) {
-                compteElement.classList.add('selected');
-            }
+    // Retirer la sélection précédente
+    document.querySelectorAll('.compte-item').forEach(item => {
+        item.classList.remove('selected');
+    });
 
-            compteSelectionne = compte;
-            console.log('🏦 Compte sélectionné:', compte);
+    // Ajouter la sélection au nouveau compte
+    const compteElement = document.querySelector(`[data-compte="${compte}"]`);
+    if (compteElement) {
+        compteElement.classList.add('selected');
+    }
+
+    compteSelectionne = compte;
+    console.log('🏦 Compte sélectionné:', compte);
 
 // Réinitialiser les filtres
 document.getElementById('filter-banque').value = '';
@@ -4158,8 +4226,7 @@ if (transactionSort.field) {
         setTimeout(() => {
             console.log('🔄 Déclenchement chargement groupements pour compte:', compte);
             chargerGroupementsIntelligents();
-        }, 200);
-
+        }, 100);
 }
 
         // Gestion des filtres et intégration avec panneau droite
@@ -5929,6 +5996,7 @@ function selectCompany(societeId) {
             const formData = new FormData();
             formData.append('fec_file', file);
             formData.append('societe_nom', document.getElementById('current-company-name').textContent);
+            formData.append('format_fec', document.getElementById('formatSelector').value);
 
             const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
@@ -6402,22 +6470,44 @@ function resetFilters() {
     }, 150);
 }
 
- // Variables pour les groupements intelligents
+// Variables pour les groupements intelligents
 let groupementsIntelligents = [];
 let groupeSelectionne = null;
 
-// Fonction pour charger les groupements intelligents
+// Variables de contrôle pour annuler les suggestions obsolètes
+let currentSuggestionRequest = null; // AbortController pour annuler les requêtes
+let currentSuggestionAccount = null; // Compte pour lequel la suggestion est en cours
+let suggestionRequestId = 0; // ID unique pour chaque requête
+
+// Fonction pour charger les groupements intelligents avec annulation
 function chargerGroupementsIntelligents() {
     if (!compteSelectionne || !societeId) {
         afficherEtatVideGroupements();
         return;
     }
 
-    console.log('🧠 Chargement groupements intelligents pour compte:', compteSelectionne);
+    // 🎯 AFFICHER immédiatement l'état de chargement
+    afficherChargementGroupements();
+
+    // 🎯 ANNULER toute requête de suggestion en cours
+    if (currentSuggestionRequest) {
+        console.log('🚫 Annulation de la requête de suggestion en cours pour compte:', currentSuggestionAccount);
+        currentSuggestionRequest.abort();
+        currentSuggestionRequest = null;
+    }
+
+    // Générer un ID unique pour cette requête
+    const requestId = ++suggestionRequestId;
+    currentSuggestionAccount = compteSelectionne;
+
+    console.log(`🧠 Chargement groupements intelligents pour compte: ${compteSelectionne} (ID: ${requestId})`);
 
     const showCovered = document.getElementById('show-covered-transactions').checked;
 
-fetch('/api/groupements-intelligents', {
+    // Créer un AbortController pour pouvoir annuler cette requête
+    currentSuggestionRequest = new AbortController();
+
+    fetch('/api/groupements-intelligents', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -6426,23 +6516,72 @@ fetch('/api/groupements-intelligents', {
             societe_id: societeId,
             compte_selectionne: compteSelectionne,
             show_covered: showCovered
-        })
+        }),
+        signal: currentSuggestionRequest.signal // Ajout du signal d'annulation
     })
-    .then(response => response.json())
-.then(data => {
+    .then(response => {
+        // 🔍 VÉRIFICATION CRITIQUE : le compte sélectionné a-t-il changé ?
+        if (compteSelectionne !== currentSuggestionAccount) {
+            console.log(`🚫 Suggestion obsolète ignorée (compte changed: ${currentSuggestionAccount} → ${compteSelectionne})`);
+            return null; // Ne pas traiter cette réponse
+        }
+
+        // 🔍 VÉRIFICATION ID : cette réponse correspond-elle à la dernière requête ?
+        if (requestId !== suggestionRequestId) {
+            console.log(`🚫 Suggestion obsolète ignorée (ID: ${requestId} vs current: ${suggestionRequestId})`);
+            return null;
+        }
+
+        return response.json();
+    })
+    .then(data => {
+        // Si data est null (compte changé), ne rien faire
+        if (!data) return;
+
+        // 🔍 DOUBLE VÉRIFICATION avant affichage
+        if (compteSelectionne !== currentSuggestionAccount || requestId !== suggestionRequestId) {
+            console.log(`🚫 Affichage suggestion annulé (vérification finale échouée)`);
+            return;
+        }
+
         console.log('📦 Réponse API groupements:', data);
         if (data.success) {
             groupementsIntelligents = data.groupements || [];
-            console.log('🧠 Groupements reçus:', groupementsIntelligents.length);
+            console.log(`🧠 Groupements reçus: ${groupementsIntelligents.length} pour compte ${compteSelectionne}`);
             afficherGroupementsIntelligents();
         } else {
             console.error('Erreur groupements:', data.error);
             afficherEtatVideGroupements();
         }
+
+        // Nettoyer les variables de contrôle si cette requête est toujours la courante
+        if (requestId === suggestionRequestId) {
+            currentSuggestionRequest = null;
+            currentSuggestionAccount = null;
+        }
     })
     .catch(error => {
+        // Ignorer les erreurs d'annulation (AbortError)
+        if (error.name === 'AbortError') {
+            console.log(`🚫 Requête de suggestion annulée pour compte: ${currentSuggestionAccount}`);
+            // 🎯 Ne pas masquer le chargement en cas d'annulation - une nouvelle requête va suivre
+            return;
+        }
+
+        // 🔍 VÉRIFICATION avant affichage d'erreur
+        if (compteSelectionne !== currentSuggestionAccount || requestId !== suggestionRequestId) {
+            console.log(`🚫 Erreur suggestion ignorée (compte/ID changed)`);
+            return;
+        }
+
         console.error('Erreur lors du chargement des groupements:', error);
         afficherEtatVideGroupements();
+        
+        // Nettoyer les variables de contrôle
+        if (requestId === suggestionRequestId) {
+            currentSuggestionRequest = null;
+            currentSuggestionAccount = null;
+        }
     });
 }
 
@@ -6602,6 +6741,28 @@ function afficherEtatVideGroupements() {
     // Masquer complètement le bloc suggestions
     if (groupsContainer) {
         groupsContainer.style.display = 'none';
+    }
+}
+
+// Fonction pour afficher l'état de chargement des suggestions
+function afficherChargementGroupements() {
+    const groupsContainer = document.getElementById('transaction-groups-container');
+    const container = document.getElementById('groups-list');
+    
+    if (groupsContainer && container) {
+        // Afficher le conteneur
+        groupsContainer.style.display = 'block';
+        
+        // Afficher l'indicateur de chargement
+        container.innerHTML = `
+            <div class="loading-suggestions">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">
+                    <div class="loading-primary">Analyse des transactions...</div>
+                    <div class="loading-secondary">Recherche de patterns intelligents</div>
+                </div>
+            </div>
+        `;
     }
 }
 

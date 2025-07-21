@@ -699,18 +699,36 @@
     display: none;
 }
 
+.affectia-sidebar.collapsed .company-layout-sidebar {
+    justify-content: center;
+    align-items: center;
+}
+
+.affectia-sidebar.collapsed .automation-score-section-sidebar {
+    margin: 0;
+}
+
 .affectia-sidebar.collapsed .company-section-sidebar {
     justify-content: center;
     padding: var(--ai-spacing-sm);
 }
 
 .affectia-sidebar.collapsed .automation-glass-background-sidebar {
-    padding: 3px 6px;
-    min-width: 24px;
+    padding: 4px 8px;
+    min-width: 42px;
+    width: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    white-space: nowrap;
 }
 
 .affectia-sidebar.collapsed .percentage-sidebar {
     font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 /* === SCROLLBAR PERSONNALISÉE === */

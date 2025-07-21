@@ -18,7 +18,7 @@ class FecProcessor:
             'EcritureLet', 'DateLet', 'ValidDate', 'Montantdevise', 'Idevise'
         ]
 
-    def process_fec_file(self, file_path, original_filename, societe_id):
+    def process_fec_file(self, file_path, original_filename, societe_id, format_fec='standard'):
         """
         Traite un fichier FEC complet :
         1. Détecte l'encodage et le séparateur
@@ -49,10 +49,14 @@ class FecProcessor:
             # 4. Validation du format
             validation_result = self._validate_fec_format(df)
             if not validation_result['valid']:
-                return {
-                    'success': False,
-                    'error': validation_result['error']
-                }
+             return {
+             'success': False,
+              'error': validation_result['error']
+            }
+
+            # 4.5. Application du format spécifique (Pennylane si nécessaire)
+            if format_fec == 'pennylane':
+             df = self._apply_pennylane_formatting(df)
 
             # 5. Extraction des écritures bancaires (512*)
             ecritures_bancaires = self._extract_ecritures_bancaires(df)
@@ -318,3 +322,51 @@ class FecProcessor:
             return datetime.strptime(date_str, '%Y%m%d').date()
         except:
             return None
+        
+    def _apply_pennylane_formatting(self, df):
+    print("🔧 Application du format Pennylane...")
+    
+    # Suffixes à détecter et supprimer
+    pennylane_suffixes = [
+        '(Import/Export)',
+        '(Pas de TVA)',
+        '(TVA 20%)',
+        '(TVA 5.5%)',
+        '(TVA 10%)',
+        '(TVA 2.1%)',
+        '(Intracom)'
+    ]
+    
+    modifications_count = 0
+    
+    for index, row in df.iterrows():
+        compte_num = str(row['CompteNum']) if pd.notna(row['CompteNum']) else ''
+        compte_lib = str(row['CompteLib']) if pd.notna(row['CompteLib']) else ''
+        
+        # Vérifier si le libellé contient un des suffixes (insensible à la casse)
+        suffix_found = False
+        for suffix in pennylane_suffixes:
+            if suffix.lower() in compte_lib.lower():
+                suffix_found = True
+                break
+        
+        if suffix_found and len(compte_num) > 0:
+            # Modifier le dernier caractère de CompteNum par "0"
+            new_compte_num = compte_num[:-1] + '0'
+            df.at[index, 'CompteNum'] = new_compte_num
+            modifications_count += 1
+            
+        # Nettoyer le libellé en supprimant tous les suffixes
+        new_compte_lib = compte_lib
+        for suffix in pennylane_suffixes:
+            # Suppression insensible à la casse
+            import re
+            pattern = re.escape(suffix)
+            new_compte_lib = re.sub(pattern, '', new_compte_lib, flags=re.IGNORECASE)
+        
+        # Nettoyer les espaces en trop
+        new_compte_lib = new_compte_lib.strip()
+        df.at[index, 'CompteLib'] = new_compte_lib
+    
+    print(f"✅ Format Pennylane appliqué : {modifications_count} comptes modifiés")
+    return df

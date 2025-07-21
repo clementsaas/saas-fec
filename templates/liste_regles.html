@@ -1369,16 +1369,6 @@ body {
     </table>
 </div>
 
-<!-- État vide -->
-<div class="empty-state" id="empty-state" style="display: none;">
-    <div class="empty-state-icon">⚙️</div>
-    <h3>Aucune règle d'affectation</h3>
-    <p>Créez votre première règle pour automatiser l'affectation<br>de vos transactions bancaires.</p>
-    <button class="btn-apple success" onclick="nouvelleRegle()">
-        + Créer ma première règle
-    </button>
-</div>
-
 <!-- Barre d'actions bulk -->
 <div class="bulk-actions" id="bulk-actions">
     <div class="bulk-selected-count" id="bulk-count">
@@ -1425,7 +1415,6 @@ if (!societeId || societeId === null) {
 
 console.log('🔍 Variables globales finales:', { societeId, fecActifId });
 
-// Le reste de votre code JavaScript existant...
 let reglesData = [];
 let selectedRules = new Set();
 let sortConfig = { field: 'compte', direction: 'asc' };
